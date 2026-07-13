@@ -27,6 +27,7 @@ import {
   generateInitialFeedbacks
 } from '@/lib/mockData';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import dataService from '@/lib/dataService';
 import { Settings, Building2, MessageSquare as ChatIconFab } from 'lucide-react';
 
 const APP_VERSION = "procuroPraTi_v16_notification_fix";
@@ -107,6 +108,100 @@ function App() {
   useEffect(() => {
     updateUnreadNotifications();
   }, [updateUnreadNotifications]);
+
+  // On mount, try to load from dataService (Supabase) and replace local state if available
+  useEffect(() => {
+    let mounted = true;
+    async function loadRemote() {
+      try {
+        const [remoteUsers, remoteCompanies, remoteProcuras, remoteChats, remoteFeedbacks] = await Promise.all([
+          dataService.getUsers(),
+          dataService.getCompanies(),
+          dataService.getProcuras(),
+          dataService.getMessages(),
+          dataService.getFeedbacks()
+        ]);
+
+        if (!mounted) return;
+        if (Array.isArray(remoteUsers) && remoteUsers.length) setUsers(remoteUsers);
+        if (Array.isArray(remoteCompanies) && remoteCompanies.length) setCompanies(remoteCompanies);
+        if (Array.isArray(remoteProcuras) && remoteProcuras.length) setProcuras(remoteProcuras);
+        if (remoteChats && Object.keys(remoteChats).length) setChats(remoteChats);
+        if (Array.isArray(remoteFeedbacks) && remoteFeedbacks.length) setFeedbacks(remoteFeedbacks);
+      } catch (err) {
+        // silent: fallback to localStorage
+        console.debug('dataService load skipped or failed:', err?.message || err);
+      }
+    }
+    loadRemote();
+    return () => { mounted = false; };
+  }, [setUsers, setCompanies, setProcuras, setChats, setFeedbacks]);
+
+  // Keep remote in sync when main collections change
+  useEffect(() => {
+    let cancelled = false;
+    async function sync() {
+      try {
+        await dataService.upsertUsers(Array.isArray(users) ? users : []);
+      } catch (e) {
+        if (!cancelled) console.debug('upsertUsers failed', e?.message || e);
+      }
+    }
+    sync();
+    return () => { cancelled = true; };
+  }, [users]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function sync() {
+      try {
+        await dataService.upsertCompanies(Array.isArray(companies) ? companies : []);
+      } catch (e) {
+        if (!cancelled) console.debug('upsertCompanies failed', e?.message || e);
+      }
+    }
+    sync();
+    return () => { cancelled = true; };
+  }, [companies]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function sync() {
+      try {
+        await dataService.upsertProcuras(Array.isArray(procuras) ? procuras : []);
+      } catch (e) {
+        if (!cancelled) console.debug('upsertProcuras failed', e?.message || e);
+      }
+    }
+    sync();
+    return () => { cancelled = true; };
+  }, [procuras]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function sync() {
+      try {
+        await dataService.upsertMessages(chats && typeof chats === 'object' ? chats : {});
+      } catch (e) {
+        if (!cancelled) console.debug('upsertMessages failed', e?.message || e);
+      }
+    }
+    sync();
+    return () => { cancelled = true; };
+  }, [chats]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function sync() {
+      try {
+        await dataService.upsertFeedbacks(Array.isArray(feedbacks) ? feedbacks : []);
+      } catch (e) {
+        if (!cancelled) console.debug('upsertFeedbacks failed', e?.message || e);
+      }
+    }
+    sync();
+    return () => { cancelled = true; };
+  }, [feedbacks]);
 
   useEffect(() => {
     if (currentUser && !termsAcceptedDate) {
