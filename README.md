@@ -19,19 +19,45 @@ npm run dev
 
 ## Supabase
 
-O projeto atualmente usa `localStorage` para dados mock. Para usar Supabase:
+O projeto já roda localmente sem Supabase, usando `localStorage` como fallback. Para usar Supabase de verdade:
 
 1. Crie um projeto no Supabase.
-2. Atualize `.env` com `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`.
-3. Configure o banco com `db/schema.sql` e `db/seed.sql`.
-4. Implemente a lógica de API em `src/lib/supabaseClient.js` e troque o salvamento de `localStorage` para chamadas Supabase.
-5. Para popular o banco com os dados mock (via Node + Supabase), crie um arquivo `.env` com `VITE_SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` (ou `VITE_SUPABASE_ANON_KEY` para testes). Em seguida rode:
+2. Copie `.env.example` para `.env`:
 
 ```bash
-node scripts/seed-supabase.mjs
+cp .env.example .env
 ```
 
-Observação: o script usa as funções de geração em `src/lib/mockData.js` e insere registros via `@supabase/supabase-js`.
+3. Preencha no `.env`:
+
+```env
+VITE_SUPABASE_URL=https://<seu-projeto>.supabase.co
+VITE_SUPABASE_ANON_KEY=<sua-anon-key>
+SUPABASE_SERVICE_ROLE_KEY=<sua-service-role-key>
+```
+
+4. Aplique o schema no banco:
+
+- No dashboard do Supabase, abra SQL Editor e cole `db/schema.sql`.
+- Em seguida, abra `db/seed.sql` e rode para popular dados de exemplo.
+
+5. Com o `.env` configurado, rode o script de seed opcional:
+
+```bash
+npm run seed:supabase
+```
+
+6. Inicie o app:
+
+```bash
+npm run dev
+```
+
+### Observações
+
+- Se você ainda não tiver projeto Supabase, pode usar o app normalmente com `localStorage`.
+- Se a seed falhar porque o banco já está vazio ou porque você não tem `SUPABASE_SERVICE_ROLE_KEY`, use o SQL do dashboard.
+- `src/lib/dataService.js` já está implementado para usar Supabase quando `VITE_SUPABASE_URL` estiver definido.
 
 ## Nota
 
