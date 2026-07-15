@@ -2,23 +2,21 @@
 import { useState, useEffect } from 'react';
 
 export function useLocalStorage(key, initialValue) {
+  const resolveInitial = () => (typeof initialValue === 'function' ? initialValue() : initialValue);
+
   const [storedValue, setStoredValue] = useState(() => {
     try {
       const item = window.localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValue;
+      return item ? JSON.parse(item) : resolveInitial();
     } catch (error) {
       console.error(`Error reading localStorage key “${key}”:`, error);
-      return initialValue;
+      return resolveInitial();
     }
   });
 
   useEffect(() => {
     try {
-      const valueToStore =
-        typeof storedValue === 'function'
-          ? storedValue(storedValue)
-          : storedValue;
-      window.localStorage.setItem(key, JSON.stringify(valueToStore));
+      window.localStorage.setItem(key, JSON.stringify(storedValue));
     } catch (error) {
       console.error(`Error setting localStorage key “${key}”:`, error);
     }
