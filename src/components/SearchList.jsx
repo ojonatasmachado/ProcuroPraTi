@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, Car, MapPin, MessageSquare, Eye, Camera, CheckCircle, RotateCcw, PackageSearch, CalendarDays, Filter, AlertCircle, Bike, Truck } from 'lucide-react';
+import { Clock, Car, MapPin, Eye, Camera, CheckCircle, RotateCcw, PackageSearch, CalendarDays, Filter, AlertCircle, Bike, Truck, Bus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -51,6 +51,7 @@ const SearchList = ({ procuras, onViewResponses, onMarkAsFinished, onReopenSearc
   const getVehicleIcon = (type) => {
     if (type === 'motorcycle') return <Bike className="h-3 w-3" />;
     if (type === 'truck') return <Truck className="h-3 w-3" />;
+    if (type === 'bus') return <Bus className="h-3 w-3" />;
     return <Car className="h-3 w-3" />;
   }
 
@@ -136,9 +137,11 @@ const SearchList = ({ procuras, onViewResponses, onMarkAsFinished, onReopenSearc
           >
             <Card className="search-card hover:shadow-lg transition-all duration-300 flex flex-col h-full overflow-hidden text-xs sm:text-sm">
               <CardHeader className="p-3 pb-2">
-                <div className="flex justify-between items-start gap-2">
-                  <CardTitle className="text-sm sm:text-base text-primary">{procura.partName}</CardTitle>
-                  <div className="flex items-center gap-2">
+                <div className="flex justify-between items-center gap-2 mb-1.5">
+                  <Badge className={`rounded-full text-[11px] font-bold border-transparent ${procura.status === 'active' ? 'bg-primary/15 text-primary' : 'bg-secondary text-muted-foreground'}`}>
+                    ● {procura.status === 'active' ? 'Ativa' : 'Encerrada'}
+                  </Badge>
+                  <div className="flex items-center gap-1 flex-wrap">
                     {unreadCountForProcura > 0 && listType === 'active' && (
                       <Badge variant="destructive" className="flex items-center gap-1 text-xs relative pulse-glow bg-green-500 border-green-700 text-white">
                         <AlertCircle className="h-3 w-3" /> {unreadCountForProcura}
@@ -146,6 +149,12 @@ const SearchList = ({ procuras, onViewResponses, onMarkAsFinished, onReopenSearc
                     )}
                     {procura.wantsPhotos && (<Badge variant="outline" className="border-yellow-500 text-yellow-500 flex items-center gap-1 text-xs shrink-0"><Camera className="h-3 w-3" /> Fotos</Badge>)}
                   </div>
+                </div>
+                <div className="flex justify-between items-start gap-2">
+                  <CardTitle className="text-sm sm:text-base text-foreground font-heading">{procura.partName}</CardTitle>
+                  <Badge className="rounded-full text-[11px] font-bold border-transparent bg-accent-agile/15 text-accent-agile shrink-0">
+                    ● {positiveResponsesCount(procura.responses)} resposta(s)
+                  </Badge>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                   <span className="flex items-center gap-1">{getVehicleIcon(procura.vehicleType)}{procura.vehicleBrand} {procura.vehicleModel} ({procura.vehicleYear || 'N/A'})</span>
@@ -158,11 +167,7 @@ const SearchList = ({ procuras, onViewResponses, onMarkAsFinished, onReopenSearc
               <CardContent className="p-3 flex-grow">
                 {procura.partDescription && (<p className="text-foreground mb-2 line-clamp-2 text-xs">{procura.partDescription}</p>)}
                 <div className="flex flex-wrap gap-x-3 gap-y-1 mb-2 text-xs">
-                  {(procura.locations || []).length > 0 && (<span className="flex items-center gap-1 text-primary"><MapPin className="h-3 w-3 sm:h-4 sm:w-4" />{(procura.locations || []).map(l => l.label).join('; ')}</span>)}
-                </div>
-                <div className="flex items-center gap-2">
-                    <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">{positiveResponsesCount(procura.responses)} resposta(s) positiva(s)</span>
+                  {(procura.locations || []).length > 0 && (<span className="flex items-center gap-1 text-primary bg-primary/8 rounded-md px-2 py-1"><MapPin className="h-3 w-3 sm:h-4 sm:w-4" />{(procura.locations || []).map(l => l.label).join('; ')}</span>)}
                 </div>
               </CardContent>
               <CardFooter className="flex-col sm:flex-row justify-between items-center gap-2 p-3 border-t border-border/50">

@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Car, MapPin, Camera, PackagePlus, CalendarDays, ArrowLeft, Bike, Truck } from 'lucide-react';
+import { Car, MapPin, Camera, PackagePlus, CalendarDays, ArrowLeft, Bike, Truck, Bus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from '@/components/ui/use-toast';
 import AutocompleteInput from '@/components/AutocompleteInput'; 
@@ -33,18 +33,20 @@ const SearchForm = ({ onProcuraCreate, currentUser, allStatesAndCities, vehicleD
   useEffect(() => {
     if (formData.vehicleType) {
       const brands = vehicleData.vehicleBrands.filter(brand => {
-        if (formData.vehicleType === 'car' && !brand.includes('(Moto)') && !brand.includes('(Caminhão)')) return true;
+        if (formData.vehicleType === 'car' && !brand.includes('(Moto)') && !brand.includes('(Caminhão)') && !brand.includes('(Ônibus)')) return true;
         if (formData.vehicleType === 'motorcycle' && brand.includes('(Moto)')) return true;
         if (formData.vehicleType === 'truck' && brand.includes('(Caminhão)')) return true;
+        if (formData.vehicleType === 'bus' && brand.includes('(Ônibus)')) return true;
         if (brand === 'Outra') return true;
         return false;
       });
       setAvailableBrands(brands.sort((a, b) => a.localeCompare(b)));
-      
+
       const parts = vehicleData.partNames.filter(part => {
         if (formData.vehicleType === 'car' && !part.includes('(Moto)') && !part.includes('(Caminhão)')) return true;
         if (formData.vehicleType === 'motorcycle' && (part.includes('(Moto)') || !part.includes('(Caminhão)'))) return true; // Moto parts can also be generic
         if (formData.vehicleType === 'truck' && (part.includes('(Caminhão)') || !part.includes('(Moto)'))) return true; // Truck parts can also be generic
+        if (formData.vehicleType === 'bus' && !part.includes('(Moto)')) return true; // Bus shares generic + truck-style parts
         if (part === 'Outra Peça') return true;
         return false;
       });
@@ -80,6 +82,7 @@ const SearchForm = ({ onProcuraCreate, currentUser, allStatesAndCities, vehicleD
     const newProcura = {
       id: Date.now().toString(),
       userId: currentUser?.id,
+      category: 'pecas',
       ...formData,
       createdAt: new Date().toISOString(),
       status: 'active',
@@ -117,7 +120,7 @@ const SearchForm = ({ onProcuraCreate, currentUser, allStatesAndCities, vehicleD
     >
       <Card className="glass-effect border-primary/30">
         <CardHeader className="pb-4 sm:pb-6 flex flex-row justify-between items-center">
-          <CardTitle className="flex items-center gap-2 text-primary text-lg sm:text-xl">
+          <CardTitle className="flex items-center gap-2 text-foreground text-lg sm:text-xl">
             <PackagePlus className="h-5 w-5 sm:h-6 sm:w-6" />
             Criar Nova Procura de Peça
           </CardTitle>
@@ -137,6 +140,7 @@ const SearchForm = ({ onProcuraCreate, currentUser, allStatesAndCities, vehicleD
                   <SelectItem value="car"><Car className="inline-block mr-2 h-4 w-4"/>Carro</SelectItem>
                   <SelectItem value="motorcycle"><Bike className="inline-block mr-2 h-4 w-4"/>Moto</SelectItem>
                   <SelectItem value="truck"><Truck className="inline-block mr-2 h-4 w-4"/>Caminhão</SelectItem>
+                  <SelectItem value="bus"><Bus className="inline-block mr-2 h-4 w-4"/>Ônibus</SelectItem>
                 </SelectContent>
               </Select>
             </div>

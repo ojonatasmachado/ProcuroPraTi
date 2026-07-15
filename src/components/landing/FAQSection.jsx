@@ -51,7 +51,7 @@ const FAQSection = () => {
           variants={staggerContainer}
           className="text-center mb-16"
         >
-          <motion.h2 variants={fadeInUp} className="text-3xl sm:text-5xl font-bold mb-6 text-primary">
+          <motion.h2 variants={fadeInUp} className="text-3xl sm:text-5xl font-bold mb-6 text-foreground">
             Perguntas Frequentes
           </motion.h2>
         </motion.div>
@@ -67,7 +67,7 @@ const FAQSection = () => {
             <motion.div key={index} variants={fadeInUp}>
               <Card className="glass-effect border-border/30">
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-primary mb-3">{faq.question}</h3>
+                  <h3 className="text-lg font-semibold text-foreground mb-3">{faq.question}</h3>
                   <p className="text-muted-foreground">{faq.answer}</p>
                 </CardContent>
               </Card>

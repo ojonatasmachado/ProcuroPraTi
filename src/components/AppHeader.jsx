@@ -12,17 +12,7 @@ import { Button } from '@/components/ui/button';
 import NotificationDropdown from '@/components/NotificationDropdown.jsx';
 import { UserCircle, ChevronDown, BarChartHorizontalBig, FileText, Star, AlertOctagon, LogIn } from 'lucide-react';
 
-const AutoPartsLogo = ({ className = "h-6 w-6" }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 2L3 7V17L12 22L21 17V7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
-    <path d="M12 8V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-    <path d="M8 10L16 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-    <path d="M16 10L8 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-    <circle cx="12" cy="12" r="2" fill="currentColor"/>
-  </svg>
-);
-
-const AppHeader = ({ 
+const AppHeader = ({
   currentUser, 
   userType, 
   unreadNotifications, 
@@ -38,11 +28,9 @@ const AppHeader = ({
     <header className="py-3 px-4 shadow-md bg-card/80 backdrop-blur-md sticky top-0 z-50 border-b border-border">
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <div className="p-2 rounded-full gradient-bg">
-            <AutoPartsLogo className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
-          </div>
-          <h1 className={`text-lg sm:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent ${(unreadNotifications?.length || 0) > 0 ? 'hidden xs:block' : 'block'}`}>
-            Procuro Pra Ti
+          <h1 className={`text-base sm:text-xl font-heading font-extrabold tracking-tight lowercase ${(unreadNotifications?.length || 0) > 0 ? 'hidden xs:block' : 'block'}`}>
+            <span className="text-foreground">procuro</span>{' '}
+            <span className="text-primary">pra ti</span>
           </h1>
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
@@ -67,7 +55,7 @@ const AppHeader = ({
                   <span>Editar Perfil</span>
                 </DropdownMenuItem>
               )}
-              {userType === 'cdv' && (
+              {userType === 'company' && (
                  <DropdownMenuItem onClick={onShowCdvMiniDashboard} className="cursor-pointer hover:!bg-accent/20">
                   <BarChartHorizontalBig className="mr-2 h-4 w-4 text-primary" />
                   <span>Meu Desempenho</span>

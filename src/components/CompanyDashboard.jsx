@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Building2, Car, Clock, MapPin, DollarSign, MessageCircle, Send, Camera, Upload, ListFilter, History, Edit3, PackageSearch, CalendarDays, EyeOff, Eye, AlertTriangle, CheckCircle2, XCircle, Wrench, MessageSquare as ChatIcon, ArrowLeft, Bike, Truck, Timer } from 'lucide-react';
+import { Building2, Car, Clock, MapPin, DollarSign, MessageCircle, Send, Camera, Upload, ListFilter, History, Edit3, PackageSearch, CalendarDays, EyeOff, Eye, AlertTriangle, CheckCircle2, XCircle, Wrench, MessageSquare as ChatIcon, ArrowLeft, Bike, Truck, Bus, Timer } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from '@/components/ui/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -220,6 +220,7 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
   const getVehicleIcon = (type) => {
     if (type === 'motorcycle') return <Bike className="h-3 w-3" />;
     if (type === 'truck') return <Truck className="h-3 w-3" />;
+    if (type === 'bus') return <Bus className="h-3 w-3" />;
     return <Car className="h-3 w-3" />;
   };
 
@@ -241,10 +242,10 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
         <Card className="response-card hover:shadow-lg transition-all duration-300 flex flex-col h-full text-xs sm:text-sm">
           <CardHeader className="p-3 pb-2">
             <div className="flex justify-between items-start gap-2">
-              <CardTitle className="text-sm sm:text-base text-primary">{procura.partName}</CardTitle>
+              <CardTitle className="text-sm sm:text-base text-foreground font-heading">{procura.partName}</CardTitle>
               <div className="flex items-center gap-1 flex-wrap">
                 {!timeRemaining.expired && !hasResponded && (
-                  <Badge variant="outline" className="border-orange-500 text-orange-500 flex items-center gap-1 text-xs">
+                  <Badge variant="outline" className="rounded-full border-yellow-500 text-yellow-500 flex items-center gap-1 text-xs font-bold">
                     <Timer className="h-3 w-3" /> {timeRemaining.hours}h {timeRemaining.minutes}m
                   </Badge>
                 )}
@@ -255,26 +256,25 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
               <span className="flex items-center gap-1">{getVehicleIcon(procura.vehicleType)}{procura.vehicleBrand} {procura.vehicleModel} ({procura.vehicleYear || 'N/A'})</span>
             </div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground/80"><Clock className="h-3 w-3" />{formatDate(procura.createdAt)}</div>
+            {user && <div className="flex items-center gap-1 text-xs text-muted-foreground/80">👤 {user.name}</div>}
           </CardHeader>
           <CardContent className="flex-grow p-3 text-xs">
-            {procura.partDescription && <p className="text-foreground mb-2 line-clamp-2">{procura.partDescription}</p>}
-            <div className="text-muted-foreground mb-1">
-              Localidades da procura: {(procura.locations || []).map(l => l.label).join(', ') || 'Não especificado'}
+            {procura.partDescription && (
+              <div className="bg-popover rounded-lg px-2.5 py-2 mb-2 text-foreground/90">{procura.partDescription}</div>
+            )}
+            <div className="flex items-center gap-1 text-primary bg-primary/8 rounded-md px-2 py-1 w-fit mb-1">
+              <MapPin className="h-3 w-3" />{(procura.locations || []).map(l => l.label).join(', ') || 'Não especificado'}
             </div>
-            {user && <p className="text-muted-foreground mb-2">Procurado por: {user.name}</p>}
             {hasResponded && response && (
-              <div className="mt-1 p-2 bg-input/50 rounded text-xs">
-                <p className="font-semibold text-foreground">Sua Resposta:</p>
-                <p className="text-muted-foreground flex items-center gap-1">
-                  {getStatusIcon(response.status)}
-                  Status: <span className={response.status === 'available' ? 'text-green-500' : response.status === 'unavailable' ? 'text-red-500' : 'text-yellow-500'}>{getStatusText(response.status)}</span>
-                </p>
-                {response.partCondition && <p className="text-muted-foreground">Condição: {getConditionText(response.partCondition)}</p>}
-                {response.partType && <p className="text-muted-foreground">Tipo: {response.partType === 'original' ? 'Original' : 'Paralela'}</p>}
-                {response.price && <p className="text-muted-foreground">Preço: R$ {response.price}</p>}
-                <p className="text-muted-foreground flex items-center gap-1 mt-1">
-                  {response.isReadByUser ? <Eye className="h-3 w-3 text-green-500" /> : <EyeOff className="h-3 w-3 text-orange-500" />}
-                  {response.isReadByUser ? "Visualizada pelo usuário" : "Não visualizada"}
+              <div className="mt-2 p-2.5 bg-popover rounded-lg text-xs">
+                <p className="font-semibold text-foreground mb-1">Sua resposta</p>
+                <div className="flex justify-between"><span className="text-muted-foreground">Status</span><span className={`font-semibold flex items-center gap-1 ${response.status === 'available' ? 'text-accent-agile' : response.status === 'unavailable' ? 'text-red-400' : 'text-yellow-500'}`}>{getStatusIcon(response.status)}{getStatusText(response.status)}</span></div>
+                {response.partType && <div className="flex justify-between mt-0.5"><span className="text-muted-foreground">Tipo</span><span className="text-foreground">{response.partType === 'original' ? 'Original' : 'Paralela'}</span></div>}
+                {response.partCondition && <div className="flex justify-between mt-0.5"><span className="text-muted-foreground">Condição</span><span className="text-foreground">{getConditionText(response.partCondition)}</span></div>}
+                {response.price && <div className="flex justify-between mt-0.5"><span className="text-muted-foreground">Preço</span><span className="text-foreground font-bold">R$ {response.price}</span></div>}
+                <p className={`flex items-center gap-1 mt-1.5 ${response.isReadByUser ? 'text-accent-agile' : 'text-yellow-500'}`}>
+                  {response.isReadByUser ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                  {response.isReadByUser ? "Visualizada pelo usuário" : "Não visualizada pelo cliente"}
                 </p>
               </div>
             )}
@@ -282,15 +282,15 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
           <CardFooter className="p-3 pt-2 border-t border-border/50 flex flex-col gap-2">
             {!hasResponded ? (
               <div className="flex flex-col sm:flex-row gap-2 w-full">
-                <Button onClick={() => handleQuickResponse(procura, true)} className="flex-1 gradient-bg hover:opacity-90 text-primary-foreground text-xs py-1.5 h-auto">
+                <Button onClick={() => handleQuickResponse(procura, true)} className="flex-1 bg-accent-agile hover:bg-accent-agile/90 text-accent-agile-foreground text-xs py-1.5 h-auto font-bold">
                   <CheckCircle2 className="h-3 w-3 mr-1" />Tenho essa peça
                 </Button>
-                <Button onClick={() => handleQuickResponse(procura, false)} variant="outline" className="flex-1 border-red-500/70 text-red-500 hover:bg-red-500/10 text-xs py-1.5 h-auto">
+                <Button onClick={() => handleQuickResponse(procura, false)} variant="outline" className="flex-1 border-red-500/70 text-red-400 hover:bg-red-500/10 text-xs py-1.5 h-auto">
                   <XCircle className="h-3 w-3 mr-1" />Não tenho
                 </Button>
               </div>
             ) : (
-              <Button onClick={() => handleSelectProcura(procura, hasResponded)} className="w-full gradient-bg hover:opacity-90 text-primary-foreground text-xs py-1.5 h-auto">
+              <Button onClick={() => handleSelectProcura(procura, hasResponded)} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs py-1.5 h-auto">
                 <Edit3 className="h-3 w-3 mr-1" />Editar Resposta
               </Button>
             )}
@@ -311,7 +311,7 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
         <Card className="glass-effect border-primary/30 max-w-2xl mx-auto">
           <CardHeader>
             <div className="flex justify-between items-start">
-              <CardTitle className="text-primary text-lg sm:text-xl">{isEditingResponse ? 'Editar Resposta para:' : 'Responder Procura:'} {selectedProcura.partName}</CardTitle>
+              <CardTitle className="text-foreground text-lg sm:text-xl">{isEditingResponse ? 'Editar Resposta para:' : 'Responder Procura:'} {selectedProcura.partName}</CardTitle>
               <Button variant="outline" size="sm" onClick={() => { setSelectedProcura(null); setIsEditingResponse(false); setCurrentView('home'); }} className="border-muted-foreground/50 text-muted-foreground hover:border-primary hover:text-primary"><ArrowLeft className="h-4 w-4 mr-1"/>Voltar</Button>
             </div>
             <div className="text-muted-foreground text-sm">{selectedProcura.vehicleType} - {selectedProcura.vehicleBrand} {selectedProcura.vehicleModel} ({selectedProcura.vehicleYear || 'N/A'})</div>
@@ -384,7 +384,7 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
         <Dialog open={showPhotoConfirmDialog} onOpenChange={setShowPhotoConfirmDialog}>
           <DialogContent className="max-w-md bg-card border-border text-foreground">
             <DialogHeader>
-              <DialogTitle className="text-xl text-primary flex items-center gap-2">
+              <DialogTitle className="text-xl text-foreground flex items-center gap-2">
                 <Camera className="h-6 w-6" />
                 Responder sem foto?
               </DialogTitle>
@@ -411,7 +411,7 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
   return (
     <div className="space-y-6 sm:space-y-8">
       <div className="text-center">
-        <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-2 flex items-center justify-center gap-2"><Building2 className="h-7 w-7 sm:h-8 sm:w-8" /> Painel da Empresa</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 flex items-center justify-center gap-2"><Building2 className="h-7 w-7 sm:h-8 sm:w-8" /> Painel da Empresa</h1>
         <p className="text-muted-foreground text-sm sm:text-base">Responda às procuras de peças dos usuários e gerencie suas respostas com excelência.</p>
       </div>
 
@@ -419,7 +419,7 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card className="glass-effect hover:border-primary/50 transition-all">
             <CardHeader>
-              <CardTitle className="text-lg text-primary flex items-center gap-2"><PackageSearch size={20}/> Procuras Ativas</CardTitle>
+              <CardTitle className="text-lg text-foreground flex items-center gap-2"><PackageSearch size={20}/> Procuras Ativas</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">{unrespondedProcurasCount}</p>
@@ -431,7 +431,7 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
           </Card>
           <Card className="glass-effect hover:border-primary/50 transition-all">
             <CardHeader>
-              <CardTitle className="text-lg text-primary flex items-center gap-2"><History size={20}/> Minhas Respostas</CardTitle>
+              <CardTitle className="text-lg text-foreground flex items-center gap-2"><History size={20}/> Minhas Respostas</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">{(companyResponses || []).length}</p>
@@ -449,7 +449,7 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
           <Button onClick={() => setCurrentView('home')} variant="outline" className="mb-4"><ArrowLeft className="h-4 w-4 mr-2"/> Voltar para Home da Empresa</Button>
           <Card className="glass-effect p-4">
             <CardHeader className="p-2 pb-3 sm:p-4 sm:pb-4">
-                <CardTitle className="text-md sm:text-lg text-primary">Filtrar Procuras</CardTitle>
+                <CardTitle className="text-md sm:text-lg text-foreground">Filtrar Procuras</CardTitle>
             </CardHeader>
             <CardContent className="p-2 sm:p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>

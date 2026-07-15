@@ -42,7 +42,7 @@ const TestimonialsSection = () => {
           variants={staggerContainer}
           className="text-center mb-16"
         >
-          <motion.h2 variants={fadeInUp} className="text-3xl sm:text-5xl font-bold mb-6 text-primary">
+          <motion.h2 variants={fadeInUp} className="text-3xl sm:text-5xl font-bold mb-6 text-foreground">
             O Que Nossos Usuários Dizem
           </motion.h2>
         </motion.div>
@@ -70,7 +70,7 @@ const TestimonialsSection = () => {
                         {testimonial.name.charAt(0)}
                       </span>
                     </div>
-                    <span className="font-semibold text-primary">– {testimonial.name}</span>
+                    <span className="font-semibold text-foreground">– {testimonial.name}</span>
                   </div>
                 </CardContent>
               </Card>

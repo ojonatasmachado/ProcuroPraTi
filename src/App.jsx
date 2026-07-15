@@ -39,10 +39,11 @@ function App() {
   const [chats, setChats] = useLocalStorage(`autoPartsChats_${APP_VERSION}`, () => generateInitialChats(users || [], companies || [], 100));
   const [feedbacks, setFeedbacks] = useLocalStorage(`autoPartsFeedbacks_${APP_VERSION}`, () => generateInitialFeedbacks(users || [], companies || [], 80));
   
-  const [userType, setUserType] = useLocalStorage(`autoPartsUserType_${APP_VERSION}`, null); 
+  const [userType, setUserType] = useLocalStorage(`autoPartsUserType_${APP_VERSION}`, null);
   const [currentUser, setCurrentUser] = useLocalStorage(`autoPartsCurrentUser_${APP_VERSION}`, null);
   const [showLanding, setShowLanding] = useLocalStorage(`autoPartsShowLanding_${APP_VERSION}`, true);
-  
+  const [registrationIntent, setRegistrationIntent] = useState('user');
+
   const [showProfile, setShowProfile] = useState(false);
   const [showCompanyMiniDashboard, setShowCompanyMiniDashboard] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
@@ -505,12 +506,24 @@ function App() {
   };
 
   if (showLanding && !currentUser) {
-    return <LandingPage onGetStarted={() => setShowLanding(false)} />;
+    return (
+      <LandingPage
+        onGetStarted={(intent) => {
+          setRegistrationIntent(intent === 'company' ? 'company' : 'user');
+          setShowLanding(false);
+        }}
+      />
+    );
   }
 
   if (!currentUser) {
     return (
-      <UserRegistration onRegister={handleUserRegister} onLogin={handleLogin} allStatesAndCities={BRAZILIAN_STATES_AND_CITIES} />
+      <UserRegistration
+        onRegister={handleUserRegister}
+        onLogin={handleLogin}
+        allStatesAndCities={BRAZILIAN_STATES_AND_CITIES}
+        initialUserType={registrationIntent}
+      />
     );
   }
 

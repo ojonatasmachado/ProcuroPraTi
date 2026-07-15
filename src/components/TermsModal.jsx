@@ -6,7 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { FileText, X, Building2, Users, CheckCircle } from 'lucide-react';
 
 const TermsModal = ({ isOpen, onClose, onAccept, userType, termsAcceptedDate }) => {
-  const isCDV = userType === 'cdv';
+  const isCDV = userType === 'company';
 
   const formatDate = (dateString) => {
     if (!dateString) return null;
@@ -22,14 +22,14 @@ const TermsModal = ({ isOpen, onClose, onAccept, userType, termsAcceptedDate }) 
       </p>
       <div className="space-y-4">
         <div>
-          <h3 className="text-lg font-semibold text-primary mb-2">1. Cadastro e Acesso</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-2">1. Cadastro e Acesso</h3>
           <div className="space-y-2 text-muted-foreground">
             <p><strong>1.1.</strong> Para utilizar o Aplicativo, você deve criar uma conta fornecendo informações precisas e atualizadas, incluindo seu endereço de e-mail e senha.</p>
             <p><strong>1.2.</strong> Você é responsável por manter a confidencialidade de suas credenciais de login e não deve compartilhá-las com terceiros.</p>
           </div>
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-primary mb-2">2. Funcionalidade do Aplicativo</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-2">2. Funcionalidade do Aplicativo</h3>
           <div className="space-y-2 text-muted-foreground">
             <p><strong>2.1.</strong> O PROCURO PRA TI é uma ferramenta que permite aos usuários buscar peças de automóveis usadas.</p>
             <p><strong>2.2.</strong> As buscas podem levar até 24 horas para serem concluídas, pois dependem da disponibilidade de peças nos Centros de Demolição Veiculares (CDVs) parceiros.</p>
@@ -37,7 +37,7 @@ const TermsModal = ({ isOpen, onClose, onAccept, userType, termsAcceptedDate }) 
           </div>
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-primary mb-2">3. Responsabilidades do Usuário</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-2">3. Responsabilidades do Usuário</h3>
           <div className="space-y-2 text-muted-foreground">
             <p><strong>3.1.</strong> Você concorda em utilizar o Aplicativo de forma legal e ética, respeitando todas as leis e regulamentos aplicáveis.</p>
             <p><strong>3.2.</strong> É de sua responsabilidade verificar a disponibilidade, qualidade e preço das peças de automóveis usadas encontradas através do Aplicativo.</p>
@@ -45,25 +45,25 @@ const TermsModal = ({ isOpen, onClose, onAccept, userType, termsAcceptedDate }) 
           </div>
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-primary mb-2">4. Privacidade</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-2">4. Privacidade</h3>
           <div className="space-y-2 text-muted-foreground">
             <p><strong>4.1.</strong> Nós valorizamos sua privacidade e tratamos suas informações de acordo com nossa Política de Privacidade. Ao usar o Aplicativo, você concorda com a coleta e uso de seus dados pessoais de acordo com nossa Política de Privacidade.</p>
           </div>
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-primary mb-2">5. Alterações nos Termos</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-2">5. Alterações nos Termos</h3>
           <div className="space-y-2 text-muted-foreground">
             <p><strong>5.1.</strong> Reservamo-nos o direito de modificar ou atualizar estes Termos a qualquer momento. Quaisquer alterações serão comunicadas através do Aplicativo ou por e-mail.</p>
           </div>
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-primary mb-2">6. Encerramento de Conta</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-2">6. Encerramento de Conta</h3>
           <div className="space-y-2 text-muted-foreground">
             <p><strong>6.1.</strong> Reservamo-nos o direito de encerrar sua conta ou restringir seu acesso ao Aplicativo, a nosso critério, se você violar estes Termos ou qualquer lei aplicável.</p>
           </div>
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-primary mb-2">7. Contato</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-2">7. Contato</h3>
           <div className="space-y-2 text-muted-foreground">
             <p><strong>7.1.</strong> Para entrar em contato conosco em relação a estes Termos ou ao Aplicativo "PROCURO PRA TI", você pode utilizar os meios de contato fornecidos no Aplicativo.</p>
           </div>
@@ -84,14 +84,14 @@ const TermsModal = ({ isOpen, onClose, onAccept, userType, termsAcceptedDate }) 
       </p>
       <div className="space-y-4">
         <div>
-          <h3 className="text-lg font-semibold text-primary mb-2">1. Cadastro e Participação</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-2">1. Cadastro e Participação</h3>
           <div className="space-y-2 text-muted-foreground">
             <p><strong>1.1.</strong> Para participar da plataforma, o CDV deverá realizar cadastro completo e atualizado com dados reais e verificáveis, incluindo CNPJ, endereço, contatos e outras informações solicitadas.</p>
             <p><strong>1.2.</strong> O acesso ao painel do CDV poderá ser concedido mediante aprovação e validação pela equipe do PROCURO PRA TI.</p>
           </div>
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-primary mb-2">2. Compromisso com Respostas e Qualidade das Informações</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-2">2. Compromisso com Respostas e Qualidade das Informações</h3>
           <div className="space-y-2 text-muted-foreground">
             <p><strong>2.1.</strong> O CDV compromete-se a responder às solicitações de busca enviadas pelo PROCURO PRA TI no menor tempo possível, com prazo máximo recomendado de 24 horas.</p>
             <p><strong>2.2.</strong> Toda resposta enviada deve conter informações claras e verdadeiras, incluindo:</p>
@@ -107,34 +107,34 @@ const TermsModal = ({ isOpen, onClose, onAccept, userType, termsAcceptedDate }) 
           </div>
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-primary mb-2">3. Relacionamento com o Usuário Final</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-2">3. Relacionamento com o Usuário Final</h3>
           <div className="space-y-2 text-muted-foreground">
             <p><strong>3.1.</strong> Após a resposta ser enviada e visualizada pelo usuário, o contato e negociação direta entre CDV e consumidor são de responsabilidade exclusiva de ambas as partes.</p>
             <p><strong>3.2.</strong> O PROCURO PRA TI não intermedia, recebe valores ou assume qualquer responsabilidade sobre a conclusão da negociação, retirada da peça ou eventual insatisfação do consumidor.</p>
           </div>
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-primary mb-2">4. Conduta e Reputação</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-2">4. Conduta e Reputação</h3>
           <div className="space-y-2 text-muted-foreground">
             <p><strong>4.1.</strong> Espera-se dos CDVs cadastrados uma conduta profissional e respeitosa com todos os usuários da plataforma.</p>
             <p><strong>4.2.</strong> Reclamações recorrentes, ausência de resposta, ou conduta inadequada poderão acarretar a exclusão do CDV da base ativa da plataforma, a critério do PROCURO PRA TI.</p>
           </div>
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-primary mb-2">5. Atualização de Dados</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-2">5. Atualização de Dados</h3>
           <div className="space-y-2 text-muted-foreground">
             <p><strong>5.1.</strong> É responsabilidade do CDV manter suas informações de contato e endereço de cadastro atualizados, pois este será utilizado como base para as localidades atendidas.</p>
           </div>
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-primary mb-2">6. Alterações e Cancelamento</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-2">6. Alterações e Cancelamento</h3>
           <div className="space-y-2 text-muted-foreground">
             <p><strong>6.1.</strong> O PROCURO PRA TI poderá atualizar estes Termos a qualquer momento. Toda mudança será comunicada via e-mail ou dentro do painel do CDV.</p>
             <p><strong>6.2.</strong> O CDV poderá solicitar o cancelamento de sua participação na plataforma a qualquer momento, mediante aviso prévio.</p>
           </div>
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-primary mb-2">7. Disposições Gerais</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-2">7. Disposições Gerais</h3>
           <div className="space-y-2 text-muted-foreground">
             <p><strong>7.1.</strong> Ao utilizar a plataforma, o CDV concorda em respeitar estes Termos e colaborar para que a experiência dos usuários seja transparente, segura e eficaz.</p>
           </div>
@@ -153,7 +153,7 @@ const TermsModal = ({ isOpen, onClose, onAccept, userType, termsAcceptedDate }) 
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col bg-card border-border text-foreground">
         <DialogHeader className="px-6 pt-6">
-          <DialogTitle className="text-2xl text-primary mb-2 flex items-center gap-2">
+          <DialogTitle className="text-2xl text-foreground mb-2 flex items-center gap-2">
             <FileText className="h-6 w-6" />
             {isCDV ? (
               <>

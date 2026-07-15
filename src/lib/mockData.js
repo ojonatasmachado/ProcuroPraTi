@@ -82,6 +82,7 @@ export const MOCK_VEHICLE_DATA = {
     'Fiat', 'Volkswagen', 'Chevrolet', 'Ford', 'Renault', 'Hyundai', 'Toyota', 'Honda', 'Jeep', 'Nissan', 'Peugeot', 'Citroën', 'Mitsubishi', 'Mercedes-Benz', 'BMW', 'Audi', 'Kia', 'Chery', 'JAC',
     'Honda (Moto)', 'Yamaha', 'Suzuki', 'Kawasaki', 'Ducati', 'BMW (Moto)', 'Harley-Davidson', 'Triumph', 'KTM', 'Aprilia', 'Dafra', 'Traxx', 'Shineray', 'Kasinski',
     'Mercedes-Benz (Caminhão)', 'Volvo', 'Scania', 'MAN', 'Iveco', 'Ford (Caminhão)', 'Volkswagen (Caminhão)', 'DAF', 'Agrale', 'International',
+    'Mercedes-Benz (Ônibus)', 'Volkswagen (Ônibus)', 'Scania (Ônibus)', 'Agrale (Ônibus)', 'Marcopolo (Ônibus)', 'Comil (Ônibus)', 'Neobus (Ônibus)', 'Busscar (Ônibus)',
     'Outra'
   ].sort((a,b) => a.localeCompare(b)),
   vehicleModels: {
@@ -128,6 +129,14 @@ export const MOCK_VEHICLE_DATA = {
     'DAF': ['CF 85', 'XF 105', 'LF 45', 'Outro'].sort((a,b) => a.localeCompare(b)),
     'Agrale': ['8500', '10000', '14000', 'Outro'].sort((a,b) => a.localeCompare(b)),
     'International': ['4300', '7400', '9800', 'Outro'].sort((a,b) => a.localeCompare(b)),
+    'Mercedes-Benz (Ônibus)': ['O 500 RS', 'O 500 RSD', 'OF 1721', 'OF 1519', 'Outro'].sort((a,b) => a.localeCompare(b)),
+    'Volkswagen (Ônibus)': ['17.230 EOD', '9.160 OD', '15.190 EOD', 'Outro'].sort((a,b) => a.localeCompare(b)),
+    'Scania (Ônibus)': ['K 310', 'K 400', 'K 250', 'Outro'].sort((a,b) => a.localeCompare(b)),
+    'Agrale (Ônibus)': ['MT 17.0', 'MA 8.5', 'Outro'].sort((a,b) => a.localeCompare(b)),
+    'Marcopolo (Ônibus)': ['Paradiso 1200', 'Viaggio 1050', 'Torino', 'Senior', 'Outro'].sort((a,b) => a.localeCompare(b)),
+    'Comil (Ônibus)': ['Campione 3.65', 'Svelto', 'Pia', 'Outro'].sort((a,b) => a.localeCompare(b)),
+    'Neobus (Ônibus)': ['New Road', 'Spectrum', 'Mega BRT', 'Outro'].sort((a,b) => a.localeCompare(b)),
+    'Busscar (Ônibus)': ['Vissta Buss', 'Urbanuss', 'Outro'].sort((a,b) => a.localeCompare(b)),
     'Outra': ['Outro Modelo']
   },
   vehicleYears: Array.from({length: 50}, (_, i) => (new Date().getFullYear() - i).toString()).sort((a,b) => b.localeCompare(a)),
@@ -236,14 +245,14 @@ export const generateInitialProcuras = (count, users, companies) => {
   const procuras = [];
   
   procuras.push({
-    id: "1700000000001", userId: users.find(u=>u.id === 'user-test')?.id || users[0]?.id, vehicleType: 'car', vehicleBrand: 'Ford', vehicleModel: 'Fiesta', vehicleYear: '2015', partName: 'Farol Esquerdo', partDescription: 'Preciso do farol esquerdo completo, com lâmpadas.', wantsPhotos: true, locations: [{ value: 'São Paulo, SP', label: 'São Paulo - SP'}, { value: 'Campinas, SP', label: 'Campinas - SP'}], createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), status: 'active', duration: 1, 
+    id: "1700000000001", userId: users.find(u=>u.id === 'user-test')?.id || users[0]?.id, category: 'pecas', vehicleType: 'car', vehicleBrand: 'Ford', vehicleModel: 'Fiesta', vehicleYear: '2015', partName: 'Farol Esquerdo', partDescription: 'Preciso do farol esquerdo completo, com lâmpadas.', wantsPhotos: true, locations: [{ value: 'São Paulo, SP', label: 'São Paulo - SP'}, { value: 'Campinas, SP', label: 'Campinas - SP'}], createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), status: 'active', duration: 1, 
     responses: [
       { id: "resp-1", companyId: companies.find(c=>c.id==='company-test')?.id || companies[0]?.id, companyName: companies.find(c=>c.id==='company-test')?.name || companies[0]?.name, responseDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), status: 'available', price: '250', message: 'Temos a peça em estoque, original.', partCondition: 'good', partType: 'original', photoUrl: 'https://via.placeholder.com/150/008000/FFFFFF?Text=Farol+Fiesta', cnpj: companies.find(c=>c.id==='company-test')?.cnpj || companies[0]?.cnpj, address: companies.find(c=>c.id==='company-test')?.address || companies[0]?.address, location: 'Campinas, SP', isReadByUser: false, isReadByCompany: true },
       { id: "resp-2", companyId: companies.find(c=>c.id==='company-test-bh')?.id || companies[2]?.id, companyName: companies.find(c=>c.id==='company-test-bh')?.name || companies[2]?.name, responseDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), status: 'unavailable', price: null, message: 'Infelizmente não temos essa peça no momento.', partCondition: null, partType: null, photoUrl: null, cnpj: companies.find(c=>c.id==='company-test-bh')?.cnpj || companies[2]?.cnpj, address: companies.find(c=>c.id==='company-test-bh')?.address || companies[2]?.address, location: 'Belo Horizonte, MG', isReadByUser: true, isReadByCompany: true  }
     ]
   });
   procuras.push({
-    id: "1700000000002", userId: users.find(u=>u.id === 'user-test')?.id || users[0]?.id, vehicleType: 'car', vehicleBrand: 'Volkswagen', vehicleModel: 'Gol', vehicleYear: '2018', partName: 'Para-choque Dianteiro', partDescription: 'Cor prata, sem furos para sensor.', wantsPhotos: false, locations: [{ value: 'Rio de Janeiro, RJ', label: 'Rio de Janeiro - RJ' }], createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), status: 'active', duration: 1,
+    id: "1700000000002", userId: users.find(u=>u.id === 'user-test')?.id || users[0]?.id, category: 'pecas', vehicleType: 'car', vehicleBrand: 'Volkswagen', vehicleModel: 'Gol', vehicleYear: '2018', partName: 'Para-choque Dianteiro', partDescription: 'Cor prata, sem furos para sensor.', wantsPhotos: false, locations: [{ value: 'Rio de Janeiro, RJ', label: 'Rio de Janeiro - RJ' }], createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), status: 'active', duration: 1,
     responses: [
        { id: "resp-3", companyId: companies.find(c=>c.id==='company-test-rj')?.id || companies[1]?.id, companyName: companies.find(c=>c.id==='company-test-rj')?.name || companies[1]?.name, responseDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), status: 'available', price: '350', message: 'Temos similar, cor prata, sem furos.', partCondition: 'excellent', partType: 'parallel', photoUrl: 'https://via.placeholder.com/150/C0C0C0/000000?Text=Parachoque+Gol', cnpj: companies.find(c=>c.id==='company-test-rj')?.cnpj || companies[1]?.cnpj, address: companies.find(c=>c.id==='company-test-rj')?.address || companies[1]?.address, location: 'Rio de Janeiro, RJ', isReadByUser: false, isReadByCompany: true }
     ]
@@ -266,7 +275,8 @@ export const generateInitialProcuras = (count, users, companies) => {
     const procura = {
       id: `procura-${Date.now().toString()}-${i}`,
       userId: user.id,
-      vehicleType: vehicleBrand.includes('(Moto)') ? 'motorcycle' : vehicleBrand.includes('(Caminhão)') ? 'truck' : 'car',
+      category: 'pecas',
+      vehicleType: vehicleBrand.includes('(Moto)') ? 'motorcycle' : vehicleBrand.includes('(Caminhão)') ? 'truck' : vehicleBrand.includes('(Ônibus)') ? 'bus' : 'car',
       vehicleBrand,
       vehicleModel,
       vehicleYear: getRandomElement(MOCK_VEHICLE_DATA.vehicleYears),
@@ -332,8 +342,10 @@ export const generateInitialChats = (users, companies, count) => {
       const receiver = sender.id === user1.id ? user2 : user1;
       lastTimestamp = new Date(lastTimestamp.getTime() + Math.random() * 60 * 60 * 1000);
       chats[chatId].push({
-        id: `chatmsg-${chatId}-${j}`,
+        id: `chatmsg-${chatId}-${i}-${j}`,
         chatId: chatId,
+        senderId: sender.id,
+        receiver_id: receiver.id,
         senderId: sender.id,
         receiverId: receiver.id,
         text: `Mensagem de teste ${j + 1} para chat ${chatId}: ${generateRandomString(20)}`,

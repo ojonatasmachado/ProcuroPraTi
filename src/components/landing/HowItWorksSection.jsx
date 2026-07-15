@@ -52,7 +52,7 @@ const HowItWorksSection = () => {
           variants={staggerContainer}
           className="text-center mb-16"
         >
-          <motion.h2 variants={fadeInUp} className="text-3xl sm:text-5xl font-bold mb-6 text-primary">
+          <motion.h2 variants={fadeInUp} className="text-3xl sm:text-5xl font-bold mb-6 text-foreground">
             Como Funciona?
           </motion.h2>
           <motion.p variants={fadeInUp} className="text-lg sm:text-xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
@@ -76,7 +76,7 @@ const HowItWorksSection = () => {
                       {step.icon}
                     </div>
                   </div>
-                  <CardTitle className="text-xl text-primary">{step.title}</CardTitle>
+                  <CardTitle className="text-xl text-foreground">{step.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">{step.description}</p>

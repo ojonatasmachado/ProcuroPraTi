@@ -62,7 +62,7 @@ const UserProfileForm = ({ user, userType, onSave, onCancel, allStatesAndCities 
     }
     
     let fullAddress = '';
-    if (userType === 'cdv') {
+    if (userType === 'company') {
       if (!formData.cnpj || !formData.addressStreet || !formData.addressCity || !formData.addressState) {
         toast({ title: "Erro", description: "CNPJ e Endereço completo (Rua, Cidade, Estado) são obrigatórios para CDV.", variant: "destructive" });
         return;
@@ -81,7 +81,7 @@ const UserProfileForm = ({ user, userType, onSave, onCancel, allStatesAndCities 
       name: formData.name,
       email: formData.email,
       phone: formData.phone,
-      cnpj: userType === 'cdv' ? formData.cnpj : undefined,
+      cnpj: userType === 'company' ? formData.cnpj : undefined,
       address: fullAddress || user.address, // Keep old address if new one is not fully provided for user
       // servesLocations is now automatically derived from address for CDV in App.jsx
     };
@@ -101,7 +101,7 @@ const UserProfileForm = ({ user, userType, onSave, onCancel, allStatesAndCities 
       >
         <Card className="glass-effect border-border/30">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl sm:text-3xl font-bold text-primary flex items-center justify-center gap-2">
+            <CardTitle className="text-2xl sm:text-3xl font-bold text-foreground flex items-center justify-center gap-2">
               {userType === 'user' ? <Users className="h-7 w-7 sm:h-8 sm:h-8" /> : <Building2 className="h-7 w-7 sm:h-8 sm:h-8" />}
               Editar Perfil de {userType === 'user' ? 'Usuário' : 'CDV'}
             </CardTitle>
@@ -124,7 +124,7 @@ const UserProfileForm = ({ user, userType, onSave, onCancel, allStatesAndCities 
                 <Input id="phone" name="phone" type="tel" value={formData.phone} onChange={handleInputChange} className="bg-input border-border text-sm"/>
               </div>
               
-              {userType === 'cdv' && (
+              {userType === 'company' && (
                 <div>
                   <Label htmlFor="cnpj" className="block text-xs sm:text-sm font-medium mb-1 text-muted-foreground">CNPJ *</Label>
                   <Input id="cnpj" name="cnpj" type="text" value={formData.cnpj} onChange={handleInputChange} required className="bg-input border-border text-sm"/>
@@ -132,26 +132,26 @@ const UserProfileForm = ({ user, userType, onSave, onCancel, allStatesAndCities 
               )}
 
               <div>
-                <Label htmlFor="addressStreet" className="block text-xs sm:text-sm font-medium mb-1 text-muted-foreground">Endereço (Rua, Nº, Bairro){userType === 'cdv' ? ' *' : ''}</Label>
+                <Label htmlFor="addressStreet" className="block text-xs sm:text-sm font-medium mb-1 text-muted-foreground">Endereço (Rua, Nº, Bairro){userType === 'company' ? ' *' : ''}</Label>
                 <Input id="addressStreet" name="addressStreet" type="text" placeholder="Ex: Rua Principal, 123, Centro" value={formData.addressStreet} onChange={handleInputChange} className="bg-input border-border text-sm"/>
               </div>
               <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <Label htmlFor="addressState" className="block text-xs sm:text-sm font-medium mb-1 text-muted-foreground">Estado{userType === 'cdv' ? ' *' : ''}</Label>
+                  <Label htmlFor="addressState" className="block text-xs sm:text-sm font-medium mb-1 text-muted-foreground">Estado{userType === 'company' ? ' *' : ''}</Label>
                   <Select value={formData.addressState} onValueChange={(value) => handleSelectChange('addressState', value)}>
                     <SelectTrigger id="addressState" className="bg-input border-border w-full text-sm"><SelectValue placeholder="Selecione Estado" /></SelectTrigger>
                     <SelectContent className="bg-popover border-border text-popover-foreground max-h-60">{sortedStates.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="addressCity" className="block text-xs sm:text-sm font-medium mb-1 text-muted-foreground">Cidade{userType === 'cdv' ? ' *' : ''}</Label>
+                  <Label htmlFor="addressCity" className="block text-xs sm:text-sm font-medium mb-1 text-muted-foreground">Cidade{userType === 'company' ? ' *' : ''}</Label>
                   <Select value={formData.addressCity} onValueChange={(value) => handleSelectChange('addressCity', value)} disabled={!formData.addressState || availableCities.length === 0}>
                     <SelectTrigger id="addressCity" className="bg-input border-border w-full text-sm"><SelectValue placeholder="Selecione Cidade" /></SelectTrigger>
                     <SelectContent className="bg-popover border-border text-popover-foreground max-h-60">{availableCities.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
               </div>
-              {userType === 'cdv' && <p className="text-xs text-muted-foreground -mt-2">A localidade de atendimento do seu CDV será automaticamente definida com base neste endereço.</p>}
+              {userType === 'company' && <p className="text-xs text-muted-foreground -mt-2">A localidade de atendimento do seu CDV será automaticamente definida com base neste endereço.</p>}
 
 
               <div className="flex flex-col sm:flex-row gap-3 pt-3">

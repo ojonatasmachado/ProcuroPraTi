@@ -5,12 +5,20 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Star, AlertOctagon, Send, X } from 'lucide-react';
+import { AlertOctagon, Send, X } from 'lucide-react';
 import { motion } from 'framer-motion';
+
+const FACES = [
+  { value: 1, emoji: '😞' },
+  { value: 2, emoji: '😕' },
+  { value: 3, emoji: '😐' },
+  { value: 4, emoji: '🙂' },
+  { value: 5, emoji: '😄' },
+];
 
 const FeedbackModal = ({ isOpen, onClose, onSubmit, feedbackType }) => {
   const [text, setText] = useState('');
-  const [rating, setRating] = useState(0); 
+  const [rating, setRating] = useState(0);
   const [contact, setContact] = useState('');
 
   const handleSubmit = () => {
@@ -18,7 +26,7 @@ const FeedbackModal = ({ isOpen, onClose, onSubmit, feedbackType }) => {
       alert("Por favor, selecione uma avaliação.");
       return;
     }
-    if (text.trim() === '') {
+    if (feedbackType === 'problem' && text.trim() === '') {
       alert("Por favor, escreva sua mensagem.");
       return;
     }
@@ -32,8 +40,8 @@ const FeedbackModal = ({ isOpen, onClose, onSubmit, feedbackType }) => {
   const getTitleAndIcon = () => {
     switch (feedbackType) {
       case 'problem': return { title: 'Relatar um Problema', icon: <AlertOctagon className="h-6 w-6 text-destructive" /> };
-      case 'rating': return { title: 'Avaliar Plataforma', icon: <Star className="h-6 w-6 text-yellow-500" /> };
-      default: return { title: 'Avaliar Plataforma', icon: <Star className="h-6 w-6 text-yellow-500" /> };
+      case 'rating': return { title: 'Encontrou o que procurava?', icon: <span className="text-2xl leading-none">🙂</span> };
+      default: return { title: 'Encontrou o que procurava?', icon: <span className="text-2xl leading-none">🙂</span> };
     }
   };
 
@@ -43,37 +51,38 @@ const FeedbackModal = ({ isOpen, onClose, onSubmit, feedbackType }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md bg-card border-border text-foreground">
         <DialogHeader>
-          <DialogTitle className="text-xl text-primary flex items-center gap-2">
+          <DialogTitle className="text-xl text-foreground flex items-center gap-2">
             {icon}
             {title}
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            {feedbackType === 'problem' 
+            {feedbackType === 'problem'
               ? "Descreva o problema encontrado para que possamos corrigi-lo."
-              : "Sua opinião é muito importante para nós!"
+              : "Sua opinião ajuda a melhorar a experiência de todo mundo."
             }
           </DialogDescription>
         </DialogHeader>
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-4 space-y-4">
           {feedbackType === 'rating' && (
-            <div>
-              <Label className="block text-sm font-medium mb-2 text-muted-foreground">Sua Avaliação (de 1 a 5 estrelas)</Label>
-              <div className="flex justify-center space-x-2">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Star
-                    key={star}
-                    className={`h-8 w-8 cursor-pointer transition-colors ${star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground hover:text-yellow-300'}`}
-                    onClick={() => setRating(star)}
-                  />
-                ))}
-              </div>
+            <div className="flex justify-center gap-2">
+              {FACES.map((face) => (
+                <button
+                  key={face.value}
+                  type="button"
+                  onClick={() => setRating(face.value)}
+                  aria-label={`Nota ${face.value}`}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-lg border transition-colors ${rating === face.value ? 'bg-primary/20 border-primary' : 'bg-popover border-border hover:border-primary/50'}`}
+                >
+                  {face.emoji}
+                </button>
+              ))}
             </div>
           )}
 
           <div>
             <Label htmlFor="feedbackText" className="block text-sm font-medium mb-2 text-muted-foreground">
-              {feedbackType === 'problem' ? 'Descrição do Problema *' : 'Seu Comentário (Opcional)'}
+              {feedbackType === 'problem' ? 'Descrição do Problema *' : 'Conte mais (opcional)'}
             </Label>
             <Textarea
               id="feedbackText"

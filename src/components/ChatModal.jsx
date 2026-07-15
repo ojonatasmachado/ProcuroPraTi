@@ -50,7 +50,7 @@ const ChatModal = ({ isOpen, onClose, currentUser, targetUser, messages = [], on
         <DialogHeader className="p-4 border-b border-border flex flex-row items-center justify-between">
           <div className="flex items-center gap-2">
             <UserCircle className="h-8 w-8 text-primary" />
-            <DialogTitle className="text-lg text-primary">{targetUser.name}</DialogTitle>
+            <DialogTitle className="text-lg text-foreground">{targetUser.name}</DialogTitle>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose} className="text-muted-foreground hover:text-primary">
             <X className="h-5 w-5" />

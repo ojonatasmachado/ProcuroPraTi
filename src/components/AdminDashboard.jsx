@@ -217,7 +217,7 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
   return (
     <div className="space-y-6 sm:space-y-10">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-center">
-        <h1 className="text-2xl sm:text-4xl font-bold text-primary mb-2 sm:mb-3 flex items-center justify-center gap-2 sm:gap-3">
+        <h1 className="text-2xl sm:text-4xl font-bold text-foreground mb-2 sm:mb-3 flex items-center justify-center gap-2 sm:gap-3">
           <ShieldCheck className="h-7 w-7 sm:h-10 sm:w-10" />
           Painel Administrativo
         </h1>
@@ -235,7 +235,7 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
         <TabsContent value="overview">
           <Card className="glass-effect border-border/30 mb-6">
             <CardHeader>
-              <CardTitle className="text-lg sm:text-xl text-primary flex items-center gap-2"><MapPin className="h-5 w-5"/>Filtro Regional (Visão Geral)</CardTitle>
+              <CardTitle className="text-lg sm:text-xl text-foreground flex items-center gap-2"><MapPin className="h-5 w-5"/>Filtro Regional (Visão Geral)</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -290,7 +290,7 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
         <TabsContent value="companyManagement">
           <Card className="glass-effect border-border/30">
             <CardHeader>
-              <CardTitle className="text-lg sm:text-xl text-primary flex items-center gap-2"><ListChecks className="h-5 w-5"/>Gerenciamento de Empresas</CardTitle>
+              <CardTitle className="text-lg sm:text-xl text-foreground flex items-center gap-2"><ListChecks className="h-5 w-5"/>Gerenciamento de Empresas</CardTitle>
               <CardDescription>Valide, visualize informações e acompanhe o desempenho das empresas.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -365,7 +365,7 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
         <TabsContent value="pendingResponses">
           <Card className="glass-effect border-border/30">
             <CardHeader>
-              <CardTitle className="text-lg sm:text-xl text-primary flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-orange-500"/>Empresas com Respostas Pendentes</CardTitle>
+              <CardTitle className="text-lg sm:text-xl text-foreground flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-orange-500"/>Empresas com Respostas Pendentes</CardTitle>
               <CardDescription>Lista de empresas validadas que têm procuras atribuídas e ainda não responderam.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -402,7 +402,7 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
         <TabsContent value="feedbacks">
           <Card className="glass-effect border-border/30">
             <CardHeader>
-              <CardTitle className="text-lg sm:text-xl text-primary flex items-center gap-2"><MessageSquare className="h-5 w-5"/>Feedbacks e Problemas</CardTitle>
+              <CardTitle className="text-lg sm:text-xl text-foreground flex items-center gap-2"><MessageSquare className="h-5 w-5"/>Feedbacks e Problemas</CardTitle>
               <CardDescription>Visualize os feedbacks e problemas relatados.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -453,7 +453,7 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
       <Dialog open={showReasonModal} onOpenChange={setShowReasonModal}>
         <DialogContent className="max-w-md bg-card border-border text-foreground">
           <DialogHeader>
-            <DialogTitle className="text-xl text-primary flex items-center gap-2">
+            <DialogTitle className="text-xl text-foreground flex items-center gap-2">
               <Edit className="h-6 w-6" />
               Justificativa para Não Autorizar
             </DialogTitle>

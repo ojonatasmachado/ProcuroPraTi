@@ -62,7 +62,7 @@ const BenefitsSection = () => {
           variants={staggerContainer}
           className="text-center mb-16"
         >
-          <motion.h2 variants={fadeInUp} className="text-3xl sm:text-5xl font-bold mb-6 text-primary">
+          <motion.h2 variants={fadeInUp} className="text-3xl sm:text-5xl font-bold mb-6 text-foreground">
             Por Que Escolher a Procuro Pra Ti?
           </motion.h2>
         </motion.div>
@@ -84,7 +84,7 @@ const BenefitsSection = () => {
                         {benefit.icon}
                       </div>
                     </div>
-                    <CardTitle className="text-lg text-primary">{benefit.title}</CardTitle>
+                    <CardTitle className="text-lg text-foreground">{benefit.title}</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>

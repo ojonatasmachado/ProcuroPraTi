@@ -5,35 +5,38 @@
 
 @layer base {
   :root {
-    --background: 220 40% 5%; /* Preto azulado escuro */
-    --foreground: 210 40% 98%; /* Branco azulado claro */
+    --background: 221 58% 6%; /* #070D1A */
+    --foreground: 219 68% 95%; /* #EAF0FB */
 
-    --card: 220 30% 10%; /* Azul muito escuro para cards */
-    --card-foreground: 210 40% 98%;
+    --card: 219 48% 13%; /* #111C30 */
+    --card-foreground: 219 68% 95%;
 
-    --popover: 220 30% 8%; /* Azul ainda mais escuro para popovers */
-    --popover-foreground: 210 40% 98%;
+    --popover: 218 53% 9%; /* #0B1424 */
+    --popover-foreground: 219 68% 95%;
 
-    --primary: 210 100% 50%; /* Azul vibrante */
-    --primary-foreground: 210 40% 98%; /* Branco para texto em primário */
+    --primary: 220 89% 57%; /* #2E6FF3 */
+    --primary-foreground: 219 68% 95%;
 
-    --secondary: 220 20% 15%; /* Azul acinzentado escuro */
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 221 39% 19%; /* #1E2A44 */
+    --secondary-foreground: 219 68% 95%;
 
-    --muted: 220 20% 15%;
-    --muted-foreground: 220 10% 60%; /* Cinza azulado */
+    --muted: 221 39% 19%;
+    --muted-foreground: 219 26% 65%; /* #90A0BE */
 
-    --accent: 210 80% 40%; /* Azul um pouco mais escuro que o primário */
+    --accent: 210 80% 40%; /* Azul secundário — reservado, não usar para ações positivas */
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 60% 50%; /* Vermelho para destructive */
+    --accent-agile: 172 72% 45%; /* #21C7B0 — cor de agilidade/ação positiva do design system */
+    --accent-agile-foreground: 174 100% 8%; /* #06251F */
+
+    --destructive: 0 60% 50%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 220 20% 20%; /* Borda azul escura */
-    --input: 220 20% 20%; /* Input com fundo azul escuro */
-    --ring: 210 100% 60%; /* Azul claro para anel de foco */
+    --border: 221 39% 19%; /* #1E2A44 */
+    --input: 221 39% 19%;
+    --ring: 220 89% 57%;
 
-    --radius: 0.5rem;
+    --radius: 0.625rem;
   }
 }
 
@@ -57,7 +60,7 @@
     font-size: 16px !important; /* Previne zoom automático em inputs no iOS */
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold;
+    @apply font-semibold font-heading tracking-tight;
   }
 }
 
@@ -79,7 +82,7 @@
 
 .response-card {
   @apply glass-effect;
-   border-left: 3px solid hsl(var(--accent));
+   border-left: 3px solid hsl(var(--accent-agile));
 }
 
 .bg-grid-pattern {

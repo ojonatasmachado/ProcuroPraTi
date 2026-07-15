@@ -63,7 +63,7 @@ const CompanyMiniDashboard = ({ currentUser, procuras, onClose }) => {
         className="w-full max-w-2xl bg-card p-4 sm:p-6 rounded-xl shadow-2xl border border-border"
       >
         <div className="flex justify-between items-center mb-4 sm:mb-6">
-          <h2 className="text-xl sm:text-2xl font-bold text-primary flex items-center gap-2">
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
             <BarChart3 className="h-6 w-6" />
             Meu Desempenho
           </h2>

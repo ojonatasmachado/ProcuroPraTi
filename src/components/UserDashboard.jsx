@@ -47,7 +47,7 @@ const UserDashboard = ({ userProcuras, onProcuraCreate, onProcuraStatusChange, o
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <Card className="glass-effect hover:border-primary/50 transition-all">
         <CardHeader>
-          <CardTitle className="text-lg text-primary flex items-center gap-2"><Edit2 size={20}/>Nova Procura</CardTitle>
+          <CardTitle className="text-lg text-foreground flex items-center gap-2"><Edit2 size={20}/>Nova Procura</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">Precisa de uma peça? Crie uma nova procura agora mesmo.</p>
@@ -58,7 +58,7 @@ const UserDashboard = ({ userProcuras, onProcuraCreate, onProcuraStatusChange, o
       </Card>
       <Card className="glass-effect hover:border-primary/50 transition-all">
         <CardHeader>
-          <CardTitle className="text-lg text-primary flex items-center gap-2"><Search size={20}/>Minhas Procuras</CardTitle>
+          <CardTitle className="text-lg text-foreground flex items-center gap-2"><Search size={20}/>Minhas Procuras</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">Acompanhe suas procuras ativas e veja o histórico.</p>
@@ -135,7 +135,7 @@ const UserDashboard = ({ userProcuras, onProcuraCreate, onProcuraStatusChange, o
         transition={{ duration: 0.5 }}
         className="text-center"
       >
-        <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-2 flex items-center justify-center gap-2">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 flex items-center justify-center gap-2">
           <Users className="h-7 w-7 sm:h-8 sm:w-8" />
           Painel do Usuário
         </h1>

@@ -191,7 +191,7 @@ const CDVDashboard = ({ allProcuras, cdvResponses, onResponseSubmit, currentUser
         <Card className="response-card hover:shadow-lg transition-all duration-300 flex flex-col h-full text-xs sm:text-sm">
           <CardHeader className="p-3 pb-2">
             <div className="flex justify-between items-start gap-2">
-              <CardTitle className="text-sm sm:text-base text-primary">{procura.partName}</CardTitle>
+              <CardTitle className="text-sm sm:text-base text-foreground">{procura.partName}</CardTitle>
               {procura.wantsPhotos && (<Badge variant="outline" className="border-yellow-500 text-yellow-500 flex items-center gap-1 text-xs shrink-0"><Camera className="h-3 w-3" /> Fotos</Badge>)}
             </div>
             <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
@@ -245,7 +245,7 @@ const CDVDashboard = ({ allProcuras, cdvResponses, onResponseSubmit, currentUser
         <Card className="glass-effect border-primary/30 max-w-2xl mx-auto">
           <CardHeader>
             <div className="flex justify-between items-start">
-              <CardTitle className="text-primary text-lg sm:text-xl">{isEditingResponse ? 'Editar Resposta para:' : 'Responder Procura:'} {selectedProcura.partName}</CardTitle>
+              <CardTitle className="text-foreground text-lg sm:text-xl">{isEditingResponse ? 'Editar Resposta para:' : 'Responder Procura:'} {selectedProcura.partName}</CardTitle>
               <Button variant="outline" size="sm" onClick={() => { setSelectedProcura(null); setIsEditingResponse(false); setCurrentView('home'); }} className="border-muted-foreground/50 text-muted-foreground hover:border-primary hover:text-primary"><ArrowLeft className="h-4 w-4 mr-1"/>Voltar</Button>
             </div>
             <div className="text-muted-foreground text-sm">{selectedProcura.vehicleType} - {selectedProcura.vehicleBrand} {selectedProcura.vehicleModel} ({selectedProcura.vehicleYear || 'N/A'})</div>
@@ -341,7 +341,7 @@ const CDVDashboard = ({ allProcuras, cdvResponses, onResponseSubmit, currentUser
   return (
     <div className="space-y-6 sm:space-y-8">
       <div className="text-center">
-        <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-2 flex items-center justify-center gap-2"><Building2 className="h-7 w-7 sm:h-8 sm:w-8" /> Painel CDV</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 flex items-center justify-center gap-2"><Building2 className="h-7 w-7 sm:h-8 sm:w-8" /> Painel CDV</h1>
         <p className="text-muted-foreground text-sm sm:text-base">Responda às procuras de peças dos usuários e gerencie suas respostas com excelência.</p>
       </div>
 
@@ -349,7 +349,7 @@ const CDVDashboard = ({ allProcuras, cdvResponses, onResponseSubmit, currentUser
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card className="glass-effect hover:border-primary/50 transition-all">
             <CardHeader>
-              <CardTitle className="text-lg text-primary flex items-center gap-2"><PackageSearch size={20}/> Procuras Ativas</CardTitle>
+              <CardTitle className="text-lg text-foreground flex items-center gap-2"><PackageSearch size={20}/> Procuras Ativas</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">{unrespondedProcurasCount}</p>
@@ -361,7 +361,7 @@ const CDVDashboard = ({ allProcuras, cdvResponses, onResponseSubmit, currentUser
           </Card>
           <Card className="glass-effect hover:border-primary/50 transition-all">
             <CardHeader>
-              <CardTitle className="text-lg text-primary flex items-center gap-2"><History size={20}/> Minhas Respostas</CardTitle>
+              <CardTitle className="text-lg text-foreground flex items-center gap-2"><History size={20}/> Minhas Respostas</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">{cdvResponses.length}</p>
@@ -379,7 +379,7 @@ const CDVDashboard = ({ allProcuras, cdvResponses, onResponseSubmit, currentUser
           <Button onClick={() => setCurrentView('home')} variant="outline" className="mb-4"><ArrowLeft className="h-4 w-4 mr-2"/> Voltar para Home CDV</Button>
           <Card className="glass-effect p-4">
             <CardHeader className="p-2 pb-3 sm:p-4 sm:pb-4">
-                <CardTitle className="text-md sm:text-lg text-primary">Filtrar Procuras</CardTitle>
+                <CardTitle className="text-md sm:text-lg text-foreground">Filtrar Procuras</CardTitle>
             </CardHeader>
             <CardContent className="p-2 sm:p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>

@@ -9,7 +9,7 @@ const FirstProcuraInfoModal = ({ isOpen, onClose }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md bg-card border-border text-foreground">
         <DialogHeader>
-          <DialogTitle className="text-xl text-primary flex items-center gap-2">
+          <DialogTitle className="text-xl text-foreground flex items-center gap-2">
             <PackageSearch className="h-6 w-6" />
             Sua Procura Foi Criada!
           </DialogTitle>

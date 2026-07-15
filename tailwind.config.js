@@ -46,6 +46,10 @@ module.exports = {
 					DEFAULT: 'hsl(var(--accent))',
 					foreground: 'hsl(var(--accent-foreground))',
 				},
+				'accent-agile': {
+					DEFAULT: 'hsl(var(--accent-agile))',
+					foreground: 'hsl(var(--accent-agile-foreground))',
+				},
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
 					foreground: 'hsl(var(--popover-foreground))',
@@ -55,10 +59,15 @@ module.exports = {
 					foreground: 'hsl(var(--card-foreground))',
 				},
 			},
+			fontFamily: {
+				heading: ['"Plus Jakarta Sans"', 'sans-serif'],
+				sans: ['Inter', 'sans-serif'],
+			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)',
+				pill: '999px',
 			},
 			keyframes: {
 				'accordion-down': {

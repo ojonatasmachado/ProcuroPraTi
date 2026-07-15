@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"></link>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></link>
+<style>
+body{margin:0;background:#070D1A;}
+::selection{background:#2E6FF3;color:#fff;}
+</style>
+</helmet>
+
+<div style="font-family:'Inter',sans-serif;background:#070D1A;color:#EAF0FB;">
+
+  <div style="position:sticky;top:0;z-index:50;background:rgba(7,13,26,0.9);backdrop-filter:blur(10px);border-bottom:1px solid #1E2A44;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+    <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:15px;letter-spacing:-0.01em;text-transform:lowercase;">procuro<span style="color:{{ accent }}">.</span>pra ti</span>
+    <span style="font-size:12px;color:#90A0BE;letter-spacing:0.06em;text-transform:uppercase;">Design System · Componentes · v1</span>
+  </div>
+
+  <section style="padding:72px 24px 56px;">
+    <div style="max-width:1160px;margin:0 auto;">
+      <div style="font-size:13px;letter-spacing:0.12em;text-transform:uppercase;color:#90A0BE;margin-bottom:16px;">Padrão de UI</div>
+      <h1 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:clamp(32px,5vw,52px);line-height:1.05;letter-spacing:-0.02em;margin:0 0 20px;max-width:800px;">Biblioteca de componentes para o modelo de procura reversa</h1>
+      <p style="font-size:17px;color:#90A0BE;max-width:720px;line-height:1.6;margin:0;">Referência visual e de comportamento para implementação: o cliente publica o que <strong style="color:#EAF0FB;">procura</strong>, e só quem tem a oferta <strong style="color:#EAF0FB;">responde</strong> — sem catálogo público. Este documento é o padrão a seguir na reconstrução do produto.</p>
+    </div>
+  </section>
+
+  <!-- TOKENS -->
+  <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
+    <div style="max-width:1160px;margin:0 auto;">
+      <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 8px;">Tokens</h2>
+      <p style="color:#90A0BE;font-size:14px;margin:0 0 28px;">Nomes alinhados às variáveis CSS do app (--background, --primary, --card…) para mapeamento direto no código.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:28px;">
+        <sc-for list="{{ tokens }}" as="t" hint-placeholder-count="8">
+          <div style="border:1px solid #1E2A44;border-radius:12px;overflow:hidden;">
+            <div style="height:56px;background:{{ t.hex }};"></div>
+            <div style="padding:10px 12px;background:#0B1424;">
+              <div style="font-size:12px;font-weight:600;">{{ t.name }}</div>
+              <div style="font-size:11px;color:#5A6B8A;font-family:monospace;">{{ t.hex }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;">
+        <div style="background:#111C30;border:1px solid #1E2A44;border-radius:12px;padding:18px 20px;">
+          <div style="font-size:11px;color:#90A0BE;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Radius</div>
+          <div style="font-size:14px;">card 16px · controle 10px · pill 999px</div>
+        </div>
+        <div style="background:#111C30;border:1px solid #1E2A44;border-radius:12px;padding:18px 20px;">
+          <div style="font-size:11px;color:#90A0BE;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Tipografia</div>
+          <div style="font-size:14px;">Plus Jakarta Sans (títulos) · Inter (texto/UI)</div>
+        </div>
+        <div style="background:#111C30;border:1px solid #1E2A44;border-radius:12px;padding:18px 20px;">
+          <div style="font-size:11px;color:#90A0BE;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Espaçamento base</div>
+          <div style="font-size:14px;">4 / 8 / 12 / 16 / 24 / 32 px</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BUTTONS -->
+  <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
+    <div style="max-width:1160px;margin:0 auto;">
+      <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 24px;">Botões</h2>
+      <div style="background:#111C30;border:1px solid #1E2A44;border-radius:16px;padding:32px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-bottom:16px;">
+        <button style="background:#2E6FF3;color:#F5F7FB;border:none;border-radius:10px;padding:12px 22px;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;">Primário</button>
+        <button style="background:{{ accent }};color:#06251F;border:none;border-radius:10px;padding:12px 22px;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;">Ação positiva</button>
+        <button style="background:transparent;color:#EAF0FB;border:1px solid #3A4A6B;border-radius:10px;padding:12px 22px;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;">Secundário</button>
+        <button style="background:transparent;color:#2E6FF3;border:1px solid #2E6FF3;border-radius:10px;padding:12px 22px;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;">Outline</button>
+        <button style="background:transparent;color:#90A0BE;border:none;border-radius:10px;padding:12px 22px;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;">Ghost</button>
+        <button style="background:#3A1620;color:#F87171;border:1px solid #5A2430;border-radius:10px;padding:12px 22px;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;">Destrutivo</button>
+        <button disabled="" style="background:#1E2A44;color:#5A6B8A;border:none;border-radius:10px;padding:12px 22px;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;cursor:not-allowed;">Desabilitado</button>
+      </div>
+      <div style="background:#111C30;border:1px solid #1E2A44;border-radius:16px;padding:32px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;">
+        <button style="background:#2E6FF3;color:#F5F7FB;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;">sm</button>
+        <button style="background:#2E6FF3;color:#F5F7FB;border:none;border-radius:10px;padding:12px 20px;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;">default</button>
+        <button style="background:#2E6FF3;color:#F5F7FB;border:none;border-radius:12px;padding:16px 32px;font-size:17px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;">lg</button>
+        <span style="font-size:13px;color:#5A6B8A;margin-left:8px;">sm / default / lg — altura 36 / 40 / 48px</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- FORM CONTROLS -->
+  <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
+    <div style="max-width:1160px;margin:0 auto;">
+      <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 24px;">Campos de formulário</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;">
+        <div>
+          <label style="font-size:13px;color:#90A0BE;display:block;margin-bottom:6px;">Texto</label>
+          <input placeholder="Ex: Farol dianteiro esquerdo" style="width:100%;box-sizing:border-box;background:#111C30;border:1px solid #1E2A44;border-radius:10px;padding:11px 14px;color:#EAF0FB;font-size:14px;font-family:'Inter',sans-serif;"></input>
+        </div>
+        <div>
+          <label style="font-size:13px;color:#90A0BE;display:block;margin-bottom:6px;">Select</label>
+          <div style="width:100%;box-sizing:border-box;background:#111C30;border:1px solid #1E2A44;border-radius:10px;padding:11px 14px;color:#EAF0FB;font-size:14px;display:flex;justify-content:space-between;align-items:center;">Selecione a marca <span style="color:#5A6B8A;">⌄</span></div>
+        </div>
+        <div>
+          <label style="font-size:13px;color:#90A0BE;display:block;margin-bottom:6px;">Textarea</label>
+          <div style="width:100%;box-sizing:border-box;background:#111C30;border:1px solid #1E2A44;border-radius:10px;padding:11px 14px;color:#5A6B8A;font-size:14px;height:64px;">Detalhes da peça, cor, código...</div>
+        </div>
+        <div>
+          <label style="font-size:13px;color:#90A0BE;display:block;margin-bottom:6px;">Campo em foco</label>
+          <input value="R$ 250,00" readonly="" style="width:100%;box-sizing:border-box;background:#111C30;border:1px solid #2E6FF3;box-shadow:0 0 0 3px rgba(46,111,243,0.25);border-radius:10px;padding:11px 14px;color:#EAF0FB;font-size:14px;font-family:'Inter',sans-serif;"></input>
+        </div>
+      </div>
+
+      <div style="margin-top:28px;">
+        <label style="font-size:13px;color:#90A0BE;display:block;margin-bottom:10px;">Tabs</label>
+        <div style="display:inline-flex;background:#0B1424;border:1px solid #1E2A44;border-radius:10px;padding:4px;gap:4px;">
+          <span style="padding:8px 18px;border-radius:8px;background:rgba(46,111,243,0.18);color:#2E6FF3;font-size:13px;font-weight:600;">Procuras ativas (3)</span>
+          <span style="padding:8px 18px;border-radius:8px;color:#90A0BE;font-size:13px;font-weight:600;">Finalizadas (12)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATEGORY / VEHICLE SELECTOR -->
+  <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
+    <div style="max-width:1160px;margin:0 auto;">
+      <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 8px;">Seletor de categoria e condição</h2>
+      <p style="color:#90A0BE;font-size:14px;margin:0 0 24px;">Base do fluxo: tipo de veículo define quem recebe a procura — <strong style="color:#EAF0FB;">Usada → CDVs</strong>, <strong style="color:#EAF0FB;">Nova → autopeças</strong>.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+        <sc-for list="{{ vehicleTypes }}" as="v" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:8px;padding:12px 20px;border-radius:12px;background:{{ v.active ? 'rgba(46,111,243,0.15)' : '#111C30' }};border:1px solid {{ v.active ? '#2E6FF3' : '#1E2A44' }};color:{{ v.active ? '#EAF0FB' : '#90A0BE' }};font-size:14px;font-weight:600;">
+            <span>{{ v.icon }}</span><span>{{ v.label }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:12px;">
+        <div style="padding:10px 20px;border-radius:999px;background:#2E6FF3;color:#F5F7FB;font-size:13px;font-weight:700;">Peça usada → CDV</div>
+        <div style="padding:10px 20px;border-radius:999px;background:{{ accent }};color:#06251F;font-size:13px;font-weight:700;">Peça nova → Autopeça</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATUS BADGES -->
+  <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
+    <div style="max-width:1160px;margin:0 auto;">
+      <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 24px;">Selos e status</h2>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;">
+        <sc-for list="{{ badges }}" as="b" hint-placeholder-count="7">
+          <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;font-size:12px;font-weight:600;background:{{ b.bg }};color:{{ b.color }};border:1px solid {{ b.border }};">{{ b.label }}</span>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROCURA CARD -->
+  <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
+    <div style="max-width:1160px;margin:0 auto;">
+      <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 8px;">Card de Procura <span style="font-size:14px;color:#90A0BE;font-weight:400;">(visão do cliente)</span></h2>
+      <p style="color:#90A0BE;font-size:14px;margin:0 0 28px;">Anatomia completa: status, prazo, veículo, foto de referência (opcional), local e contagem de respostas — sem revelar quem respondeu até o cliente abrir.</p>
+      <div style="max-width:400px;">
+        <div style="background:#111C30;border:1px solid #1E2A44;border-left:3px solid #2E6FF3;border-radius:14px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.25);">
+          <div style="padding:18px 20px 12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;background:rgba(46,111,243,0.15);color:#2E6FF3;font-size:11px;font-weight:700;">● Ativa</span>
+              <span style="font-size:11px;color:#F2B84B;font-weight:600;">⏳ 6 dias restantes</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+              <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:17px;color:#EAF0FB;line-height:1.25;">Farol dianteiro esquerdo</span>
+              <span style="flex-shrink:0;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;background:rgba(33,199,176,0.15);color:{{ accent }};font-size:11px;font-weight:700;">● 2 respostas</span>
+            </div>
+            <div style="font-size:12px;color:#90A0BE;margin-top:8px;display:flex;align-items:center;gap:6px;">🚗 Fiat Palio (2012) · Usada</div>
+          </div>
+
+          <div style="padding:0 20px 14px;display:flex;gap:12px;">
+            <x-import component-from-global-scope="image-slot" from="./image-slot.js" id="procura-ref-photo" shape="rounded" radius="10" placeholder="Foto" style="width:76px;height:76px;flex-shrink:0;"</x-import>
+            <div style="font-size:12.5px;color:#C4CEE0;line-height:1.5;">Com moldura, sem trinca. Prefiro peça original, mas aceito paralela em bom estado.</div>
+          </div>
+
+          <div style="padding:0 20px 16px;display:flex;flex-wrap:wrap;gap:8px;">
+            <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:#2E6FF3;background:rgba(46,111,243,0.08);border-radius:8px;padding:5px 10px;">📍 Porto Alegre, RS</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:#F2B84B;background:rgba(242,184,75,0.08);border-radius:8px;padding:5px 10px;">📷 Fotos solicitadas</span>
+          </div>
+
+          <div style="border-top:1px solid #1E2A44;padding:14px 20px;display:flex;gap:10px;">
+            <button style="flex:1;background:#2E6FF3;border:none;color:#F5F7FB;border-radius:9px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;">Ver respostas (2)</button>
+            <button style="background:transparent;border:1px solid #3A4A6B;color:#90A0BE;border-radius:9px;padding:10px 14px;font-size:13px;font-weight:600;cursor:pointer;">Finalizar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESPONSE CARD -->
+  <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
+    <div style="max-width:1160px;margin:0 auto;">
+      <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 8px;">Card de Resposta <span style="font-size:14px;color:#90A0BE;font-weight:400;">(visão da empresa)</span></h2>
+      <p style="color:#90A0BE;font-size:14px;margin:0 0 28px;">Borda de destaque na cor de agilidade. Contador de prazo sempre visível — responder rápido é o diferencial. Ação binária sem fricção; distância ajuda a priorizar.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;max-width:820px;">
+        <div style="background:#111C30;border:1px solid #1E2A44;border-left:3px solid {{ accent }};border-radius:14px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.25);">
+          <div style="padding:18px 20px 12px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+              <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:16px;color:#EAF0FB;">Farol dianteiro esquerdo</span>
+              <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;border:1px solid #F2B84B;color:#F2B84B;font-size:11px;font-weight:700;flex-shrink:0;">⏱ 18h 40m</span>
+            </div>
+            <div style="font-size:12px;color:#90A0BE;margin-top:8px;">🚗 Fiat Palio (2012) · Usada</div>
+            <div style="font-size:12px;color:#90A0BE;margin-top:4px;display:flex;align-items:center;gap:10px;"><span>👤 Marcos A.</span><span>📍 8 km de você</span></div>
+            <div style="margin-top:10px;font-size:12px;color:#C4CEE0;background:#0B1424;border-radius:8px;padding:8px 10px;">"Com moldura, sem trinca. Prefiro original."</div>
+          </div>
+          <div style="border-top:1px solid #1E2A44;padding:14px 20px;display:flex;gap:10px;">
+            <button style="flex:1;background:{{ accent }};color:#06251F;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;">✓ Tenho essa peça</button>
+            <button style="flex:1;background:transparent;border:1px solid #5A2430;color:#F87171;border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;">✕ Não tenho</button>
+          </div>
+        </div>
+
+        <div style="background:#111C30;border:1px solid #1E2A44;border-left:3px solid {{ accent }};border-radius:14px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.25);">
+          <div style="padding:18px 20px 12px;">
+            <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:16px;color:#EAF0FB;">Retrovisor direito</span>
+            <div style="font-size:12px;color:#90A0BE;margin-top:8px;">🏍 Honda CG 160 (2019) · Usada</div>
+            <div style="margin-top:10px;background:#0B1424;border-radius:10px;padding:12px;font-size:12px;color:#90A0BE;">
+              <div style="color:#EAF0FB;font-weight:600;margin-bottom:6px;">Sua resposta</div>
+              <div style="display:flex;justify-content:space-between;"><span>Status</span><span style="color:{{ accent }};font-weight:600;">Disponível</span></div>
+              <div style="display:flex;justify-content:space-between;margin-top:3px;"><span>Tipo</span><span style="color:#EAF0FB;">Original</span></div>
+              <div style="display:flex;justify-content:space-between;margin-top:3px;"><span>Preço</span><span style="color:#EAF0FB;font-weight:700;">R$ 90,00</span></div>
+              <div style="margin-top:6px;color:#F2B84B;">👁 Não visualizada pelo cliente</div>
+            </div>
+          </div>
+          <div style="border-top:1px solid #1E2A44;padding:14px 20px;">
+            <button style="width:100%;background:#2E6FF3;color:#F5F7FB;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;">Editar resposta</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPARE RESPONSES SCREEN -->
+  <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
+    <div style="max-width:1160px;margin:0 auto;">
+      <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 8px;">Tela: comparar respostas <span style="font-size:14px;color:#90A0BE;font-weight:400;">(modal do cliente)</span></h2>
+      <p style="color:#90A0BE;font-size:14px;margin:0 0 28px;">O momento de decisão: preço, condição, distância e selo de verificação lado a lado, com chat direto — este é o núcleo comercial do produto.</p>
+      <div style="background:#070D1A;border:1px solid #1E2A44;border-radius:16px;padding:32px;">
+        <div style="max-width:640px;margin:0 auto;background:#111C30;border:1px solid #1E2A44;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.5);overflow:hidden;">
+          <div style="padding:20px 24px;border-bottom:1px solid #1E2A44;display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:17px;">Farol dianteiro esquerdo</div>
+              <div style="font-size:12px;color:#90A0BE;margin-top:2px;">Fiat Palio (2012) · 2 respostas</div>
+            </div>
+            <span style="color:#5A6B8A;font-size:20px;cursor:pointer;">×</span>
+          </div>
+          <div style="padding:16px 24px;display:flex;flex-direction:column;gap:12px;">
+            <sc-for list="{{ offers }}" as="o" hint-placeholder-count="2">
+              <div style="border:1px solid #1E2A44;border-radius:12px;padding:14px 16px;display:flex;gap:14px;">
+                <x-import component-from-global-scope="image-slot" from="./image-slot.js" id="offer-photo-{{ $index }}" shape="rounded" radius="8" placeholder="Foto da peça" style="width:64px;height:64px;flex-shrink:0;"></x-import>
+                <div style="flex:1;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                    <span style="font-size:14px;font-weight:700;color:#EAF0FB;">{{ o.name }}</span>
+                    <span style="font-size:15px;font-weight:800;color:{{ accent }};">{{ o.price }}</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+                    <span style="font-size:11px;color:#90A0BE;">✔ Verificado</span>
+                    <span style="font-size:11px;color:#90A0BE;">· {{ o.condition }}</span>
+                    <span style="font-size:11px;color:#90A0BE;">· {{ o.distance }}</span>
+                  </div>
+                  <div style="margin-top:8px;display:flex;gap:8px;">
+                    <button style="flex:1;background:#2E6FF3;color:#F5F7FB;border:none;border-radius:7px;padding:7px;font-size:12px;font-weight:600;cursor:pointer;">💬 Conversar</button>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEW PROCURA SCREEN -->
+  <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
+    <div style="max-width:1160px;margin:0 auto;">
+      <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 8px;">Tela: Nova Procura <span style="font-size:14px;color:#90A0BE;font-weight:400;">(formulário do cliente)</span></h2>
+      <p style="color:#90A0BE;font-size:14px;margin:0 0 28px;">Cada campo aqui define o roteamento: tipo de veículo + condição decide se vai para CDV ou autopeça; localidade decide quem recebe.</p>
+      <div style="max-width:520px;background:#111C30;border:1px solid #1E2A44;border-radius:16px;padding:28px;box-shadow:0 8px 24px rgba(0,0,0,0.2);">
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:18px;margin-bottom:20px;display:flex;align-items:center;gap:8px;">📦 Criar nova procura de peça</div>
+
+        <div style="margin-bottom:16px;">
+          <label style="font-size:12px;color:#90A0BE;display:block;margin-bottom:8px;">Tipo de veículo *</label>
+          <div style="display:flex;gap:8px;">
+            <div style="flex:1;text-align:center;padding:10px;border-radius:10px;background:rgba(46,111,243,0.15);border:1px solid #2E6FF3;color:#EAF0FB;font-size:13px;font-weight:600;">🚗 Carro</div>
+            <div style="flex:1;text-align:center;padding:10px;border-radius:10px;background:#0B1424;border:1px solid #1E2A44;color:#90A0BE;font-size:13px;font-weight:600;">🏍 Moto</div>
+            <div style="flex:1;text-align:center;padding:10px;border-radius:10px;background:#0B1424;border:1px solid #1E2A44;color:#90A0BE;font-size:13px;font-weight:600;">🚚 Caminhão</div>
+            <div style="flex:1;text-align:center;padding:10px;border-radius:10px;background:#0B1424;border:1px solid #1E2A44;color:#90A0BE;font-size:13px;font-weight:600;">🚌 Ônibus</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label style="font-size:12px;color:#90A0BE;display:block;margin-bottom:8px;">Condição da peça *</label>
+          <div style="display:flex;gap:8px;">
+            <div style="flex:1;text-align:center;padding:10px;border-radius:10px;background:#0B1424;border:1px solid #1E2A44;color:#90A0BE;font-size:13px;font-weight:600;">✨ Nova <span style="font-size:10px;display:block;color:#5A6B8A;">vai p/ autopeças</span></div>
+            <div style="flex:1;text-align:center;padding:10px;border-radius:10px;background:rgba(46,111,243,0.15);border:1px solid #2E6FF3;color:#EAF0FB;font-size:13px;font-weight:600;">♻️ Usada <span style="font-size:10px;display:block;color:#90A0BE;">vai p/ CDVs</span></div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
+          <div><label style="font-size:12px;color:#90A0BE;display:block;margin-bottom:6px;">Marca *</label><div style="background:#0B1424;border:1px solid #1E2A44;border-radius:9px;padding:9px 10px;font-size:13px;color:#EAF0FB;">Fiat</div></div>
+          <div><label style="font-size:12px;color:#90A0BE;display:block;margin-bottom:6px;">Modelo *</label><div style="background:#0B1424;border:1px solid #1E2A44;border-radius:9px;padding:9px 10px;font-size:13px;color:#EAF0FB;">Palio</div></div>
+          <div><label style="font-size:12px;color:#90A0BE;display:block;margin-bottom:6px;">Ano</label><div style="background:#0B1424;border:1px solid #1E2A44;border-radius:9px;padding:9px 10px;font-size:13px;color:#EAF0FB;">2012</div></div>
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label style="font-size:12px;color:#90A0BE;display:block;margin-bottom:6px;">Nome da peça *</label>
+          <div style="background:#0B1424;border:1px solid #1E2A44;border-radius:9px;padding:9px 10px;font-size:13px;color:#EAF0FB;">Farol dianteiro esquerdo</div>
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label style="font-size:12px;color:#90A0BE;display:block;margin-bottom:6px;">Descrição (opcional)</label>
+          <div style="background:#0B1424;border:1px solid #1E2A44;border-radius:9px;padding:9px 10px;font-size:13px;color:#5A6B8A;height:44px;">Com moldura, sem trinca...</div>
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label style="font-size:12px;color:#90A0BE;display:block;margin-bottom:6px;">Foto de referência (opcional)</label>
+          <x-import component-from-global-scope="image-slot" from="./image-slot.js" id="new-procura-photo" shape="rounded" radius="10" placeholder="Arraste uma foto da peça" style="width:100%;height:100px;"></x-import>
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label style="font-size:12px;color:#90A0BE;display:block;margin-bottom:6px;">Localidade(s) *</label>
+          <div style="background:#0B1424;border:1px solid #1E2A44;border-radius:9px;padding:9px 10px;font-size:13px;color:#EAF0FB;display:flex;gap:6px;flex-wrap:wrap;">
+            <span style="background:rgba(46,111,243,0.2);color:#2E6FF3;border-radius:6px;padding:2px 8px;font-size:12px;">Porto Alegre, RS ✕</span>
+          </div>
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <label style="font-size:12px;color:#90A0BE;display:block;margin-bottom:8px;">Duração da procura: 6 dias</label>
+          <div style="height:5px;border-radius:99px;background:#1E2A44;position:relative;"><div style="position:absolute;left:0;top:0;height:100%;width:40%;background:#2E6FF3;border-radius:99px;"></div></div>
+        </div>
+
+        <button style="width:100%;background:#2E6FF3;color:#F5F7FB;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;">Criar procura</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- DASHBOARD TILES -->
+  <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
+    <div style="max-width:1160px;margin:0 auto;">
+      <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 24px;">Tiles de painel (home)</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;">
+        <sc-for list="{{ tiles }}" as="tile" hint-placeholder-count="4">
+          <div style="background:#111C30;border:1px solid #1E2A44;border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:12px;">
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:16px;color:#2E6FF3;display:flex;align-items:center;gap:8px;">{{ tile.icon }} {{ tile.title }}</div>
+            <div style="font-size:13px;color:#90A0BE;line-height:1.5;">{{ tile.desc }}</div>
+            <button style="margin-top:auto;background:{{ tile.primary ? '#2E6FF3' : 'transparent' }};color:{{ tile.primary ? '#F5F7FB' : '#EAF0FB' }};border:{{ tile.primary ? 'none' : '1px solid #3A4A6B' }};border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;">{{ tile.cta }}</button>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <!-- APP HEADER -->
+  <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
+    <div style="max-width:1160px;margin:0 auto;">
+      <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 24px;">Cabeçalho do app</h2>
+      <div style="background:#0B1424;border:1px solid #1E2A44;border-radius:14px;padding:14px 22px;display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:18px;letter-spacing:-0.02em;text-transform:lowercase;"><span style="color:#EAF0FB;">procuro</span> <span style="color:#2E6FF3;">pra ti</span></span>
+        <div style="display:flex;align-items:center;gap:16px;">
+          <div style="position:relative;">
+            <span style="font-size:18px;">🔔</span>
+            <span style="position:absolute;top:-4px;right:-6px;background:{{ accent }};color:#06251F;font-size:10px;font-weight:700;border-radius:999px;padding:1px 5px;">3</span>
+          </div>
+          <div style="width:34px;height:34px;border-radius:999px;background:#2E6FF3;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#F5F7FB;">MA</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODAL PATTERN -->
+  <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
+    <div style="max-width:1160px;margin:0 auto;">
+      <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 24px;">Modal / diálogo</h2>
+      <div style="background:#070D1A;border:1px solid #1E2A44;border-radius:16px;padding:48px;display:flex;justify-content:center;">
+        <div style="background:#111C30;border:1px solid #1E2A44;border-radius:16px;padding:24px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+          <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:17px;color:#2E6FF3;margin-bottom:6px;">Responder sem foto?</div>
+          <div style="font-size:13px;color:#90A0BE;line-height:1.6;margin-bottom:20px;">O cliente pediu fotos da peça, mas nenhuma imagem foi anexada. Deseja enviar mesmo assim?</div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button style="background:transparent;border:1px solid #3A4A6B;color:#90A0BE;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;">Cancelar</button>
+            <button style="background:#2E6FF3;border:none;color:#F5F7FB;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;">Enviar sem foto</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EMPTY STATE -->
+  <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
+    <div style="max-width:1160px;margin:0 auto;">
+      <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 24px;">Estado vazio</h2>
+      <div style="background:#111C30;border:1px dashed #3A4A6B;border-radius:16px;padding:56px 24px;text-align:center;">
+        <div style="font-size:36px;margin-bottom:12px;">📦</div>
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:18px;margin-bottom:6px;">Nenhuma procura ativa no momento</div>
+        <div style="font-size:14px;color:#90A0BE;">Crie uma nova procura para começar.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOAST -->
+  <section style="padding:56px 24px 80px;border-top:1px solid #1E2A44;">
+    <div style="max-width:1160px;margin:0 auto;">
+      <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 24px;">Notificação (toast)</h2>
+      <div style="display:flex;flex-direction:column;gap:12px;max-width:380px;">
+        <div style="background:#111C30;border:1px solid #1E2A44;border-left:3px solid {{ accent }};border-radius:12px;padding:14px 16px;">
+          <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Nova resposta recebida</div>
+          <div style="font-size:12px;color:#90A0BE;">Auto Peças Sul respondeu sua procura de "Farol dianteiro".</div>
+        </div>
+        <div style="background:#111C30;border:1px solid #1E2A44;border-left:3px solid #F87171;border-radius:12px;padding:14px 16px;">
+          <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Campos obrigatórios</div>
+          <div style="font-size:12px;color:#90A0BE;">Preencha tipo de veículo, marca, modelo e localidade.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATEGORY MODEL (future-proof) -->
+  <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
+    <div style="max-width:1160px;margin:0 auto;">
+      <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 8px;">Modelo de categoria <span style="font-size:14px;color:#90A0BE;font-weight:400;">(genérico, não travado em autopeças)</span></h2>
+      <p style="color:#90A0BE;font-size:14px;max-width:760px;margin:0 0 28px;line-height:1.6;">A lógica do produto é sempre a mesma — <strong style="color:#EAF0FB;">cliente publica o que procura → só quem tem responde</strong> — independente da categoria. Peças é a vertical de lançamento; a estrutura de card, formulário e resposta deve funcionar sem alterações quando entrarem carros, imóveis etc. Nenhum componente acima usa nomes de campo específicos de autopeças no nível estrutural — apenas o conteúdo muda.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;">
+        <sc-for list="{{ verticals }}" as="v" hint-placeholder-count="4">
+          <div style="background:#111C30;border:1px solid #1E2A44;border-radius:14px;padding:20px;{{ v.active ? 'border-color:#2E6FF3;' : 'opacity:0.55;' }}">
+            <div style="font-size:22px;margin-bottom:8px;">{{ v.icon }}</div>
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:14px;margin-bottom:4px;">{{ v.title }}</div>
+            <div style="font-size:12px;color:#90A0BE;line-height:1.4;">{{ v.desc }}</div>
+            <div style="margin-top:10px;font-size:11px;font-weight:700;color:{{ v.active ? '#2E6FF3' : '#5A6B8A' }};">{{ v.status }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOME / LANDING -->
+  <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
+    <div style="max-width:1160px;margin:0 auto;">
+      <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 8px;">Tela: Home / Landing</h2>
+      <p style="color:#90A0BE;font-size:14px;margin:0 0 28px;">Login trocado por duas intenções claras — <strong style="color:#EAF0FB;">vou procurar</strong> (cliente) e <strong style="color:#EAF0FB;">vou vender</strong> (CDV/autopeça) — em vez de um "Entrar" genérico.</p>
+      <div style="background:#070D1A;border:1px solid #1E2A44;border-radius:16px;overflow:hidden;">
+        <div style="padding:16px 28px;border-bottom:1px solid #1E2A44;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+          <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:16px;text-transform:lowercase;"><span style="color:#EAF0FB;">procuro</span> <span style="color:#2E6FF3;">pra ti</span></span>
+          <div style="display:flex;gap:20px;align-items:center;font-size:13px;color:#90A0BE;">
+            <span>Como funciona</span><span>Categorias</span>
+            <span style="border:1px solid #3A4A6B;color:#EAF0FB;padding:8px 16px;border-radius:8px;font-weight:600;">Vou vender</span>
+            <span style="background:#2E6FF3;color:#F5F7FB;padding:8px 16px;border-radius:8px;font-weight:600;">Vou procurar</span>
+          </div>
+        </div>
+
+        <div style="padding:64px 28px 48px;text-align:center;">
+          <div style="font-size:12px;color:{{ accent }};text-transform:uppercase;letter-spacing:0.1em;margin-bottom:16px;">Peças automotivas · em breve, mais categorias</div>
+          <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:38px;max-width:680px;margin:0 auto 16px;line-height:1.15;">Diga o que você procura. As empresas certas respondem.</div>
+          <div style="font-size:15px;color:#90A0BE;max-width:540px;margin:0 auto 28px;line-height:1.6;">Sem catálogos infinitos. Você publica o que precisa e só recebe respostas de quem realmente tem — com preço, condição e distância.</div>
+          <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+            <button style="background:#2E6FF3;color:#F5F7FB;border:none;border-radius:10px;padding:14px 28px;font-size:14px;font-weight:700;cursor:pointer;">🔍 Vou procurar uma peça</button>
+            <button style="background:transparent;border:1px solid {{ accent }};color:{{ accent }};border-radius:10px;padding:14px 28px;font-size:14px;font-weight:700;cursor:pointer;">🏪 Vou vender — cadastrar empresa</button>
+          </div>
+        </div>
+
+        <div style="padding:0 28px 40px;">
+          <div style="text-align:center;font-size:12px;color:#5A6B8A;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;">Categorias em operação</div>
+          <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+            <sc-for list="{{ homeCategories }}" as="c" hint-placeholder-count="4">
+              <div style="background:#111C30;border:1px solid #1E2A44;border-radius:12px;padding:14px 20px;text-align:center;min-width:110px;">
+                <div style="font-size:22px;margin-bottom:6px;">{{ c.icon }}</div>
+                <div style="font-size:12px;color:#EAF0FB;font-weight:600;">{{ c.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="padding:0 28px 48px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;">
+          <sc-for list="{{ steps }}" as="s" hint-placeholder-count="3">
+            <div style="background:#111C30;border:1px solid #1E2A44;border-radius:14px;padding:22px;">
+              <div style="width:32px;height:32px;border-radius:8px;background:rgba(46,111,243,0.15);color:#2E6FF3;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;margin-bottom:12px;">{{ s.n }}</div>
+              <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:14px;margin-bottom:6px;">{{ s.title }}</div>
+              <div style="font-size:12.5px;color:#90A0BE;line-height:1.5;">{{ s.desc }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="padding:0 28px 40px;">
+          <div style="background:#111C30;border:1px solid #1E2A44;border-radius:14px;padding:24px 28px;display:flex;flex-wrap:wrap;gap:24px;justify-content:space-around;text-align:center;">
+            <div><div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:22px;color:{{ accent }};">100% grátis</div><div style="font-size:12px;color:#90A0BE;">para quem procura</div></div>
+            <div><div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:22px;color:{{ accent }};">CDVs verificados</div><div style="font-size:12px;color:#90A0BE;">antes de aparecer nas procuras</div></div>
+            <div><div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:22px;color:{{ accent }};">Resposta em até 24h</div><div style="font-size:12px;color:#90A0BE;">prazo para empresas responderem</div></div>
+          </div>
+        </div>
+
+        <div style="padding:40px 28px;border-top:1px solid #1E2A44;text-align:center;">
+          <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:22px;margin-bottom:10px;">Sua peça está a uma procura de distância</div>
+          <button style="background:#2E6FF3;color:#F5F7FB;border:none;border-radius:10px;padding:13px 28px;font-size:14px;font-weight:700;cursor:pointer;">Vou procurar agora</button>
+        </div>
+
+        <div style="padding:20px 28px;border-top:1px solid #1E2A44;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#5A6B8A;flex-wrap:wrap;gap:8px;">
+          <span style="text-transform:lowercase;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;">procuro pra ti</span>
+          <span>Termos · Privacidade · Para empresas</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CADASTRO -->
+  <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
+    <div style="max-width:1160px;margin:0 auto;">
+      <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 8px;">Tela: Cadastro</h2>
+      <p style="color:#90A0BE;font-size:14px;margin:0 0 28px;">Duas jornadas no mesmo padrão visual — cliente (quem procura) e empresa (quem responde) — alternadas por abas, nunca telas separadas de marca.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:24px;max-width:900px;">
+        <div style="background:#111C30;border:1px solid #1E2A44;border-radius:16px;padding:28px;">
+          <div style="display:inline-flex;background:#0B1424;border:1px solid #1E2A44;border-radius:10px;padding:4px;gap:4px;margin-bottom:20px;">
+            <span style="padding:7px 16px;border-radius:7px;background:rgba(46,111,243,0.18);color:#2E6FF3;font-size:12px;font-weight:700;">Vou procurar</span>
+            <span style="padding:7px 16px;border-radius:7px;color:#90A0BE;font-size:12px;font-weight:700;">Vou vender</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div><label style="font-size:11px;color:#90A0BE;display:block;margin-bottom:5px;">Nome completo</label><div style="background:#0B1424;border:1px solid #1E2A44;border-radius:8px;padding:9px 12px;font-size:13px;color:#EAF0FB;">Marcos Andrade</div></div>
+            <div><label style="font-size:11px;color:#90A0BE;display:block;margin-bottom:5px;">E-mail</label><div style="background:#0B1424;border:1px solid #1E2A44;border-radius:8px;padding:9px 12px;font-size:13px;color:#EAF0FB;"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b3ded2c1d0dcc0f3d6ded2dadf9dd0dcde">[email&#160;protected]</a></div></div>
+            <div><label style="font-size:11px;color:#90A0BE;display:block;margin-bottom:5px;">Cidade / Estado</label><div style="background:#0B1424;border:1px solid #1E2A44;border-radius:8px;padding:9px 12px;font-size:13px;color:#EAF0FB;">Porto Alegre, RS</div></div>
+            <div><label style="font-size:11px;color:#90A0BE;display:block;margin-bottom:5px;">Senha</label><div style="background:#0B1424;border:1px solid #1E2A44;border-radius:8px;padding:9px 12px;font-size:13px;color:#5A6B8A;">••••••••</div></div>
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#90A0BE;margin-top:4px;"><span style="width:16px;height:16px;border-radius:4px;border:1px solid #3A4A6B;display:inline-block;"></span>Li e aceito os termos de uso</label>
+            <button style="background:#2E6FF3;color:#F5F7FB;border:none;border-radius:9px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;margin-top:6px;">Criar minha conta</button>
+          </div>
+        </div>
+        <div style="background:#111C30;border:1px solid #1E2A44;border-radius:16px;padding:28px;">
+          <div style="display:inline-flex;background:#0B1424;border:1px solid #1E2A44;border-radius:10px;padding:4px;gap:4px;margin-bottom:20px;">
+            <span style="padding:7px 16px;border-radius:7px;color:#90A0BE;font-size:12px;font-weight:700;">Vou procurar</span>
+            <span style="padding:7px 16px;border-radius:7px;background:rgba(33,199,176,0.18);color:{{ accent }};font-size:12px;font-weight:700;">Vou vender</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div><label style="font-size:11px;color:#90A0BE;display:block;margin-bottom:5px;">Razão social</label><div style="background:#0B1424;border:1px solid #1E2A44;border-radius:8px;padding:9px 12px;font-size:13px;color:#EAF0FB;">Auto Peças Sul Ltda</div></div>
+            <div><label style="font-size:11px;color:#90A0BE;display:block;margin-bottom:5px;">CNPJ</label><div style="background:#0B1424;border:1px solid #1E2A44;border-radius:8px;padding:9px 12px;font-size:13px;color:#EAF0FB;">00.000.000/0001-00</div></div>
+            <div><label style="font-size:11px;color:#90A0BE;display:block;margin-bottom:5px;">Tipo de negócio</label>
+              <div style="display:flex;gap:8px;">
+                <span style="flex:1;text-align:center;padding:8px;border-radius:7px;background:rgba(46,111,243,0.15);border:1px solid #2E6FF3;color:#EAF0FB;font-size:12px;">CDV (usadas)</span>
+                <span style="flex:1;text-align:center;padding:8px;border-radius:7px;background:#0B1424;border:1px solid #1E2A44;color:#90A0BE;font-size:12px;">Autopeça (novas)</span>
+              </div>
+            </div>
+            <div><label style="font-size:11px;color:#90A0BE;display:block;margin-bottom:5px;">Regiões atendidas</label><div style="background:#0B1424;border:1px solid #1E2A44;border-radius:8px;padding:9px 12px;font-size:13px;color:#EAF0FB;">Porto Alegre e região</div></div>
+            <div style="font-size:11px;color:#90A0BE;background:#0B1424;border-radius:8px;padding:10px 12px;">🔍 Seu cadastro passa por validação antes de aparecer nas procuras.</div>
+            <button style="background:{{ accent }};color:#06251F;border:none;border-radius:9px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;margin-top:2px;">Cadastrar empresa</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SATISFACTION SURVEY -->
+  <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
+    <div style="max-width:1160px;margin:0 auto;">
+      <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 8px;">Pesquisa de satisfação</h2>
+      <p style="color:#90A0BE;font-size:14px;margin:0 0 24px;">Disparada após o cliente marcar uma procura como resolvida — curta, direta, sem obrigar texto.</p>
+      <div style="background:#070D1A;border:1px solid #1E2A44;border-radius:16px;padding:40px;display:flex;justify-content:center;">
+        <div style="background:#111C30;border:1px solid #1E2A44;border-radius:16px;padding:26px;max-width:380px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+          <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:16px;margin-bottom:6px;">Encontrou o que procurava?</div>
+          <div style="font-size:12.5px;color:#90A0BE;margin-bottom:18px;">Sua opinião ajuda a melhorar a experiência de todo mundo.</div>
+          <div style="display:flex;gap:8px;justify-content:center;margin-bottom:18px;">
+            <sc-for list="{{ faces }}" as="f" hint-placeholder-count="5">
+              <span style="width:40px;height:40px;border-radius:999px;background:{{ f.selected ? 'rgba(46,111,243,0.18)' : '#0B1424' }};border:1px solid {{ f.selected ? '#2E6FF3' : '#1E2A44' }};display:flex;align-items:center;justify-content:center;font-size:18px;">{{ f.emoji }}</span>
+            </sc-for>
+          </div>
+          <div style="background:#0B1424;border:1px solid #1E2A44;border-radius:9px;padding:10px 12px;font-size:12px;color:#5A6B8A;margin-bottom:16px;">Conte mais (opcional)...</div>
+          <button style="width:100%;background:#2E6FF3;color:#F5F7FB;border:none;border-radius:9px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;">Enviar avaliação</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- IMPLEMENTATION GUIDE -->
+  <section style="padding:56px 24px;border-top:1px solid #1E2A44;background:#0B1424;">
+    <div style="max-width:900px;margin:0 auto;">
+      <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 8px;">Passo a passo para implementação</h2>
+      <p style="color:#90A0BE;font-size:14px;margin:0 0 28px;">Guia para aplicar este padrão no código existente (React + Tailwind + shadcn) sem travar a estrutura na vertical de peças.</p>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <sc-for list="{{ buildSteps }}" as="st" hint-placeholder-count="8">
+          <div style="background:#111C30;border:1px solid #1E2A44;border-radius:14px;padding:18px 20px;display:flex;gap:16px;">
+            <div style="flex-shrink:0;width:28px;height:28px;border-radius:8px;background:rgba(46,111,243,0.15);color:#2E6FF3;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;">{{ st.n }}</div>
+            <div>
+              <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:14px;margin-bottom:4px;">{{ st.title }}</div>
+              <div style="font-size:13px;color:#90A0BE;line-height:1.6;">{{ st.desc }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <footer style="padding:40px 24px;border-top:1px solid #1E2A44;text-align:center;">
+    <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:15px;letter-spacing:-0.02em;text-transform:lowercase;color:#5A6B8A;">procuro pra ti</span>
+    <div style="font-size:12px;color:#5A6B8A;margin-top:6px;">Padrão de componentes · uso interno para engenharia</div>
+  </footer>
+
+</div>
+
+</x-dc>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1280}, &quot;accentColor&quot;: {&quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#21C7B0&quot;, &quot;options&quot;: [&quot;#21C7B0&quot;, &quot;#5EC8E8&quot;, &quot;#F2B84B&quot;], &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Cor&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accentColor || '#21C7B0';
+    return {
+      accent,
+      tokens: [
+        { name: 'background', hex: '#070D1A' },
+        { name: 'card', hex: '#111C30' },
+        { name: 'popover', hex: '#0B1424' },
+        { name: 'border', hex: '#1E2A44' },
+        { name: 'primary', hex: '#2E6FF3' },
+        { name: 'accent (ágil)', hex: accent },
+        { name: 'foreground', hex: '#EAF0FB' },
+        { name: 'muted-foreground', hex: '#90A0BE' },
+      ],
+      vehicleTypes: [
+        { icon: '🚗', label: 'Carro', active: true },
+        { icon: '🏍', label: 'Moto', active: false },
+        { icon: '🚚', label: 'Caminhão', active: false },
+        { icon: '🚌', label: 'Ônibus', active: false },
+      ],
+      badges: [
+        { label: 'Ativa', bg: 'rgba(46,111,243,0.15)', color: '#2E6FF3', border: '#2E6FF3' },
+        { label: 'Respondida', bg: `rgba(33,199,176,0.15)`, color: accent, border: accent },
+        { label: 'Encerrada', bg: '#1E2A44', color: '#90A0BE', border: '#3A4A6B' },
+        { label: 'CDV verificado', bg: 'transparent', color: '#EAF0FB', border: accent },
+        { label: 'Novo', bg: 'rgba(46,111,243,0.15)', color: '#2E6FF3', border: '#2E6FF3' },
+        { label: 'Usado', bg: '#1E2A44', color: '#90A0BE', border: '#3A4A6B' },
+        { label: '📷 Fotos solicitadas', bg: 'rgba(242,184,75,0.12)', color: '#F2B84B', border: '#F2B84B' },
+      ],
+      verticals: [
+        { icon: '🔧', title: 'Peças automotivas', desc: 'Carro, moto e caminhão · usada ou nova.', status: 'Ativo agora', active: true },
+        { icon: '🚗', title: 'Veículos', desc: 'Carro dos sonhos: só concessionárias em dia respondem.', status: 'Próxima fase', active: false },
+        { icon: '🏠', title: 'Imóveis', desc: 'Quartos, tamanho, orçamento → corretores respondem.', status: 'Roadmap', active: false },
+        { icon: '➕', title: 'Nova categoria', desc: 'Mesmo modelo: procura → resposta → conversa.', status: 'Estrutura pronta', active: false },
+      ],
+      homeCategories: [
+        { icon: '🚗', label: 'Carro' }, { icon: '🏍', label: 'Moto' }, { icon: '🚚', label: 'Caminhão' }, { icon: '🚌', label: 'Ônibus' },
+      ],
+      steps: [
+        { n: '1', title: 'Publique sua procura', desc: 'Descreva o que precisa, seu veículo e onde está.' },
+        { n: '2', title: 'Empresas respondem', desc: 'Só quem tem a peça entra em contato com você.' },
+        { n: '3', title: 'Escolha e converse', desc: 'Compare preço e condição, e feche direto no chat.' },
+      ],
+      faces: [
+        { emoji: '😞', selected: false }, { emoji: '😕', selected: false }, { emoji: '😐', selected: false }, { emoji: '🙂', selected: true }, { emoji: '😄', selected: false },
+      ],
+      buildSteps: [
+        { n: '1', title: 'Atualizar tokens em index.css', desc: 'Adicionar --accent-agile (teal, hsl equivalente a #21C7B0) como nova variável ao lado de --primary. Não remover --accent atual — ele fica reservado para o azul secundário existente.' },
+        { n: '2', title: 'Trocar wordmark em LandingHeader.jsx e AppHeader.jsx', desc: 'Substituir o ícone SVG + texto gradiente por texto puro minúsculo "procuro" + "pra ti" (Plus Jakarta Sans 800), conforme seção Logotipo. Manter os mesmos componentes de navegação ao redor.' },
+        { n: '3', title: 'Generalizar o modelo de dados de Procura', desc: 'Renomear campos genéricos onde fizer sentido (ex: category em vez de vehicleType como campo-mãe, com vehicleType como subtipo dentro de category="pecas"). Isso evita reescrever tudo quando entrarem imóveis/veículos.' },
+        { n: '4', title: 'Adicionar "Ônibus" como vehicleType', desc: 'Incluir em SearchForm.jsx (Select de tipo de veículo), mockData.js (marcas/modelos de ônibus) e nos ícones (lucide Bus) ao lado de Car/Bike/Truck.' },
+        { n: '5', title: 'Trocar CTA de login por intenção', desc: 'LandingPage/LandingHeader: substituir botão único "Entrar" por dois CTAs — "Vou procurar" (fluxo atual de usuário) e "Vou vender" (fluxo atual de empresa). Isso é só rótulo/roteamento, a lógica de userType já existe em App.jsx.' },
+        { n: '6', title: 'Reconstruir SearchList/CompanyDashboard cards', desc: 'Aplicar a anatomia do Card de Procura e Card de Resposta desta página: status pill, prazo, foto de referência (novo campo photoUrl opcional na criação), distância no card da empresa.' },
+        { n: '7', title: 'Novo modal de comparação de respostas', desc: 'Substituir/estender ResponseModal.jsx para listar respostas lado a lado com foto, selo "Verificado", preço e botão de chat — layout da seção "Tela: comparar respostas".' },
+        { n: '8', title: 'Home/Landing completa', desc: 'Reestruturar LandingPage.jsx com hero + CTAs de intenção + tira de categorias (inclui Ônibus) + como funciona + prova social simples + CTA final, conforme seção Home/Landing.' },
+        { n: '9', title: 'Cadastro em abas', desc: 'UserRegistration.jsx: unificar em duas abas "Vou procurar" / "Vou vender" no mesmo card, em vez de fluxos visualmente distintos.' },
+        { n: '10', title: 'Pesquisa de satisfação', desc: 'Novo FeedbackModal de avaliação por emojis (5 níveis) disparado ao finalizar uma procura — reaproveitar FeedbackModal.jsx existente, trocar formulário de texto por seletor de emoji + campo opcional.' },
+      ],
+      offers: [
+        { name: 'Auto Peças Sul', price: 'R$ 180,00', condition: 'Excelente', distance: '3,2 km' },
+        { name: 'CDV Bom Retiro', price: 'R$ 145,00', condition: 'Boa', distance: '7,8 km' },
+      ],
+      tiles: [
+        { icon: '📝', title: 'Nova Procura', desc: 'Precisa de uma peça? Publique sua procura agora.', cta: 'Criar nova procura', primary: true },
+        { icon: '🔍', title: 'Minhas Procuras', desc: 'Acompanhe procuras ativas e veja o histórico.', cta: 'Ver minhas procuras', primary: false },
+        { icon: '📦', title: 'Procuras Ativas', desc: '8 procuras aguardando sua resposta.', cta: 'Ver procuras para responder', primary: true },
+        { icon: '🕐', title: 'Minhas Respostas', desc: '46 respostas enviadas até agora.', cta: 'Ver histórico de respostas', primary: false },
+      ],
+    };
+  }
+}
+
+</script>
+</body>
+</html>

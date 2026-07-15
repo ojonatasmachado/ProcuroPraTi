@@ -57,7 +57,7 @@ const ChatListModal = ({ isOpen, onClose, currentUser, chats, users, companies, 
         <DialogHeader className="p-4 border-b border-border flex flex-row items-center justify-between">
           <div className="flex items-center gap-2">
             <MessageSquare className="h-6 w-6 text-primary" />
-            <DialogTitle className="text-lg text-primary">Conversas</DialogTitle>
+            <DialogTitle className="text-lg text-foreground">Conversas</DialogTitle>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose} className="text-muted-foreground hover:text-primary">
             <X className="h-5 w-5" />
