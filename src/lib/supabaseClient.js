@@ -7,4 +7,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('Supabase environment variables are not set. The app will run in local mock mode.');
 }
 
-export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
+// createClient throws on an invalid/empty URL, so only construct a real
+// client when both env vars are present — otherwise leave it null and let
+// dataService's hasSupabase guard route everything to localStorage instead.
+export const supabase = (supabaseUrl && supabaseAnonKey) ? createClient(supabaseUrl, supabaseAnonKey) : null;
