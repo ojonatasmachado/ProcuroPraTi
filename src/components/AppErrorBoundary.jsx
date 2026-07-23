@@ -4,6 +4,9 @@ import BrandLogo from '@/components/BrandLogo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { refreshPwaApplication } from '@/lib/pwa';
+import { supabase } from '@/lib/supabaseClient';
+
+const UI_RECOVERY_KEY = 'procuroPraTi_uiRecoveryAttempt';
 
 class AppErrorBoundary extends React.Component {
   constructor(props) {
@@ -25,6 +28,20 @@ class AppErrorBoundary extends React.Component {
       }));
     } catch {
       // O registro local é apenas auxiliar e não deve impedir a recuperação.
+    }
+    void supabase?.rpc('log_ui_error', {
+      p_message: error?.stack || error?.message || String(error),
+      p_component_stack: errorInfo?.componentStack || null,
+      p_page_path: window.location.href,
+      p_user_agent: navigator.userAgent,
+      p_app_version: document.querySelector('script[type="module"][src]')?.getAttribute('src') || 'desconhecida',
+    }).catch(() => {});
+
+    const message = `${error?.message || ''} ${error?.stack || ''}`;
+    const looksLikeStaleApplication = /chunk|dynamically imported|failed to fetch|loading css|module script/i.test(message);
+    if (looksLikeStaleApplication && window.sessionStorage.getItem(UI_RECOVERY_KEY) !== 'done') {
+      window.sessionStorage.setItem(UI_RECOVERY_KEY, 'done');
+      void refreshPwaApplication();
     }
   }
 
