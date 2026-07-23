@@ -111,7 +111,7 @@ const UserDashboard = ({ userProcuras, onProcuraCreate, onProcuraUpdate, onPhoto
       {(currentView === 'home' || currentView === 'active_searches') && renderOverviewView(false)}
       {currentView === 'finished_searches' && renderOverviewView(true)}
       {currentView === 'new_search_form' && renderSearchFormView()}
-      {currentView !== 'new_search_form' && <Button type="button" onClick={() => setCurrentView('new_search_form')} className="safe-floating-bottom fixed bottom-6 left-4 z-40 min-h-12 rounded-full px-5 text-sm font-bold text-primary-foreground shadow-xl sm:left-1/2 sm:-translate-x-1/2"><PackagePlus className="mr-2 h-5 w-5" />Criar nova procura</Button>}
+      {currentView !== 'new_search_form' && <Button type="button" onClick={() => setCurrentView('new_search_form')} className="safe-floating-bottom fixed bottom-6 left-4 z-40 min-h-12 rounded-full px-5 text-sm font-bold text-primary-foreground ring-4 ring-background shadow-[0_8px_24px_rgba(0,0,0,0.35)] sm:left-1/2 sm:-translate-x-1/2"><PackagePlus className="mr-2 h-5 w-5" />Criar nova procura</Button>}
 
       <ResponseModal
         procura={selectedProcura}

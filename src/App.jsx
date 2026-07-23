@@ -1267,7 +1267,7 @@ function App() {
       {currentUser && (
         <button
           onClick={handleOpenChatList}
-          className="safe-floating-bottom fixed bottom-6 right-4 sm:bottom-8 sm:right-8 z-50 p-3 sm:p-4 rounded-full gradient-bg text-primary-foreground shadow-xl hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
+          className="safe-floating-bottom fixed bottom-6 right-4 sm:bottom-8 sm:right-8 z-50 p-3 sm:p-4 rounded-full gradient-bg text-primary-foreground ring-4 ring-background shadow-[0_8px_24px_rgba(0,0,0,0.35)] hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
           aria-label="Abrir Chat"
         >
           <ChatIconFab className="h-5 w-5 sm:h-6 sm:w-6" />
