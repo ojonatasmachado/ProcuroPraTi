@@ -202,9 +202,9 @@ export const dataService = {
     const { error } = await requireSupabase().rpc('mark_trial_end_summary_seen');
     throwIfError(error);
   },
-  async enableCompanyTeamAccess(ownerPin, deviceId, deviceName) {
+  async enableCompanyTeamAccess(deviceId, deviceName) {
     const { data, error } = await requireSupabase().rpc('enable_company_team_access', {
-      p_owner_pin: ownerPin, p_device_id: deviceId, p_device_name: deviceName,
+      p_device_id: deviceId, p_device_name: deviceName,
     });
     throwIfError(error);
     return toCamel(data || {});
