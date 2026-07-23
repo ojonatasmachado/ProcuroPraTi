@@ -400,7 +400,7 @@ const UserRegistration = ({ onRegister, onSaveRegistrationProgress, onLogin, onC
 
   return (
     <div className="flex min-h-screen min-h-[100dvh] flex-col bg-background">
-      <header className="safe-header sticky top-0 z-50 w-full border-b border-border bg-card/95 px-3 py-3 shadow-sm backdrop-blur-md sm:px-4">
+      <header className="safe-header fixed inset-x-0 top-0 z-50 w-full border-b border-border bg-card/95 px-3 py-3 shadow-sm backdrop-blur-md sm:px-4">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="container mx-auto grid min-h-12 w-full grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-2">
           <Button type="button" variant="outline" size="icon" onClick={onBackToLanding} className="justify-self-start" aria-label="Voltar para o site" title="Voltar para o site">
             <ArrowLeft className="h-4 w-4" />
@@ -410,7 +410,7 @@ const UserRegistration = ({ onRegister, onSaveRegistrationProgress, onLogin, onC
         </motion.div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center px-3 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-4 sm:px-4 sm:pt-6">
+      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center px-3 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(5.75rem+env(safe-area-inset-top))] sm:px-4 sm:pt-[calc(6.25rem+env(safe-area-inset-top))]">
         <p className="mb-4 max-w-xl text-center text-sm text-muted-foreground sm:mb-6 sm:text-base">Conectamos quem procura peças às empresas que querem vender em todo o Brasil.</p>
       <motion.div onFocusCapture={keepFocusedFieldVisible} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="w-full max-w-md scroll-mt-24">
         <Card className="w-full bg-card border border-border">
