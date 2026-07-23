@@ -45,6 +45,7 @@ const pushOnboardingKey = (userId) => `procuroPraTi_pushOnboarding_${userId}`;
 
 function App() {
   const isAdminPreview = import.meta.env.DEV && window.location.pathname === '/painel-interno-preview';
+  const isCollaboratorEntry = new URLSearchParams(window.location.search).get('colaborador') === '1';
   const [users, setUsers] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [procuras, setProcuras] = useState([]);
@@ -54,8 +55,8 @@ function App() {
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(() => window.location.pathname === '/redefinir-senha');
   const [isAuthenticatedDataLoaded, setIsAuthenticatedDataLoaded] = useState(false);
-  const [showLanding, setShowLanding] = useState(true);
-  const [registrationIntent, setRegistrationIntent] = useState('user');
+  const [showLanding, setShowLanding] = useState(!isCollaboratorEntry);
+  const [registrationIntent, setRegistrationIntent] = useState(isCollaboratorEntry ? 'company' : 'user');
   const [pendingPushDestination, setPendingPushDestination] = useState(() => getCurrentPushDestination());
 
   const [showProfile, setShowProfile] = useState(false);
@@ -228,7 +229,8 @@ function App() {
       setShowCompanyTeam(false);
       setShowCompanyPlans(false);
       setPendingPushDestination(pushDestination);
-      setShowLanding(!pushDestination);
+      setShowLanding(!pushDestination && !isCollaboratorEntry);
+      if (isCollaboratorEntry) setRegistrationIntent('company');
       if (pushDestination?.type === 'procuras') setRegistrationIntent('company');
       if (pushDestination?.type === 'respostas') setRegistrationIntent('user');
       setIsAuthLoading(false);
@@ -280,7 +282,7 @@ function App() {
     const loadedProcuras = await loadAuthenticatedData();
     setUserProcuraCount(account.type === 'user' ? loadedProcuras.filter(item => item.userId === account.profile.id).length : 0);
     setIsAuthLoading(false);
-  }, [loadAuthenticatedData]);
+  }, [isCollaboratorEntry, loadAuthenticatedData]);
 
   useEffect(() => {
     let active = true;
@@ -1102,6 +1104,7 @@ function App() {
         cnpjExists={cnpjExists}
         allStatesAndCities={BRAZILIAN_STATES_AND_CITIES}
         initialUserType={registrationIntent}
+        initialCollaboratorMode={isCollaboratorEntry}
       />
     );
   }

@@ -236,16 +236,25 @@ export const dataService = {
     throwIfError(error);
     return (data || []).map(toCamel);
   },
-  async saveCompanyOperator({ id = null, name, username, pin, contactEmail }) {
+  async saveCompanyOperator({ id = null, name, username, pin, contactEmail, contactPhone }) {
     const { data, error } = await requireSupabase().rpc('save_company_operator', {
-      p_name: name, p_username: username, p_pin: pin, p_contact_email: contactEmail, p_operator_id: id,
+      p_name: name,
+      p_username: username,
+      p_pin: pin,
+      p_contact_email: contactEmail,
+      p_contact_phone: contactPhone,
+      p_operator_id: id,
     });
     throwIfError(error);
     const saved = toCamel(data || {});
-    const { error: emailError } = await requireSupabase().functions.invoke('send-operator-access', {
+    const { data: emailResult, error: emailError } = await requireSupabase().functions.invoke('send-operator-access', {
       body: { operatorId: saved.id, pin },
     });
-    return { ...saved, emailSent: !emailError };
+    return {
+      ...saved,
+      emailSent: !emailError && emailResult?.sent === true,
+      emailError: emailError?.message || emailResult?.error || null,
+    };
   },
   async disableCompanyOperator(operatorId) {
     const { error } = await requireSupabase().rpc('disable_company_operator', { p_operator_id: operatorId });

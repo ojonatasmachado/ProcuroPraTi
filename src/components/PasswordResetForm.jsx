@@ -42,7 +42,7 @@ const PasswordResetForm = ({ onSubmit, onCancel }) => {
   };
 
   return <div className="flex min-h-screen min-h-[100dvh] flex-col bg-background p-3 text-foreground sm:p-4">
-    <header className="safe-header mx-auto flex w-full max-w-2xl items-center justify-between py-3">
+    <header className="safe-header sticky top-0 z-50 mx-auto flex w-full max-w-2xl items-center justify-between border-b border-border bg-background/95 py-3 backdrop-blur">
       <BrandLogo as="h1" iconClassName="h-10 w-10" textClassName="text-xl sm:text-2xl" />
       <ThemeToggle />
     </header>
@@ -58,9 +58,9 @@ const PasswordResetForm = ({ onSubmit, onCancel }) => {
             {error && <p role="alert" className="rounded-lg border border-danger/30 bg-destructive/10 p-3 text-sm font-medium text-danger">{error}</p>}
             <div>
               <Label htmlFor="newPassword" className="mb-1.5 block text-sm text-muted-foreground">Nova senha *</Label>
-              <div className="relative">
-                <Input key={showPassword ? 'reset-visible' : 'reset-hidden'} id="newPassword" type={showPassword ? 'text' : 'password'} style={{ WebkitTextSecurity: showPassword ? 'none' : 'disc' }} value={password} onChange={(event) => { setPassword(event.target.value); setError(''); }} autoComplete="new-password" className="h-11 pr-11" autoFocus />
-                <button type="button" onClick={() => setShowPassword(value => !value)} className="touch-manipulation absolute inset-y-0 right-0 z-10 flex w-11 items-center justify-center text-muted-foreground hover:text-primary" aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'} aria-pressed={showPassword}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
+              <div className="relative min-w-0 overflow-hidden rounded-[10px]">
+                <Input id="newPassword" type={showPassword ? 'text' : 'password'} style={{ WebkitTextSecurity: showPassword ? 'none' : 'disc' }} value={password} onChange={(event) => { setPassword(event.target.value); setError(''); }} autoComplete="new-password" className="h-11 pr-12" autoFocus />
+                <button type="button" onClick={() => setShowPassword(value => !value)} className="touch-manipulation absolute right-1 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'} aria-pressed={showPassword}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
               </div>
               <div className="mt-2 grid gap-1.5 rounded-lg border border-border bg-input/40 p-3">
                 {rules.map(rule => <p key={rule.label} className={`flex items-center gap-2 text-xs ${rule.valid ? 'text-accent-agile' : 'text-muted-foreground'}`}>{rule.valid ? <CheckCircle2 className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}{rule.label}</p>)}
@@ -68,9 +68,9 @@ const PasswordResetForm = ({ onSubmit, onCancel }) => {
             </div>
             <div>
               <Label htmlFor="newPasswordConfirmation" className="mb-1.5 block text-sm text-muted-foreground">Confirmar nova senha *</Label>
-              <div className="relative">
-                <Input key={showConfirmation ? 'reset-confirmation-visible' : 'reset-confirmation-hidden'} id="newPasswordConfirmation" type={showConfirmation ? 'text' : 'password'} style={{ WebkitTextSecurity: showConfirmation ? 'none' : 'disc' }} value={confirmation} onChange={(event) => { setConfirmation(event.target.value); setError(''); }} autoComplete="new-password" className="h-11 pr-11" />
-                <button type="button" onClick={() => setShowConfirmation(value => !value)} className="touch-manipulation absolute inset-y-0 right-0 z-10 flex w-11 items-center justify-center text-muted-foreground hover:text-primary" aria-label={showConfirmation ? 'Ocultar senha' : 'Mostrar senha'} aria-pressed={showConfirmation}>{showConfirmation ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
+              <div className="relative min-w-0 overflow-hidden rounded-[10px]">
+                <Input id="newPasswordConfirmation" type={showConfirmation ? 'text' : 'password'} style={{ WebkitTextSecurity: showConfirmation ? 'none' : 'disc' }} value={confirmation} onChange={(event) => { setConfirmation(event.target.value); setError(''); }} autoComplete="new-password" className="h-11 pr-12" />
+                <button type="button" onClick={() => setShowConfirmation(value => !value)} className="touch-manipulation absolute right-1 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={showConfirmation ? 'Ocultar senha' : 'Mostrar senha'} aria-pressed={showConfirmation}>{showConfirmation ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
               </div>
               {confirmation && <p className={`mt-1.5 text-xs font-medium ${passwordsMatch ? 'text-accent-agile' : 'text-danger'}`}>{passwordsMatch ? 'As senhas são iguais.' : 'As senhas não são iguais.'}</p>}
             </div>

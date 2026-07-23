@@ -41,9 +41,17 @@ try {
   assert(enabled.data.success && enabled.data.role === 'owner', 'Não foi possível ativar o responsável.');
 
   const operator = await ownerClient.rpc('save_company_operator', {
-    p_name: 'Pessoa de Teste', p_username: 'TESTE', p_pin: '426813', p_operator_id: null,
+    p_name: 'Pessoa de Teste',
+    p_username: 'teste',
+    p_pin: '426813',
+    p_contact_email: 'pessoa.teste@procuroprati.invalid',
+    p_contact_phone: '51999998888',
+    p_operator_id: null,
   });
   if (operator.error) throw operator.error;
+  const listedOperators = await ownerClient.rpc('list_company_operators');
+  if (listedOperators.error) throw listedOperators.error;
+  assert(listedOperators.data.some(item => item.id === operator.data.id && item.contact_phone === '51999998888'), 'Telefone do colaborador não foi persistido.');
   const twoSeats = await admin.from('companies').update({ max_concurrent_accesses: 2 }).eq('id', companyId);
   if (twoSeats.error) throw twoSeats.error;
 
@@ -74,7 +82,7 @@ try {
   if (revokedHeartbeat.error) throw revokedHeartbeat.error;
   assert(revokedHeartbeat.data === false, 'Desativar a pessoa não encerrou a sessão.');
 
-  console.log('Auditoria de equipe concluída: 9 verificações aprovadas.');
+  console.log('Auditoria de equipe concluída: 10 verificações aprovadas.');
 } finally {
   if (companyId) {
     await admin.from('company_access_sessions').delete().eq('company_id', companyId);

@@ -9,7 +9,7 @@ const checks = [
   ['campos sem zoom automático no iOS', read('src/index.css').includes('font-size: 16px !important')],
   ['cabeçalho compacto em celular', read('src/components/AppHeader.jsx').includes('compactOnMobile')],
   ['notificações limitadas à largura do celular', read('src/components/NotificationDropdown.jsx').includes('w-[calc(100vw-1rem)]') && read('src/components/NotificationDropdown.jsx').includes('collisionPadding={8}')],
-  ['cadastro limitado à largura disponível', read('src/components/UserRegistration.jsx').includes('className="w-full max-w-md"')],
+  ['cadastro limitado à largura disponível', read('src/components/UserRegistration.jsx').includes('w-full max-w-md')],
   ['formulário reorganiza cabeçalho no celular', read('src/components/SearchForm.jsx').includes('flex flex-col sm:flex-row')],
   ['modal de chat usa altura dinâmica', read('src/components/ChatModal.jsx').includes('80dvh')],
   ['lista de chats usa altura dinâmica', read('src/components/ChatListModal.jsx').includes('80dvh')],

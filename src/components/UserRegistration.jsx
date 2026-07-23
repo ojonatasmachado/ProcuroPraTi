@@ -23,19 +23,20 @@ import VehicleTypeSelector from '@/components/VehicleTypeSelector';
 
 const FieldError = ({ children }) => children ? <p role="alert" className="mt-1.5 text-xs font-medium text-danger">{children}</p> : null;
 
-const UserRegistration = ({ onRegister, onSaveRegistrationProgress, onLogin, onCollaboratorLogin, onResendConfirmation, onRequestPasswordReset, onBackToLanding, accountExists, cnpjExists, allStatesAndCities, initialUserType }) => {
+const UserRegistration = ({ onRegister, onSaveRegistrationProgress, onLogin, onCollaboratorLogin, onResendConfirmation, onRequestPasswordReset, onBackToLanding, accountExists, cnpjExists, allStatesAndCities, initialUserType, initialCollaboratorMode = false }) => {
   const [step, setStep] = useState('email');
   const [userType, setUserType] = useState(initialUserType === 'company' ? 'company' : 'user');
   const [showTerms, setShowTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showCollaboratorPin, setShowCollaboratorPin] = useState(false);
   const [vehicle, setVehicle] = useState(EMPTY_VEHICLE);
   const [fieldErrors, setFieldErrors] = useState({});
   const [formError, setFormError] = useState('');
   const [registrationStage, setRegistrationStage] = useState('personal');
   const [passwordResetRequested, setPasswordResetRequested] = useState(false);
-  const [collaboratorMode, setCollaboratorMode] = useState(false);
+  const [collaboratorMode, setCollaboratorMode] = useState(initialCollaboratorMode);
   const [collaboratorForm, setCollaboratorForm] = useState({ cnpj: '', username: '', pin: '' });
   useScrollToTop(`${userType}-${step}-${registrationStage}`);
 
@@ -389,20 +390,29 @@ const UserRegistration = ({ onRegister, onSaveRegistrationProgress, onLogin, onC
     setFormData({ name: '', email: '', password: '', confirmPassword: '', phone: '', whatsapp: '', cpf: '', addressCep: '', addressStreet: '', addressNumber: '', addressCity: '', addressState: '', cnpj: '', latitude: null, longitude: null, locationSource: 'city_center', vehicleTypes: [] });
   };
 
+  const keepFocusedFieldVisible = (event) => {
+    const field = event.target;
+    if (!field?.matches?.('input, textarea, [role="combobox"]')) return;
+    const reveal = () => field.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    window.setTimeout(reveal, 320);
+    window.setTimeout(reveal, 700);
+  };
+
   return (
-    <div className={`min-h-screen min-h-[100dvh] bg-background flex flex-col items-center p-3 sm:p-4 ${isRegistration ? 'justify-start' : 'justify-center'}`}>
-      <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }} className="mb-8 w-full max-w-2xl text-center">
-        <div className="grid w-full grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-2">
+    <div className="flex min-h-screen min-h-[100dvh] flex-col bg-background">
+      <header className="safe-header sticky top-0 z-50 w-full border-b border-border bg-card/95 px-3 py-3 shadow-sm backdrop-blur-md sm:px-4">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="container mx-auto grid min-h-12 w-full grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-2">
           <Button type="button" variant="outline" size="icon" onClick={onBackToLanding} className="justify-self-start" aria-label="Voltar para o site" title="Voltar para o site">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <BrandLogo as="h1" className="min-w-0 justify-self-center" iconClassName="h-11 w-11 rounded-xl sm:h-12 sm:w-12" textClassName="text-xl sm:text-3xl" />
           <ThemeToggle className="justify-self-end" />
-        </div>
-        <p className="mx-auto mt-3 max-w-2xl text-sm text-muted-foreground sm:text-lg">Conectamos quem procura peças às empresas que querem vender em todo o Brasil.</p>
-      </motion.div>
+        </motion.div>
+      </header>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="w-full max-w-md">
+      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center px-3 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-4 sm:px-4 sm:pt-6">
+        <p className="mb-4 max-w-xl text-center text-sm text-muted-foreground sm:mb-6 sm:text-base">Conectamos quem procura peças às empresas que querem vender em todo o Brasil.</p>
+      <motion.div onFocusCapture={keepFocusedFieldVisible} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="w-full max-w-md scroll-mt-24">
         <Card className="w-full bg-card border border-border">
           <CardHeader className="text-center pb-4">
             <CardTitle className="text-xl sm:text-2xl font-heading font-bold text-foreground">
@@ -443,7 +453,7 @@ const UserRegistration = ({ onRegister, onSaveRegistrationProgress, onLogin, onC
                 </div>
                 <div><Label htmlFor="collaborator-cnpj">CNPJ da empresa</Label><Input id="collaborator-cnpj" inputMode="numeric" value={collaboratorForm.cnpj} onChange={event => setCollaboratorForm(current => ({ ...current, cnpj: event.target.value }))} placeholder="00.000.000/0000-00" autoFocus /></div>
                 <div><Label htmlFor="collaborator-username">Nome de usuário</Label><Input id="collaborator-username" autoCapitalize="none" autoCorrect="off" value={collaboratorForm.username} onChange={event => setCollaboratorForm(current => ({ ...current, username: event.target.value.toLowerCase().replace(/\s/g, '') }))} placeholder="nome_sobrenome" /></div>
-                <div><Label htmlFor="collaborator-pin">PIN de 6 números</Label><Input id="collaborator-pin" type="password" inputMode="numeric" maxLength={6} value={collaboratorForm.pin} onChange={event => setCollaboratorForm(current => ({ ...current, pin: event.target.value.replace(/\D/g, '').slice(0, 6) }))} className="tracking-[0.3em]" /></div>
+                <div><Label htmlFor="collaborator-pin">PIN de 6 números</Label><div className="relative min-w-0 overflow-hidden rounded-[10px]"><Input id="collaborator-pin" type={showCollaboratorPin ? 'text' : 'password'} style={{ WebkitTextSecurity: showCollaboratorPin ? 'none' : 'disc' }} inputMode="numeric" maxLength={6} value={collaboratorForm.pin} onChange={event => setCollaboratorForm(current => ({ ...current, pin: event.target.value.replace(/\D/g, '').slice(0, 6) }))} className="pr-12 tracking-[0.3em]" /><button type="button" onClick={() => setShowCollaboratorPin(value => !value)} className="touch-manipulation absolute right-1 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={showCollaboratorPin ? 'Ocultar PIN' : 'Mostrar PIN'} aria-pressed={showCollaboratorPin}>{showCollaboratorPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div></div>
                 <Button type="submit" disabled={isSubmitting} className="w-full">{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}Entrar como colaborador</Button>
                 <Button type="button" variant="outline" onClick={() => { setCollaboratorMode(false); setFormError(''); }} className="w-full"><ArrowLeft className="mr-2 h-4 w-4" />Voltar ao acesso principal</Button>
               </form>
@@ -524,9 +534,9 @@ const UserRegistration = ({ onRegister, onSaveRegistrationProgress, onLogin, onC
 
               {step !== 'email' && (userType === 'company' || !isRegistration || registrationStage === 'personal') && <div>
                 <Label htmlFor="password" className="text-muted-foreground text-xs font-medium mb-1 block">Senha</Label>
-                <div className="relative">
-                  <Input key={showPassword ? 'password-visible' : 'password-hidden'} id="password" name="password" type={showPassword ? 'text' : 'password'} style={{ WebkitTextSecurity: showPassword ? 'none' : 'disc' }} autoComplete={isLogin ? 'current-password' : 'new-password'} placeholder={isLogin ? "Digite sua senha" : "Crie uma senha"} required value={formData.password} onChange={handleInputChange} aria-describedby={isRegistration ? 'passwordRequirements' : undefined} aria-invalid={Boolean(fieldErrors.password) || (isRegistration && formData.password.length > 0 && !isPasswordValid)} className={`bg-popover border-border pr-11 text-sm h-11 ${fieldErrors.password ? 'border-danger' : ''}`} autoFocus />
-                  <button type="button" onClick={() => setShowPassword(value => !value)} className="touch-manipulation absolute inset-y-0 right-0 z-10 flex w-11 items-center justify-center text-muted-foreground hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'} aria-pressed={showPassword}>
+                <div className="relative min-w-0 overflow-hidden rounded-[10px]">
+                  <Input id="password" name="password" type={showPassword ? 'text' : 'password'} style={{ WebkitTextSecurity: showPassword ? 'none' : 'disc' }} autoComplete={isLogin ? 'current-password' : 'new-password'} placeholder={isLogin ? "Digite sua senha" : "Crie uma senha"} required value={formData.password} onChange={handleInputChange} aria-describedby={isRegistration ? 'passwordRequirements' : undefined} aria-invalid={Boolean(fieldErrors.password) || (isRegistration && formData.password.length > 0 && !isPasswordValid)} className={`bg-popover border-border pr-12 text-sm h-11 ${fieldErrors.password ? 'border-danger' : ''}`} autoFocus />
+                  <button type="button" onClick={() => setShowPassword(value => !value)} className="touch-manipulation absolute right-1 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'} aria-pressed={showPassword}>
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
@@ -548,9 +558,9 @@ const UserRegistration = ({ onRegister, onSaveRegistrationProgress, onLogin, onC
               {isRegistration && (userType === 'company' || registrationStage === 'personal') && (
                 <div>
                   <Label htmlFor="confirmPassword" className="text-muted-foreground text-xs font-medium mb-1 block">Confirmar Senha</Label>
-                  <div className="relative">
-                    <Input key={showConfirmPassword ? 'confirmation-visible' : 'confirmation-hidden'} id="confirmPassword" name="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} style={{ WebkitTextSecurity: showConfirmPassword ? 'none' : 'disc' }} autoComplete="new-password" placeholder="Confirme sua senha" required value={formData.confirmPassword} onChange={handleInputChange} aria-invalid={Boolean(fieldErrors.confirmPassword) || (formData.confirmPassword.length > 0 && !passwordsMatch)} className={`bg-popover border-border pr-11 text-sm h-11 ${fieldErrors.confirmPassword ? 'border-danger' : ''}`} />
-                    <button type="button" onClick={() => setShowConfirmPassword(value => !value)} className="touch-manipulation absolute inset-y-0 right-0 z-10 flex w-11 items-center justify-center text-muted-foreground hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={showConfirmPassword ? 'Ocultar confirmação de senha' : 'Mostrar confirmação de senha'} aria-pressed={showConfirmPassword}>
+                  <div className="relative min-w-0 overflow-hidden rounded-[10px]">
+                    <Input id="confirmPassword" name="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} style={{ WebkitTextSecurity: showConfirmPassword ? 'none' : 'disc' }} autoComplete="new-password" placeholder="Confirme sua senha" required value={formData.confirmPassword} onChange={handleInputChange} aria-invalid={Boolean(fieldErrors.confirmPassword) || (formData.confirmPassword.length > 0 && !passwordsMatch)} className={`bg-popover border-border pr-12 text-sm h-11 ${fieldErrors.confirmPassword ? 'border-danger' : ''}`} />
+                    <button type="button" onClick={() => setShowConfirmPassword(value => !value)} className="touch-manipulation absolute right-1 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={showConfirmPassword ? 'Ocultar confirmação de senha' : 'Mostrar confirmação de senha'} aria-pressed={showConfirmPassword}>
                       {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
@@ -694,6 +704,7 @@ const UserRegistration = ({ onRegister, onSaveRegistrationProgress, onLogin, onC
           </CardFooter>
         </Card>
       </motion.div>
+      </main>
 
       <TermsModal isOpen={showTerms} onClose={() => setShowTerms(false)} userType={userType} />
     </div>

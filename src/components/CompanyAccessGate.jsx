@@ -38,7 +38,7 @@ const CompanyAccessGate = ({ company, access, onClaim, onLogout }) => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="safe-header border-b border-border bg-card px-3 py-3 shadow-sm">
+      <header className="safe-header sticky top-0 z-50 border-b border-border bg-card px-3 py-3 shadow-sm">
         <div className="container mx-auto flex items-center justify-between gap-3">
           <BrandLogo compactOnMobile iconClassName="h-10 w-10" textClassName="text-xl sm:text-2xl" />
           <ThemeToggle />
@@ -73,11 +73,11 @@ const CompanyAccessGate = ({ company, access, onClaim, onLogout }) => {
               )}
               <div className="space-y-2">
                 <Label htmlFor="team-pin">PIN de acesso</Label>
-                <div className="relative">
-                  <Input key={showPin ? 'pin-visible' : 'pin-hidden'} id="team-pin" type={showPin ? 'text' : 'password'} style={{ WebkitTextSecurity: showPin ? 'none' : 'disc' }} inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={pin} onChange={(event) => setPin(event.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="6 números" className="pr-12 tracking-[0.3em]" />
-                  <Button type="button" variant="ghost" size="icon" onClick={() => setShowPin(value => !value)} className="touch-manipulation absolute right-1 top-1/2 z-10 -translate-y-1/2" aria-label={showPin ? 'Ocultar PIN' : 'Mostrar PIN'} aria-pressed={showPin}>
+                <div className="relative min-w-0 overflow-hidden rounded-[10px]">
+                  <Input id="team-pin" type={showPin ? 'text' : 'password'} style={{ WebkitTextSecurity: showPin ? 'none' : 'disc' }} inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={pin} onChange={(event) => setPin(event.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="6 números" className="pr-12 tracking-[0.3em]" />
+                  <button type="button" onClick={() => setShowPin(value => !value)} className="touch-manipulation absolute right-1 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={showPin ? 'Ocultar PIN' : 'Mostrar PIN'} aria-pressed={showPin}>
                     {showPin ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </Button>
+                  </button>
                 </div>
               </div>
               {error && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive">{error}</p>}

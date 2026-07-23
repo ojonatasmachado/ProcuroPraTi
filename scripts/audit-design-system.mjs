@@ -27,7 +27,7 @@ assert('verde ágil oficial', css.includes('--accent-agile: 171.69 71.55% 45.49%
 assert('área de toque segura no fechamento', dialog.includes('h-10 w-10'));
 assert('rótulo de fechamento em português', dialog.includes("closeLabel = 'Fechar'"));
 assert('termos obrigatórios sem fechamento inativo', terms.includes('showClose={!requiresAcceptance}'));
-assert('cadastro longo começa no topo', registration.includes("isRegistration ? 'justify-start' : 'justify-center'"));
+assert('cadastro longo começa no topo', registration.includes('flex-1 flex-col items-center') && registration.includes('keepFocusedFieldVisible'));
 assert('selo depende de validação real', responseModal.includes("validationStatus === 'validated'"));
 assert('tema claro é o padrão inicial', themeContext.includes("? savedTheme : 'light'"));
 assert('detalhe da resposta precede o chat', responseModal.includes('Ver resposta') && responseModal.includes('Proximidade do seu endereço'));
