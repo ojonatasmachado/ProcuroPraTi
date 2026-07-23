@@ -3,9 +3,10 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Building2, MapPin, Clock, Image as ImageIcon, MessageSquare, Wrench, BadgeCheck, SlidersHorizontal, Edit3, Eye, Phone, Navigation, MapPinned, Smartphone, ExternalLink } from 'lucide-react';
+import { Building2, MapPin, Clock, Image as ImageIcon, MessageSquare, Wrench, BadgeCheck, SlidersHorizontal, Edit3, Eye, Phone, Navigation, MapPinned, Smartphone, ExternalLink, Star, Zap, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { formatCurrency } from '@/lib/currency';
@@ -28,7 +29,24 @@ const getMapLinks = ({ address, latitude, longitude }) => {
   };
 };
 
-const ResponseModal = ({ procura, isOpen, onClose, onMarkAsRead, onOpenChat, onEditProcura, companies = [], currentUser }) => {
+const StarRating = ({ value, onChange, size = 'h-5 w-5' }) => (
+  <div className="flex items-center gap-1">
+    {[1, 2, 3, 4, 5].map(star => (
+      <button
+        key={star}
+        type="button"
+        disabled={!onChange}
+        onClick={() => onChange?.(star)}
+        className={onChange ? 'cursor-pointer' : 'cursor-default'}
+        aria-label={`${star} estrela${star > 1 ? 's' : ''}`}
+      >
+        <Star className={`${size} text-warning ${star <= value ? 'fill-current' : 'text-muted-foreground/30'}`} />
+      </button>
+    ))}
+  </div>
+);
+
+const ResponseModal = ({ procura, isOpen, onClose, onMarkAsRead, onOpenChat, onEditProcura, companies = [], currentUser, myRatings = {}, onSubmitRating }) => {
   const [filterLocation, setFilterLocation] = useState('');
   const [sortOrder, setSortOrder] = useState('recommended');
   const [distanceLimit, setDistanceLimit] = useState('all');
@@ -37,6 +55,8 @@ const ResponseModal = ({ procura, isOpen, onClose, onMarkAsRead, onOpenChat, onE
   const [showMapOptions, setShowMapOptions] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [userCoordinates, setUserCoordinates] = useState(null);
+  const [ratingForm, setRatingForm] = useState(null);
+  const [submittingRating, setSubmittingRating] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -106,8 +126,20 @@ const ResponseModal = ({ procura, isOpen, onClose, onMarkAsRead, onOpenChat, onE
       setSelectedResponse(null);
       setShowMapOptions(false);
       setDistanceLimit('all');
+      setRatingForm(null);
     }
   }, [isOpen, procura?.id]);
+
+  const handleRatingSubmit = async () => {
+    if (!ratingForm?.rating || !selectedResponse || !onSubmitRating) return;
+    setSubmittingRating(true);
+    try {
+      await onSubmitRating({ responseId: selectedResponse.id, rating: ratingForm.rating, comment: ratingForm.comment });
+      setRatingForm(null);
+    } finally {
+      setSubmittingRating(false);
+    }
+  };
 
   if (!procura) return null;
 
@@ -241,6 +273,9 @@ const ResponseModal = ({ procura, isOpen, onClose, onMarkAsRead, onOpenChat, onE
                         </div>
                         <div className="flex items-center gap-2 flex-wrap mt-1 text-[11px] text-muted-foreground">
                           {response.company?.validationStatus === 'validated' && <span className="flex items-center gap-0.5 text-accent-agile"><BadgeCheck className="h-3 w-3" />Empresa verificada</span>}
+                          {response.company?.ratingCount > 0 && <span className="flex items-center gap-0.5 text-warning"><Star className="h-3 w-3 fill-current" />{response.company.avgRating} <span className="text-muted-foreground">({response.company.ratingCount})</span></span>}
+                          {response.company?.badgeFastResponder && <span className="flex items-center gap-0.5 text-accent-agile"><Zap className="h-3 w-3" />Responde rápido</span>}
+                          {response.company?.badgeWellRated && <span className="flex items-center gap-0.5 text-accent-agile"><Star className="h-3 w-3 fill-current" />Bem avaliada</span>}
                           {response.company?.planCode === 'nacional' && <span className="rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary">Alcance nacional</span>}
                           {response.partType && (<span className="flex items-center gap-0.5"><Wrench className="h-3 w-3" />{getPartTypeText(response.partType)}</span>)}
                           {response.partCondition && <span>· {({ new: 'Nova', excellent: 'Excelente', good: 'Boa', fair: 'Regular', poor: 'Com avarias' }[response.partCondition] || response.partCondition)}</span>}
@@ -283,6 +318,13 @@ const ResponseModal = ({ procura, isOpen, onClose, onMarkAsRead, onOpenChat, onE
             </DialogHeader>
             <div className="space-y-4 px-4 py-4 sm:px-6">
               <div className="flex items-center justify-between gap-3 rounded-xl border border-accent-agile/30 bg-accent-agile/10 p-3"><div><p className="text-xs text-muted-foreground">Preço informado</p><p className="text-xl font-extrabold text-foreground">{selectedResponse.price ? formatCurrency(selectedResponse.price) : 'A combinar'}</p></div>{selectedResponse.company?.validationStatus === 'validated' && <span className="flex items-center gap-1 text-xs font-semibold text-accent-agile"><BadgeCheck className="h-4 w-4" />Verificada</span>}</div>
+              {(selectedResponse.company?.ratingCount > 0 || selectedResponse.company?.badgeFastResponder || selectedResponse.company?.badgeWellRated) && (
+                <div className="flex flex-wrap gap-2 text-xs">
+                  {selectedResponse.company?.ratingCount > 0 && <span className="flex items-center gap-1 rounded-full bg-warning/10 px-2 py-1 font-semibold text-warning"><Star className="h-3.5 w-3.5 fill-current" />{selectedResponse.company.avgRating} ({selectedResponse.company.ratingCount})</span>}
+                  {selectedResponse.company?.badgeFastResponder && <span className="flex items-center gap-1 rounded-full bg-accent-agile/10 px-2 py-1 font-semibold text-accent-agile"><Zap className="h-3.5 w-3.5" />Responde rápido</span>}
+                  {selectedResponse.company?.badgeWellRated && <span className="flex items-center gap-1 rounded-full bg-accent-agile/10 px-2 py-1 font-semibold text-accent-agile"><Star className="h-3.5 w-3.5 fill-current" />Bem avaliada</span>}
+                </div>
+              )}
               <div className="grid gap-3 rounded-xl border border-border bg-popover p-4 text-sm">
                 <div className="flex items-start gap-3">
                   <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
@@ -306,6 +348,31 @@ const ResponseModal = ({ procura, isOpen, onClose, onMarkAsRead, onOpenChat, onE
                 {selectedResponse.company?.whatsapp && <div className="flex items-start gap-3"><Smartphone className="mt-0.5 h-4 w-4 shrink-0 text-accent-agile" /><div><p className="text-xs text-muted-foreground">WhatsApp</p><a href={`https://wa.me/55${selectedResponse.company.whatsapp.replace(/\D/g, '').replace(/^55/, '')}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-accent-agile underline-offset-2 hover:underline">{selectedResponse.company.whatsapp}</a></div></div>}
               </div>
               <div className="rounded-xl border border-border p-4"><div className="flex flex-wrap gap-2 text-xs text-muted-foreground">{selectedResponse.partType && <span className="rounded-full bg-secondary px-2 py-1">{getPartTypeText(selectedResponse.partType)}</span>}{selectedResponse.partCondition && <span className="rounded-full bg-secondary px-2 py-1">{({ new: 'Nova', excellent: 'Excelente', good: 'Boa', fair: 'Regular', poor: 'Com avarias' }[selectedResponse.partCondition] || selectedResponse.partCondition)}</span>}</div>{selectedResponse.message && <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-foreground">{selectedResponse.message}</p>}{selectedResponse.photoUrl && <button type="button" onClick={() => setSelectedPhotoUrl(selectedResponse.photoUrl)} className="mt-3 w-full overflow-hidden rounded-xl border border-border bg-muted"><img src={selectedResponse.photoUrl} alt={`Foto da peça ${procura.partName}`} className="max-h-56 w-full object-contain" /><span className="block py-2 text-xs font-semibold text-primary">Ampliar foto</span></button>}</div>
+              {onSubmitRating && (
+                <div className="rounded-xl border border-border p-4">
+                  <p className="mb-2 text-sm font-semibold text-foreground">Avalie esta empresa</p>
+                  {myRatings[selectedResponse.id] && !ratingForm ? (
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <StarRating value={myRatings[selectedResponse.id].rating} />
+                        {myRatings[selectedResponse.id].comment && <p className="mt-1 text-xs italic text-muted-foreground">“{myRatings[selectedResponse.id].comment}”</p>}
+                      </div>
+                      <Button type="button" variant="outline" size="sm" onClick={() => setRatingForm({ rating: myRatings[selectedResponse.id].rating, comment: myRatings[selectedResponse.id].comment || '' })}><Edit3 className="mr-1 h-3.5 w-3.5" />Editar</Button>
+                    </div>
+                  ) : ratingForm ? (
+                    <div className="space-y-3">
+                      <StarRating value={ratingForm.rating} onChange={(rating) => setRatingForm(current => ({ ...current, rating }))} />
+                      <Textarea value={ratingForm.comment} onChange={(event) => setRatingForm(current => ({ ...current, comment: event.target.value }))} placeholder="Comentário (opcional)" className="text-sm" rows={2} />
+                      <div className="flex gap-2">
+                        <Button type="button" size="sm" disabled={!ratingForm.rating || submittingRating} onClick={handleRatingSubmit}>{submittingRating && <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />}Enviar avaliação</Button>
+                        <Button type="button" variant="outline" size="sm" onClick={() => setRatingForm(null)}>Cancelar</Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button type="button" variant="outline" size="sm" onClick={() => setRatingForm({ rating: 0, comment: '' })}><Star className="mr-1 h-3.5 w-3.5" />Avaliar empresa</Button>
+                  )}
+                </div>
+              )}
             </div>
             <DialogFooter className="grid grid-cols-1 gap-2 border-t border-border px-4 py-4 sm:grid-cols-2 sm:px-6">
               <Button type="button" variant="outline" onClick={() => setSelectedResponse(null)} className="w-full">Voltar</Button>

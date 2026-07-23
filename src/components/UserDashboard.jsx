@@ -11,7 +11,7 @@ import useScrollToTop from '@/hooks/useScrollToTop';
 import { getSearchRemainingMs } from '@/lib/searchDuration';
 import DashboardSectionTabs from '@/components/DashboardSectionTabs';
 
-const UserDashboard = ({ userProcuras, onProcuraCreate, onProcuraUpdate, onPhotoUpload, onProcuraStatusChange, onMarkResponseAsRead, currentUser, allStatesAndCities, vehicleData, onOpenChat, unreadNotifications, companies = [], openResponsesForProcuraId = null, onPushDestinationHandled }) => {
+const UserDashboard = ({ userProcuras, onProcuraCreate, onProcuraUpdate, onPhotoUpload, onProcuraStatusChange, onMarkResponseAsRead, currentUser, allStatesAndCities, vehicleData, onOpenChat, unreadNotifications, companies = [], openResponsesForProcuraId = null, onPushDestinationHandled, myRatings = {}, onSubmitRating }) => {
   const [selectedProcura, setSelectedProcura] = useState(null);
   const [isResponseModalOpen, setIsResponseModalOpen] = useState(false);
   const [currentView, setCurrentView] = useState('home'); // 'home', 'new_search_form', 'active_searches', 'finished_searches'
@@ -125,6 +125,8 @@ const UserDashboard = ({ userProcuras, onProcuraCreate, onProcuraUpdate, onPhoto
         onEditProcura={(procura) => { setIsResponseModalOpen(false); setReopenAsNew(false); setProcuraBeingEdited(procura); setCurrentView('new_search_form'); }}
         companies={companies}
         currentUser={currentUser}
+        myRatings={myRatings}
+        onSubmitRating={onSubmitRating}
       />
     </div>
   );

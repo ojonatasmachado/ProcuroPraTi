@@ -2,12 +2,17 @@
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { BarChart3, MessageSquare, CheckCircle, XCircle, TrendingUp, Percent } from 'lucide-react';
+import { BarChart3, MessageSquare, CheckCircle, XCircle, TrendingUp, Percent, Star } from 'lucide-react';
 import BrandMark from '@/components/BrandMark';
 import { motion } from 'framer-motion';
 
-const CompanyMiniDashboard = ({ currentUser, procuras, onClose }) => {
+const CompanyMiniDashboard = ({ currentUser, procuras, companies = [], onClose }) => {
   const companyId = currentUser?.id;
+  const myReputation = companies.find(company => company.id === companyId);
+  const earnedBadges = [
+    myReputation?.badgeFastResponder && 'Responde rápido',
+    myReputation?.badgeWellRated && 'Bem avaliada',
+  ].filter(Boolean);
 
   const companyProcuras = useMemo(() => {
     if (!currentUser || !procuras) return [];
@@ -44,6 +49,7 @@ const CompanyMiniDashboard = ({ currentUser, procuras, onClose }) => {
     { title: "Peças Indisponíveis", value: respostasIndisponiveis, icon: <XCircle className="h-6 w-6 text-danger" /> },
     { title: "Taxa de Resposta", value: `${taxaResposta}%`, icon: <TrendingUp className="h-6 w-6 text-warning" /> },
     { title: "Taxa de Disponibilidade", value: `${taxaDisponibilidade}%`, icon: <Percent className="h-6 w-6 text-accent-agile" /> },
+    { title: "Sua Reputação", value: myReputation?.ratingCount ? `${myReputation.avgRating} ★ (${myReputation.ratingCount})` : 'Sem avaliações', icon: <Star className="h-6 w-6 text-warning" /> },
   ];
 
   const cardVariants = {
@@ -88,6 +94,11 @@ const CompanyMiniDashboard = ({ currentUser, procuras, onClose }) => {
           ))}
         </div>
         <p className="text-xs text-muted-foreground mt-4 sm:mt-6 text-center">
+          {earnedBadges.length > 0
+            ? `Selos públicos conquistados: ${earnedBadges.join(', ')}.`
+            : 'Responda em até 6h e mantenha nota acima de 4,5 para conquistar selos públicos visíveis aos compradores.'}
+        </p>
+        <p className="text-xs text-muted-foreground mt-2 text-center">
           Estas são estatísticas baseadas nas suas interações na plataforma.
         </p>
       </DialogContent>

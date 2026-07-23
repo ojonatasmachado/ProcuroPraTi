@@ -50,6 +50,7 @@ function App() {
   const [companies, setCompanies] = useState([]);
   const [procuras, setProcuras] = useState([]);
   const [chats, setChats] = useState({});
+  const [companyRatings, setCompanyRatings] = useState({});
   const [userType, setUserType] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
@@ -201,13 +202,15 @@ function App() {
   }, [userType, setUserType, setCurrentUser, setShowLanding]);
 
   const loadAuthenticatedData = useCallback(async () => {
-    const [remoteUsers, remoteCompanies, remoteProcuras, remoteChats] = await Promise.all([
+    const [remoteUsers, remoteCompanies, remoteProcuras, remoteChats, remoteRatings] = await Promise.all([
       dataService.getUsers(), dataService.getCompanies(), dataService.getProcuras(), dataService.getMessages(),
+      dataService.getMyCompanyRatings().catch(() => []),
     ]);
     setUsers(remoteUsers);
     setCompanies(remoteCompanies);
     setProcuras(remoteProcuras);
     setChats(remoteChats);
+    setCompanyRatings(Object.fromEntries(remoteRatings.map(item => [item.responseId, item])));
     setIsAuthenticatedDataLoaded(true);
     return remoteProcuras;
   }, []);
@@ -221,6 +224,7 @@ function App() {
       setCompanies([]);
       setProcuras([]);
       setChats({});
+      setCompanyRatings({});
       setIsAuthenticatedDataLoaded(false);
       setTermsAcceptedDate(null);
       setShowTerms(false);
@@ -270,6 +274,7 @@ function App() {
       setCompanies([]);
       setProcuras([]);
       setChats({});
+      setCompanyRatings({});
       setShowTerms(false);
       setIsAuthenticatedDataLoaded(false);
       setIsAuthLoading(false);
@@ -708,6 +713,7 @@ function App() {
       setCompanies([]);
       setProcuras([]);
       setChats({});
+      setCompanyRatings({});
       setIsAuthenticatedDataLoaded(false);
       setShowProfile(false);
       setShowCompanyMiniDashboard(false);
@@ -991,6 +997,16 @@ function App() {
     }
   };
 
+  const handleSubmitCompanyRating = async ({ responseId, rating, comment }) => {
+    try {
+      await dataService.submitCompanyRating({ responseId, rating, comment });
+      setCompanyRatings(current => ({ ...current, [responseId]: { responseId, rating, comment } }));
+      toast({ title: 'Avaliação enviada', description: 'Obrigado por avaliar a empresa!' });
+    } catch (error) {
+      toast({ title: 'Não foi possível enviar', description: error.message, variant: 'destructive' });
+    }
+  };
+
   const openFeedbackModal = (type) => {
     setFeedbackType(type);
     setShowFeedbackModal(true);
@@ -1191,6 +1207,8 @@ function App() {
             companies={Array.isArray(companies) ? companies : []}
             openResponsesForProcuraId={pendingPushDestination?.type === 'respostas' ? pendingPushDestination.procuraId : null}
             onPushDestinationHandled={handlePushDestinationHandled}
+            myRatings={companyRatings}
+            onSubmitRating={handleSubmitCompanyRating}
           />
         ) : userType === 'company' ? (
           <CompanyDashboard 
@@ -1231,6 +1249,7 @@ function App() {
         <CompanyMiniDashboard
           currentUser={currentUser}
           procuras={Array.isArray(procuras) ? procuras : []}
+          companies={Array.isArray(companies) ? companies : []}
           onClose={() => setShowCompanyMiniDashboard(false)}
         />
       )}

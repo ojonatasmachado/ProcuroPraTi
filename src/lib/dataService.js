@@ -302,6 +302,18 @@ export const dataService = {
     throwIfError(error);
     return (data || []).map(toCamel);
   },
+  async getMyCompanyRatings() {
+    const { data, error } = await requireSupabase().from('company_ratings').select('response_id, rating, comment');
+    throwIfError(error);
+    return (data || []).map(toCamel);
+  },
+  async submitCompanyRating({ responseId, rating, comment }) {
+    const { data, error } = await requireSupabase().rpc('submit_company_rating', {
+      p_response_id: responseId, p_rating: rating, p_comment: comment || null,
+    });
+    throwIfError(error);
+    return toCamel(data || {});
+  },
   async getMessages() {
     const { error: deliveryError } = await requireSupabase().rpc('mark_messages_delivered');
     throwIfError(deliveryError);
