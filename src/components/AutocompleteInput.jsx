@@ -6,7 +6,20 @@ import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, Command
 import { cn } from '@/lib/utils';
 import { ChevronDown } from 'lucide-react';
 
-const AutocompleteInput = ({ id, placeholder, value, onChange, onSelect, suggestions, className, disabled }) => {
+const normalizeSuggestion = (suggestion) => typeof suggestion === 'string'
+  ? { label: suggestion, value: suggestion, keywords: suggestion }
+  : {
+      label: suggestion?.label || suggestion?.value || '',
+      value: suggestion?.value || suggestion?.label || '',
+      keywords: suggestion?.keywords || [suggestion?.label, ...(suggestion?.aliases || [])].filter(Boolean).join(' '),
+    };
+
+const normalizeSearch = (text) => String(text || '')
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase();
+
+const AutocompleteInput = ({ id, placeholder, value, onChange, onSelect, suggestions = [], className, disabled }) => {
   const [inputValue, setInputValue] = useState(value || '');
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef(null);
@@ -27,8 +40,8 @@ const AutocompleteInput = ({ id, placeholder, value, onChange, onSelect, suggest
   };
   
   const handleSuggestionClick = (suggestion) => {
-    setInputValue(suggestion);
-    onSelect(suggestion);
+    setInputValue(suggestion.value);
+    onSelect(suggestion.value);
     setIsOpen(false);
     if (inputRef.current) {
       inputRef.current.blur(); 
@@ -36,14 +49,18 @@ const AutocompleteInput = ({ id, placeholder, value, onChange, onSelect, suggest
   };
 
   const sortedSuggestions = useMemo(() => {
-    return [...suggestions].sort((a, b) => a.localeCompare(b));
+    return suggestions
+      .map(normalizeSuggestion)
+      .filter(suggestion => suggestion.label)
+      .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
   }, [suggestions]);
 
-  const filteredSuggestions = sortedSuggestions.filter(s => 
-    s.toLowerCase().includes(inputValue.toLowerCase())
-  );
+  const normalizedInput = normalizeSearch(inputValue);
+  const filteredSuggestions = sortedSuggestions
+    .filter(suggestion => normalizeSearch(suggestion.keywords).includes(normalizedInput))
+    .slice(0, normalizedInput ? 100 : 50);
   
-  const shouldShowPopover = isOpen && filteredSuggestions.length > 0;
+  const shouldShowPopover = isOpen && (sortedSuggestions.length > 0 || inputValue.length > 0);
 
   return (
     <Popover open={shouldShowPopover} onOpenChange={setIsOpen}>
@@ -79,16 +96,18 @@ const AutocompleteInput = ({ id, placeholder, value, onChange, onSelect, suggest
           <Command>
             {!inputValue && <CommandInput placeholder="Digite para pesquisar..." className="border-border focus:border-primary"/>}
             <CommandList className="max-h-[200px] overflow-y-auto">
-              {filteredSuggestions.length === 0 && inputValue.length > 0 && <CommandEmpty>Nenhuma sugestão encontrada.</CommandEmpty>}
+              {filteredSuggestions.length === 0 && inputValue.length > 0 && (
+                <CommandEmpty>Nenhuma sugestão encontrada. Você pode continuar com o nome digitado.</CommandEmpty>
+              )}
               <CommandGroup>
                 {filteredSuggestions.map((suggestion, index) => (
                   <CommandItem
-                    key={`${suggestion}-${index}`}
-                    value={suggestion}
+                    key={`${suggestion.value}-${index}`}
+                    value={suggestion.value}
                     onSelect={() => handleSuggestionClick(suggestion)}
                     className="cursor-pointer hover:!bg-accent/20 aria-selected:!bg-accent/30"
                   >
-                    {suggestion}
+                    {suggestion.label}
                   </CommandItem>
                 ))}
               </CommandGroup>

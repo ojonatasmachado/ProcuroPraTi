@@ -1,18 +1,19 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Lightbulb, Send, X } from 'lucide-react';
+import { Lightbulb, Send } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { toast } from '@/components/ui/use-toast';
 
 const SuggestionPopup = ({ isOpen, onClose, onSubmit }) => {
   const [suggestionText, setSuggestionText] = useState('');
 
   const handleSubmit = () => {
     if (suggestionText.trim() === '') {
-      alert("Por favor, escreva sua sugestão.");
+      toast({ title: 'Escreva sua sugestão', description: 'Conte sua ideia antes de enviar.', variant: 'destructive' });
       return;
     }
     onSubmit(suggestionText);
@@ -25,11 +26,11 @@ const SuggestionPopup = ({ isOpen, onClose, onSubmit }) => {
       <DialogContent className="max-w-md bg-card border-border text-foreground">
         <DialogHeader>
           <DialogTitle className="text-xl text-foreground flex items-center gap-2">
-            <Lightbulb className="h-6 w-6 text-yellow-400" />
+            <Lightbulb className="h-6 w-6 text-warning" />
             Queremos Ouvir Você!
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            Ajude-nos a melhorar o Procuro Pra Ti! Tem alguma sugestão ou ideia para tornar nossa plataforma ainda melhor?
+            Ajude-nos a melhorar a plataforma. Tem alguma sugestão ou ideia para tornar a experiência ainda melhor?
           </DialogDescription>
         </DialogHeader>
 
@@ -50,10 +51,11 @@ const SuggestionPopup = ({ isOpen, onClose, onSubmit }) => {
         </motion.div>
 
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={onClose} className="border-muted-foreground/50 text-muted-foreground hover:border-primary hover:text-primary">
-            <X className="h-4 w-4 mr-2" />
-            Agora Não
-          </Button>
+          <DialogClose asChild>
+            <Button type="button" variant="outline" className="border-muted-foreground/50 text-muted-foreground hover:border-primary hover:text-primary">
+              Agora Não
+            </Button>
+          </DialogClose>
           <Button onClick={handleSubmit} className="gradient-bg hover:opacity-90 text-primary-foreground">
             <Send className="h-4 w-4 mr-2" />
             Enviar Sugestão

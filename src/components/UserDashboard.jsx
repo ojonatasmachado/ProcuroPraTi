@@ -1,19 +1,24 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import SearchForm from '@/components/SearchForm';
-import SearchList from '@/components/SearchList';
 import ResponseModal from '@/components/ResponseModal';
-import { Users, History, PackageSearch, Bell, Edit2, Search, ArrowLeft } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { History, Bell, Clock, PackagePlus, CheckCircle, RotateCcw, Eye } from 'lucide-react';
+import BrandMark from '@/components/BrandMark';
 import { toast } from '@/components/ui/use-toast';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import useScrollToTop from '@/hooks/useScrollToTop';
+import { getSearchRemainingMs } from '@/lib/searchDuration';
+import DashboardSectionTabs from '@/components/DashboardSectionTabs';
 
-const UserDashboard = ({ userProcuras, onProcuraCreate, onProcuraStatusChange, onMarkResponseAsRead, currentUser, allStatesAndCities, vehicleData, onOpenChat, unreadNotifications }) => {
+const UserDashboard = ({ userProcuras, onProcuraCreate, onProcuraUpdate, onPhotoUpload, onProcuraStatusChange, onMarkResponseAsRead, currentUser, allStatesAndCities, vehicleData, onOpenChat, unreadNotifications, companies = [], openResponsesForProcuraId = null, onPushDestinationHandled }) => {
   const [selectedProcura, setSelectedProcura] = useState(null);
   const [isResponseModalOpen, setIsResponseModalOpen] = useState(false);
   const [currentView, setCurrentView] = useState('home'); // 'home', 'new_search_form', 'active_searches', 'finished_searches'
+  const [procuraBeingEdited, setProcuraBeingEdited] = useState(null);
+  const [reopenAsNew, setReopenAsNew] = useState(false);
+  const [finishingProcuraId, setFinishingProcuraId] = useState(null);
+  useScrollToTop(currentView);
 
   const handleViewResponses = (procura) => {
     setSelectedProcura(procura);
@@ -26,125 +31,87 @@ const UserDashboard = ({ userProcuras, onProcuraCreate, onProcuraStatusChange, o
   const activeProcuras = useMemo(() => userProcuras.filter(s => s.status === 'active').sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)), [userProcuras]);
   const finishedProcuras = useMemo(() => userProcuras.filter(s => s.status === 'finished').sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)), [userProcuras]);
 
+  useEffect(() => {
+    if (!openResponsesForProcuraId) return;
+    const procura = userProcuras.find(item => item.id === openResponsesForProcuraId);
+    if (!procura) return;
+
+    setCurrentView(procura.status === 'finished' ? 'finished_searches' : 'home');
+    handleViewResponses(procura);
+    onPushDestinationHandled?.();
+  }, [openResponsesForProcuraId, userProcuras, onPushDestinationHandled]);
+
   const totalUnreadInActive = unreadNotifications.filter(n => activeProcuras.some(ap => ap.id === n.procuraId)).length;
 
-  const markAsFinished = (procuraId) => {
-    onProcuraStatusChange(procuraId, 'finished');
-    toast({ title: "Procura finalizada!", description: "A procura foi movida para o histórico."});
+  const markAsFinished = async (procuraId) => {
+    if (finishingProcuraId) return;
+    setFinishingProcuraId(procuraId);
+    const completed = await onProcuraStatusChange(procuraId, 'finished');
+    setFinishingProcuraId(null);
+    if (completed) toast({ title: "Procura finalizada!", description: "A procura foi movida para o histórico."});
   };
   
-  const reopenProcura = (procuraId) => {
-    onProcuraStatusChange(procuraId, 'active');
-    toast({ title: "Procura reaberta!", description: "A procura foi movida para ativas."});
+  const handleCreateNewProcura = async (newProcuraData) => {
+    const created = procuraBeingEdited && !reopenAsNew
+      ? await onProcuraUpdate(procuraBeingEdited.id, newProcuraData)
+      : await onProcuraCreate(newProcuraData);
+    if (created) setCurrentView('home');
+    if (created) setProcuraBeingEdited(null);
+    if (created) setReopenAsNew(false);
+    return created;
   };
 
-  const handleCreateNewProcura = (newProcuraData) => {
-    onProcuraCreate(newProcuraData);
-    setCurrentView('active_searches'); 
+  const reopenWithChanges = (procura) => {
+    setProcuraBeingEdited(procura);
+    setReopenAsNew(true);
+    setCurrentView('new_search_form');
   };
 
-  const renderHomeView = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <Card className="glass-effect hover:border-primary/50 transition-all">
-        <CardHeader>
-          <CardTitle className="text-lg text-foreground flex items-center gap-2"><Edit2 size={20}/>Nova Procura</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">Precisa de uma peça? Crie uma nova procura agora mesmo.</p>
-        </CardContent>
-        <CardFooter>
-          <Button onClick={() => setCurrentView('new_search_form')} className="w-full gradient-bg">Criar Nova Procura</Button>
-        </CardFooter>
-      </Card>
-      <Card className="glass-effect hover:border-primary/50 transition-all">
-        <CardHeader>
-          <CardTitle className="text-lg text-foreground flex items-center gap-2"><Search size={20}/>Minhas Procuras</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">Acompanhe suas procuras ativas e veja o histórico.</p>
-          {totalUnreadInActive > 0 && (
-            <p className="text-sm text-green-400 mt-1 flex items-center gap-1"><Bell size={14}/> Você tem {totalUnreadInActive} nova(s) resposta(s)!</p>
-          )}
-        </CardContent>
-        <CardFooter>
-          <Button onClick={() => setCurrentView('active_searches')} variant="outline" className="w-full">Ver Minhas Procuras</Button>
-        </CardFooter>
-      </Card>
-    </div>
-  );
+  const formatRemaining = (procura) => {
+    const remaining = getSearchRemainingMs(procura);
+    if (remaining <= 0) return 'encerrando';
+    const days = Math.floor(remaining / 86400000);
+    const hours = Math.floor((remaining % 86400000) / 3600000);
+    return days > 0 ? `${days} dia${days === 1 ? '' : 's'} restante${days === 1 ? '' : 's'}` : `${hours}h restantes`;
+  };
+
+  const renderOverviewView = (showFinished = false) => {
+    const visibleProcuras = showFinished ? finishedProcuras : activeProcuras;
+    return <div className="mx-auto max-w-2xl space-y-3 pb-28">
+      <div className="flex items-baseline justify-between gap-3">
+        <div><h2 className="text-xl font-extrabold tracking-tight text-foreground sm:text-2xl">{showFinished ? 'Histórico de procuras' : 'Minhas procuras'}</h2><p className="mt-1 text-sm leading-5 text-muted-foreground">{showFinished ? 'Consulte respostas, conversas ou repita uma procura.' : 'Acompanhe suas procuras ativas e compare as melhores respostas.'}</p></div>
+        <span className="shrink-0 text-xs text-muted-foreground">{visibleProcuras.length} {showFinished ? 'finalizada(s)' : 'em andamento'}</span>
+      </div>
+      <DashboardSectionTabs value={showFinished ? 'finished' : 'active'} onChange={(value) => setCurrentView(value === 'finished' ? 'finished_searches' : 'home')} items={[{ value: 'active', label: 'Ativas', count: activeProcuras.length, icon: Clock }, { value: 'finished', label: 'Finalizadas', count: finishedProcuras.length, icon: History }]} />
+      {visibleProcuras.length === 0 ? (
+        <Card className="border-border bg-card"><CardContent className="py-10 text-center"><BrandMark className="mx-auto mb-3 h-12 w-12 rounded-xl" /><p className="font-semibold text-foreground">{showFinished ? 'Nenhuma procura finalizada.' : 'Você ainda não tem procuras ativas.'}</p><p className="mt-1 text-sm text-muted-foreground">{showFinished ? 'Quando você finalizar uma procura, todo o histórico aparecerá aqui.' : 'Crie uma procura para receber respostas de empresas da sua região.'}</p></CardContent></Card>
+      ) : visibleProcuras.map(procura => {
+        const responses = (procura.responses || []).filter(response => response.status === 'available').length;
+        return <Card key={procura.id} className={`overflow-hidden border-border border-l-[3px] bg-card shadow-sm ${showFinished ? 'border-l-muted-foreground' : 'border-l-primary'}`}><CardContent className="p-3.5"><button type="button" onClick={() => handleViewResponses(procura)} className="flex w-full items-start gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><div className="min-w-0 flex-1"><p className="line-clamp-2 min-h-10 text-lg font-extrabold leading-5 tracking-tight text-foreground">{procura.partName}</p><p className="mt-1 flex min-h-8 items-start gap-1 text-xs leading-4 text-muted-foreground">{procura.vehicleBrand} {procura.vehicleModel} {procura.vehicleYear ? `(${procura.vehicleYear})` : ''}{!showFinished && <><span>·</span><Clock className="h-3 w-3 shrink-0" />{formatRemaining(procura)}</>}</p></div><span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-extrabold ${responses > 0 ? 'bg-accent-agile text-accent-agile-foreground shadow-sm' : 'bg-secondary text-muted-foreground'}`}>{responses > 0 ? `${responses} resposta${responses === 1 ? '' : 's'}` : 'Sem respostas'}</span></button><div className="mt-2 grid grid-cols-2 gap-2 border-t border-border/60 pt-2"><Button type="button" variant={showFinished ? 'outline' : 'default'} onClick={() => handleViewResponses(procura)} className={`min-h-11 text-xs font-bold ${showFinished ? '' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}><Eye className="mr-1.5 h-4 w-4" />{showFinished ? 'Ver histórico' : 'Ver respostas'}</Button>{showFinished ? <Button type="button" onClick={() => reopenWithChanges(procura)} className="min-h-11 text-xs"><RotateCcw className="mr-1.5 h-4 w-4" />Reabrir e ajustar</Button> : <Button type="button" variant="outline" disabled={Boolean(finishingProcuraId)} onClick={() => markAsFinished(procura.id)} className="min-h-11 border-warning/60 text-xs text-warning hover:bg-warning/10"><CheckCircle className="mr-1.5 h-4 w-4" />{finishingProcuraId === procura.id ? <span className="inline-flex gap-1" aria-label="Finalizando"><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current" /><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:120ms]" /><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:240ms]" /></span> : 'Finalizar'}</Button>}</div></CardContent></Card>;
+      })}
+      {!showFinished && totalUnreadInActive > 0 && <p className="flex items-center justify-center gap-1 text-xs font-medium text-accent-agile"><Bell className="h-3.5 w-3.5" />Você tem {totalUnreadInActive} resposta(s) nova(s).</p>}
+    </div>;
+  };
 
   const renderSearchFormView = () => (
      <SearchForm 
         onProcuraCreate={handleCreateNewProcura} 
+        onPhotoUpload={onPhotoUpload}
         currentUser={currentUser} 
         allStatesAndCities={allStatesAndCities}
         vehicleData={vehicleData}
-        onGoBack={() => setCurrentView('home')}
+        onGoBack={() => { setProcuraBeingEdited(null); setReopenAsNew(false); setCurrentView('home'); }}
+        editingProcura={procuraBeingEdited}
+        reopeningProcura={reopenAsNew}
       />
   );
 
-  const renderSearchesView = () => (
-    <>
-      <Button onClick={() => setCurrentView('home')} variant="outline" className="mb-4"><ArrowLeft className="h-4 w-4 mr-2"/> Voltar para Home</Button>
-      <Tabs defaultValue="active" value={currentView === 'finished_searches' ? 'finished' : 'active'} 
-            onValueChange={(tab) => setCurrentView(tab === 'active' ? 'active_searches' : 'finished_searches')} 
-            className="w-full mt-8">
-        <TabsList className="grid w-full grid-cols-2 mb-6 sm:mb-8 bg-input/70 border border-border">
-          <TabsTrigger 
-            value="active" 
-            className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm data-[state=active]:bg-primary/20 data-[state=active]:text-primary relative"
-          >
-            <PackageSearch className="h-3 w-3 sm:h-4 sm:w-4" />
-            Procuras Ativas ({activeProcuras.length})
-            {totalUnreadInActive > 0 && (
-              <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-xs text-white">
-                {totalUnreadInActive}
-              </span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger 
-            value="finished" 
-            className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-500"
-          >
-            <History className="h-3 w-3 sm:h-4 sm:w-4" />
-            Procuras Finalizadas ({finishedProcuras.length})
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="active">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.1 }}>
-            <SearchList procuras={activeProcuras} onViewResponses={handleViewResponses} onMarkAsFinished={markAsFinished} listType="active" unreadNotifications={unreadNotifications} />
-          </motion.div>
-        </TabsContent>
-        
-        <TabsContent value="finished">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.1 }}>
-            <SearchList procuras={finishedProcuras} onViewResponses={handleViewResponses} onReopenSearch={reopenProcura} listType="finished" unreadNotifications={[]} />
-          </motion.div>
-        </TabsContent>
-      </Tabs>
-    </>
-  );
-
-
   return (
     <div className="space-y-6 sm:space-y-10" id="user-dashboard-tabs">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="text-center"
-      >
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 flex items-center justify-center gap-2">
-          <Users className="h-7 w-7 sm:h-8 sm:w-8" />
-          Painel do Usuário
-        </h1>
-        <p className="text-muted-foreground text-sm sm:text-base">Crie suas procuras de peças e acompanhe as respostas.</p>
-      </motion.div>
-
-      {currentView === 'home' && renderHomeView()}
+      {(currentView === 'home' || currentView === 'active_searches') && renderOverviewView(false)}
+      {currentView === 'finished_searches' && renderOverviewView(true)}
       {currentView === 'new_search_form' && renderSearchFormView()}
-      {(currentView === 'active_searches' || currentView === 'finished_searches') && renderSearchesView()}
+      {currentView !== 'new_search_form' && <Button type="button" onClick={() => setCurrentView('new_search_form')} className="safe-floating-bottom fixed bottom-6 left-4 z-40 min-h-12 rounded-full px-5 text-sm font-bold text-primary-foreground shadow-xl sm:left-1/2 sm:-translate-x-1/2"><PackagePlus className="mr-2 h-5 w-5" />Criar nova procura</Button>}
 
       <ResponseModal
         procura={selectedProcura}
@@ -155,6 +122,9 @@ const UserDashboard = ({ userProcuras, onProcuraCreate, onProcuraStatusChange, o
         }}
         onMarkAsRead={onMarkResponseAsRead}
         onOpenChat={onOpenChat}
+        onEditProcura={(procura) => { setIsResponseModalOpen(false); setReopenAsNew(false); setProcuraBeingEdited(procura); setCurrentView('new_search_form'); }}
+        companies={companies}
+        currentUser={currentUser}
       />
     </div>
   );

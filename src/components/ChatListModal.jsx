@@ -1,43 +1,55 @@
 
 import React, { useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent } from '@/components/ui/card';
-import { MessageSquare, Users, Building2, X } from 'lucide-react';
+import { MessageSquare, Users, Building2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const ChatListModal = ({ isOpen, onClose, currentUser, chats, users, companies, onOpenChat }) => {
+const ChatListModal = ({ isOpen, onClose, currentUser, chats, users, companies, procuras = [], onOpenChat }) => {
   const userChats = useMemo(() => {
     const chatList = [];
     
     Object.entries(chats).forEach(([chatId, messages]) => {
       if (messages.length === 0) return;
       
-      const participantIds = chatId.split('_');
-      const otherUserId = participantIds.find(id => id !== currentUser.id);
+      const lastMessage = messages[messages.length - 1];
+      const isParticipant = lastMessage.senderId === currentUser.id || lastMessage.receiverId === currentUser.id;
+      if (!isParticipant) return;
+
+      const otherUserId = lastMessage.senderId === currentUser.id ? lastMessage.receiverId : lastMessage.senderId;
       
       if (!otherUserId) return;
+
+      const currentUserIsCompany = companies.some(company => company.id === currentUser.id);
+      if (currentUserIsCompany) {
+        const buyerHasStarted = messages.some(message => message.senderId === otherUserId && message.receiverId === currentUser.id);
+        if (!buyerHasStarted) return;
+      }
       
       const otherUser = users.find(u => u.id === otherUserId) || companies.find(c => c.id === otherUserId);
       if (!otherUser) return;
       
-      const lastMessage = messages[messages.length - 1];
       const unreadCount = messages.filter(msg => 
         msg.receiverId === currentUser.id && !msg.isRead
       ).length;
+      const procuraId = [...messages].reverse().find(message => message.procuraId)?.procuraId || null;
+      if (!procuraId) return;
+      const procura = procuras.find(item => item.id === procuraId) || null;
       
       chatList.push({
         chatId,
         otherUser,
         lastMessage,
         unreadCount,
+        procuraId,
+        procura,
         timestamp: new Date(lastMessage.timestamp).getTime()
       });
     });
     
     return chatList.sort((a, b) => b.timestamp - a.timestamp);
-  }, [chats, currentUser, users, companies]);
+  }, [chats, currentUser, users, companies, procuras]);
 
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);
@@ -53,15 +65,12 @@ const ChatListModal = ({ isOpen, onClose, currentUser, chats, users, companies, 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md w-[90vw] h-[80vh] flex flex-col bg-card border-border text-foreground p-0">
-        <DialogHeader className="p-4 border-b border-border flex flex-row items-center justify-between">
+      <DialogContent className="max-w-md h-[80dvh] max-h-[720px] flex flex-col bg-card border-border text-foreground p-0">
+        <DialogHeader className="p-4 pr-12 border-b border-border flex flex-row items-center justify-between">
           <div className="flex items-center gap-2">
             <MessageSquare className="h-6 w-6 text-primary" />
             <DialogTitle className="text-lg text-foreground">Conversas</DialogTitle>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose} className="text-muted-foreground hover:text-primary">
-            <X className="h-5 w-5" />
-          </Button>
         </DialogHeader>
 
         <ScrollArea className="flex-grow p-4">
@@ -84,7 +93,7 @@ const ChatListModal = ({ isOpen, onClose, currentUser, chats, users, companies, 
                 >
                   <Card 
                     className="cursor-pointer hover:bg-accent/50 transition-colors border-border/50"
-                    onClick={() => onOpenChat(chat.otherUser.id)}
+                    onClick={() => onOpenChat(chat.otherUser.id, chat.procuraId)}
                   >
                     <CardContent className="p-3">
                       <div className="flex items-center justify-between">
@@ -100,9 +109,12 @@ const ChatListModal = ({ isOpen, onClose, currentUser, chats, users, companies, 
                             <h4 className="font-medium text-foreground truncate">
                               {chat.otherUser.name}
                             </h4>
+                            <p className="truncate text-xs font-medium text-primary">
+                              {chat.procura ? `${chat.procura.partName} • ${[chat.procura.vehicleBrand, chat.procura.vehicleModel, chat.procura.vehicleYear].filter(Boolean).join(' ')}` : 'Procura vinculada'}
+                            </p>
                             <p className="text-sm text-muted-foreground truncate">
                               {chat.lastMessage.senderId === currentUser.id ? 'Você: ' : ''}
-                              {chat.lastMessage.text}
+                              {chat.lastMessage.text || (chat.lastMessage.imagePath ? 'Imagem' : 'Mensagem')}
                             </p>
                           </div>
                         </div>
@@ -111,7 +123,7 @@ const ChatListModal = ({ isOpen, onClose, currentUser, chats, users, companies, 
                             {formatTime(chat.timestamp)}
                           </span>
                           {chat.unreadCount > 0 && (
-                            <span className="bg-green-500 text-white text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center">
+                            <span className="bg-accent-agile text-accent-agile-foreground text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center">
                               {chat.unreadCount}
                             </span>
                           )}

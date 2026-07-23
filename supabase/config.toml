@@ -1,0 +1,40 @@
+project_id = "procuro-pra-ti"
+
+[auth]
+enabled = true
+site_url = "https://procuroprati.com"
+additional_redirect_urls = ["https://procuroprati.com/**", "https://www.procuroprati.com/**", "https://procuro-pra-ti.vercel.app/**", "http://127.0.0.1:4173/**", "http://localhost:4173/**", "http://127.0.0.1:5173/**", "http://localhost:5173/**"]
+enable_signup = true
+minimum_password_length = 8
+password_requirements = "lower_upper_letters_digits_symbols"
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+secure_password_change = true
+max_frequency = "1m"
+otp_length = 8
+
+[auth.email.template.magic_link]
+subject = "Confirme seu e-mail | Procuro Pra Ti"
+content_path = "./supabase/email-templates/email-confirmation.html"
+
+[auth.email.template.recovery]
+subject = "Redefina sua senha | Procuro Pra Ti"
+content_path = "./supabase/email-templates/password-recovery.html"
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
+[storage.vector]
+enabled = false
+max_buckets = 10
+max_indexes = 5
+
+[functions.company-collaborator-login]
+verify_jwt = false
+
+[functions.send-operator-access]
+verify_jwt = true

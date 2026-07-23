@@ -9,7 +9,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from '@/components/ui/button';
-import { Bell, MessageSquare, PackageSearch } from 'lucide-react';
+import { Bell, MessageSquare } from 'lucide-react';
+import BrandMark from '@/components/BrandMark';
 import { motion } from 'framer-motion';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -17,8 +18,8 @@ const NotificationDropdown = ({ notifications, onNotificationClick }) => {
   const unreadCount = notifications.length;
 
   const getIconForNotification = (type) => {
-    if (type === 'new_response') return <PackageSearch className="h-4 w-4 text-primary mr-2" />;
-    if (type === 'new_chat_message') return <MessageSquare className="h-4 w-4 text-blue-500 mr-2" />;
+    if (type === 'new_response') return <BrandMark className="h-4 w-4 mr-2" />;
+    if (type === 'new_chat_message') return <MessageSquare className="h-4 w-4 text-primary mr-2" />;
     return <Bell className="h-4 w-4 text-muted-foreground mr-2" />;
   };
   
@@ -46,14 +47,19 @@ const NotificationDropdown = ({ notifications, onNotificationClick }) => {
           <Button variant="ghost" size="icon" className="relative text-foreground hover:text-primary">
             <Bell className="h-5 w-5" />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-xs text-white">
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-accent-agile text-xs text-accent-agile-foreground">
                 {unreadCount}
               </span>
             )}
           </Button>
         </motion.div>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-80 bg-popover border-border text-popover-foreground p-0">
+      <DropdownMenuContent
+        align="end"
+        sideOffset={8}
+        collisionPadding={8}
+        className="w-[calc(100vw-1rem)] max-w-80 overflow-x-hidden bg-popover border-border text-popover-foreground p-0 sm:w-80"
+      >
         <DropdownMenuLabel className="px-3 py-2 text-sm font-semibold">Notificações</DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-border" />
         <ScrollArea className="h-[300px]">
@@ -66,11 +72,11 @@ const NotificationDropdown = ({ notifications, onNotificationClick }) => {
               <DropdownMenuItem
                 key={notification.id}
                 onClick={() => onNotificationClick(notification)}
-                className="cursor-pointer hover:!bg-accent/20 p-3 flex flex-col items-start"
+                className="min-w-0 cursor-pointer hover:!bg-accent/20 p-3 flex flex-col items-start"
               >
-                <div className="flex items-center w-full">
+                <div className="flex min-w-0 items-center w-full">
                   {getIconForNotification(notification.type)}
-                  <p className="text-xs text-popover-foreground flex-grow truncate">{notification.message}</p>
+                  <p className="min-w-0 text-xs text-popover-foreground flex-grow truncate">{notification.message}</p>
                 </div>
                 <span className="text-xs text-muted-foreground/80 mt-1 self-end">{formatTimeAgo(notification.timestamp)}</span>
               </DropdownMenuItem>

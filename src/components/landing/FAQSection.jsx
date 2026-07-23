@@ -21,23 +21,27 @@ const FAQSection = () => {
   const faqs = [
     {
       question: "Como posso buscar peças na plataforma?",
-      answer: "Simples! Cadastre-se gratuitamente, descreva a peça que precisa com detalhes do seu veículo e aguarde as propostas dos CDVs. Todo o processo é digital e transparente."
+      answer: "Cadastre-se, informe o veículo e descreva a peça que precisa. Sua procura fica disponível pelo período que você definir para que empresas possam responder."
     },
     {
       question: "O Procuro Pra Ti é realmente gratuito?",
-      answer: "Sim! O cadastro, busca e conexão com CDVs são 100% gratuitos. Você paga apenas pela peça diretamente ao CDV escolhido."
+      answer: "O cadastro e a publicação de procuras são gratuitos para quem procura. Qualquer negociação da peça acontece diretamente com a empresa escolhida."
     },
     {
       question: "Como funciona o pagamento das peças?",
-      answer: "O pagamento é feito diretamente com o CDV selecionado, oferecendo flexibilidade total nas formas de pagamento e condições de entrega."
+      answer: "O pagamento é combinado diretamente com a empresa selecionada, de acordo com as formas de pagamento e condições de entrega oferecidas por ela."
     },
     {
       question: "Que tipos de veículos são atendidos?",
       answer: "Atendemos todos os tipos: carros nacionais e importados, motocicletas, caminhões, ônibus e veículos comerciais de todas as marcas e modelos."
     },
     {
-      question: "Como garantir a qualidade das peças?",
-      answer: "Trabalhamos apenas com CDVs licenciados e verificados. Além disso, você pode solicitar fotos detalhadas e negociar garantias diretamente com o fornecedor."
+      question: "Como uma empresa pode vender pela plataforma?",
+      answer: "A empresa cria seu cadastro, acompanha procuras compatíveis e responde informando se possui a peça, o preço e as condições. O comprador decide se deseja iniciar o chat."
+    },
+    {
+      question: "A resposta tem um prazo fixo?",
+      answer: "Não. A duração da procura é definida por quem a criou. As empresas podem responder enquanto ela estiver ativa, tornando o processo rápido sem prometer um prazo único para todos."
     }
   ];
 

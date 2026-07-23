@@ -5,38 +5,74 @@
 
 @layer base {
   :root {
-    --background: 221 58% 6%; /* #070D1A */
-    --foreground: 219 68% 95%; /* #EAF0FB */
+    --background: 220 33% 98%;
+    --foreground: 222 47% 11%;
 
-    --card: 219 48% 13%; /* #111C30 */
-    --card-foreground: 219 68% 95%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
 
-    --popover: 218 53% 9%; /* #0B1424 */
-    --popover-foreground: 219 68% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 220 89% 57%; /* #2E6FF3 */
-    --primary-foreground: 219 68% 95%;
+    --primary: 220.12 89.36% 56.67%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 221 39% 19%; /* #1E2A44 */
-    --secondary-foreground: 219 68% 95%;
+    --secondary: 214 32% 91%;
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 221 39% 19%;
-    --muted-foreground: 219 26% 65%; /* #90A0BE */
+    --muted: 214 32% 91%;
+    --muted-foreground: 215 25% 35%;
 
-    --accent: 210 80% 40%; /* Azul secundário — reservado, não usar para ações positivas */
-    --accent-foreground: 210 40% 98%;
+    --accent: 221 83% 38%;
+    --accent-foreground: 0 0% 100%;
 
-    --accent-agile: 172 72% 45%; /* #21C7B0 — cor de agilidade/ação positiva do design system */
-    --accent-agile-foreground: 174 100% 8%; /* #06251F */
+    --accent-agile: 171.69 71.55% 45.49%;
+    --accent-agile-foreground: 168.39 72.09% 8.43%;
+
+    --success: 172 72% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 40 86% 49%;
+    --warning-foreground: 29 85% 12%;
 
     --destructive: 0 60% 50%;
     --destructive-foreground: 0 0% 98%;
+    --danger: 0 72% 44%;
 
-    --border: 221 39% 19%; /* #1E2A44 */
-    --input: 221 39% 19%;
-    --ring: 220 89% 57%;
+    --border: 214 25% 82%;
+    --input: 214 25% 88%;
+    --ring: 220.12 89.36% 56.67%;
 
     --radius: 0.625rem;
+    --card-radius: 1rem;
+  }
+
+  .dark {
+    --background: 221.05 57.58% 6.47%;
+    --foreground: 218.82 68% 95.1%;
+    --card: 218.71 47.69% 12.75%;
+    --card-foreground: 218.82 68% 95.1%;
+    --popover: 218.4 53.19% 9.22%;
+    --popover-foreground: 218.82 68% 95.1%;
+    --primary: 220.12 89.36% 56.67%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 221.05 38.78% 19.22%;
+    --secondary-foreground: 218.82 68% 95.1%;
+    --muted: 221.05 38.78% 19.22%;
+    --muted-foreground: 219.13 26.14% 65.49%;
+    --accent: 217 76% 46%;
+    --accent-foreground: 0 0% 100%;
+    --accent-agile: 171.69 71.55% 45.49%;
+    --accent-agile-foreground: 168.39 72.09% 8.43%;
+    --destructive: 343.33 45% 15.69%;
+    --destructive-foreground: 0 90.6% 70.78%;
+    --danger: 0 90.6% 70.78%;
+    --border: 221.05 38.78% 19.22%;
+    --input: 221.05 38.78% 19.22%;
+    --ring: 220.12 89.36% 56.67%;
+    --success: 171.69 71.55% 45.49%;
+    --success-foreground: 168.39 72.09% 8.43%;
+    --warning: 39.16 86.53% 62.16%;
+    --warning-foreground: 29 85% 12%;
   }
 }
 
@@ -44,17 +80,23 @@
   * {
     @apply border-border;
   }
+  ::selection {
+    @apply bg-primary text-primary-foreground;
+  }
   body {
     @apply bg-background text-foreground;
     min-height: 100vh;
+    min-height: 100dvh;
     font-family: 'Inter', sans-serif;
     -webkit-text-size-adjust: 100%; /* Previne zoom em inputs no iOS */
     text-size-adjust: 100%;
+    overflow-x: hidden;
   }
   html {
     -moz-text-size-adjust: 100%; /* Firefox */
     -webkit-text-size-adjust: 100%; /* Chrome, Safari, Opera */
     text-size-adjust: 100%; /* Standard */
+    overflow-x: hidden;
   }
   input[type="text"], input[type="email"], input[type="password"], input[type="tel"], input[type="url"], input[type="number"], textarea, select {
     font-size: 16px !important; /* Previne zoom automático em inputs no iOS */
@@ -62,17 +104,30 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold font-heading tracking-tight;
   }
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+}
+
+@supports (padding: env(safe-area-inset-top)) {
+  .safe-header {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
+  }
+  .safe-floating-bottom {
+    bottom: max(1.5rem, calc(env(safe-area-inset-bottom) + 0.75rem));
+  }
 }
 
 .gradient-bg {
-  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
+  background: hsl(var(--primary));
 }
 
 .glass-effect {
-  background: hsla(var(--card) / 0.6);
+  background: hsla(var(--card) / 0.94);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid hsla(var(--border) / 0.3);
+  border: 1px solid hsl(var(--border));
 }
 
 .search-card {
@@ -85,10 +140,18 @@
    border-left: 3px solid hsl(var(--accent-agile));
 }
 
+.empty-state {
+  @apply rounded-2xl border border-dashed border-border bg-card px-6 py-12 text-center;
+}
+
+.ui-surface {
+  @apply rounded-2xl border border-border bg-card shadow-sm;
+}
+
 .bg-grid-pattern {
   background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+    linear-gradient(hsl(var(--foreground) / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--foreground) / 0.07) 1px, transparent 1px);
   background-size: 50px 50px;
 }
 
@@ -148,19 +211,19 @@
 }
 .multi-select__multi-value {
   background-color: hsl(var(--primary) / 0.2) !important;
-  color: hsl(var(--primary-foreground)) !important;
+  color: hsl(var(--foreground)) !important;
   font-size: 0.8rem !important; /* Smaller font for tags */
   border-radius: calc(var(--radius) - 6px) !important;
   margin-top: 2px !important;
   margin-bottom: 2px !important;
 }
 .multi-select__multi-value__label {
-  color: hsl(var(--primary-foreground)) !important;
+  color: hsl(var(--foreground)) !important;
   padding-left: 4px !important;
   padding-right: 1px !important;
 }
 .multi-select__multi-value__remove {
-  color: hsl(var(--primary-foreground)) !important;
+  color: hsl(var(--foreground)) !important;
   padding-left: 2px !important;
   padding-right: 2px !important;
 }
@@ -203,7 +266,6 @@
 [data-radix-popper-content-wrapper] {
   z-index: 100 !important;
 }
-
 
 @media (max-width: 640px) {
   .container {

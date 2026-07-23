@@ -1,7 +1,7 @@
 
 import React from "react"
 import { Command as CommandPrimitive } from "cmdk"
-import { Search } from "lucide-react"
+import BrandMark from "@/components/BrandMark"
 
 import { cn } from "@/lib/utils"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
@@ -31,7 +31,7 @@ const CommandDialog = ({ children, ...props }) => {
 
 const CommandInput = React.forwardRef(({ className, ...props }, ref) => (
   <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
-    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+    <BrandMark className="mr-2 h-4 w-4 shrink-0 opacity-70" />
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
@@ -111,4 +111,3 @@ export {
   CommandShortcut,
   CommandSeparator,
 };
-

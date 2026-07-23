@@ -1,15 +1,16 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Search, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import LandingHeader from '@/components/landing/LandingHeader.jsx';
 import HeroSection from '@/components/landing/HeroSection.jsx';
+import BrandStorySection from '@/components/landing/BrandStorySection.jsx';
 import HowItWorksSection from '@/components/landing/HowItWorksSection.jsx';
 import BenefitsSection from '@/components/landing/BenefitsSection.jsx';
-import TestimonialsSection from '@/components/landing/TestimonialsSection.jsx';
 import FAQSection from '@/components/landing/FAQSection.jsx';
 import LandingFooter from '@/components/landing/LandingFooter.jsx';
+import BrandMark from '@/components/BrandMark';
 
 const LandingPage = ({ onGetStarted }) => {
   const scrollToSection = (sectionId) => {
@@ -31,31 +32,30 @@ const LandingPage = ({ onGetStarted }) => {
       
       <HeroSection onGetStarted={onGetStarted} scrollToSection={scrollToSection} />
 
-      {/* Prova rápida */}
       <section className="py-10 px-4">
         <div className="container mx-auto">
-          <div className="bg-card border border-border rounded-2xl px-6 py-8 flex flex-wrap gap-8 justify-around text-center">
-            <div>
-              <div className="text-xl sm:text-2xl font-heading font-extrabold text-accent-agile">100% grátis</div>
-              <div className="text-xs sm:text-sm text-muted-foreground">para quem procura</div>
+          <div className="bg-card border border-border rounded-2xl px-5 sm:px-8 py-8 grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
+            <div className="min-w-0">
+              <div className="text-xl sm:text-2xl font-heading font-extrabold text-accent-agile">Para quem procura</div>
+              <div className="text-sm text-muted-foreground mt-1">publique sua necessidade com clareza</div>
             </div>
-            <div>
-              <div className="text-xl sm:text-2xl font-heading font-extrabold text-accent-agile">CDVs verificados</div>
-              <div className="text-xs sm:text-sm text-muted-foreground">antes de aparecer nas procuras</div>
+            <div className="min-w-0">
+              <div className="text-xl sm:text-2xl font-heading font-extrabold text-accent-agile">Para quem vende</div>
+              <div className="text-sm text-muted-foreground mt-1">encontre oportunidades reais de negócio</div>
             </div>
-            <div>
-              <div className="text-xl sm:text-2xl font-heading font-extrabold text-accent-agile">Resposta em até 24h</div>
-              <div className="text-xs sm:text-sm text-muted-foreground">prazo para empresas responderem</div>
+            <div className="min-w-0">
+              <div className="text-xl sm:text-2xl font-heading font-extrabold text-accent-agile">Rápido e seguro</div>
+              <div className="text-sm text-muted-foreground mt-1">conexões diretas dentro da plataforma</div>
             </div>
           </div>
         </div>
       </section>
 
+      <BrandStorySection />
+
       <HowItWorksSection />
 
       <BenefitsSection />
-
-      <TestimonialsSection />
 
       {/* Como Começar */}
       <section className="py-16 sm:py-24 px-4">
@@ -70,11 +70,11 @@ const LandingPage = ({ onGetStarted }) => {
               Sua peça está a uma procura de distância
             </h2>
             <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-              Junte-se a milhares de brasileiros que já descobriram a forma mais inteligente de encontrar peças automotivas. Publique sua procura agora e experimente a diferença!
+              Informe o veículo e a peça de que precisa. A plataforma organiza sua procura para que empresas interessadas possam responder.
             </p>
-            <Button onClick={() => onGetStarted('user')} size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 py-4 text-lg">
+            <Button onClick={() => onGetStarted('user')} size="lg" className="w-full sm:w-auto min-h-12 h-auto whitespace-normal bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-5 sm:px-8 py-3 text-base sm:text-lg">
               <ArrowRight className="h-5 w-5 mr-2" />
-              Vou procurar agora
+              Vou procurar
             </Button>
           </motion.div>
         </div>
@@ -82,7 +82,6 @@ const LandingPage = ({ onGetStarted }) => {
 
       <FAQSection />
 
-      {/* CTA Final */}
       <section className="py-16 sm:py-24 px-4 bg-gradient-to-r from-primary/10 via-accent-agile/10 to-primary/10">
         <div className="container mx-auto text-center">
           <motion.div
@@ -92,18 +91,18 @@ const LandingPage = ({ onGetStarted }) => {
             variants={fadeInUp}
           >
             <h2 className="text-3xl sm:text-5xl font-heading font-bold mb-6 text-foreground">
-              Sua Peça Está a Um Clique de Distância
+              Um lugar para procurar. Um lugar para vender.
             </h2>
             <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-              Pare de perder tempo e dinheiro. Deixe que nossa tecnologia e rede de CDVs especializados trabalhem para você. É rápido, seguro e gratuito!
+              A plataforma aproxima necessidades reais de empresas que podem atendê-las, com uma experiência simples, rápida e segura.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button onClick={() => onGetStarted('user')} size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 py-4 text-lg">
-                <Search className="h-5 w-5 mr-2" />
-                Vou procurar uma peça
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
+              <Button onClick={() => onGetStarted('user')} size="lg" className="w-full min-h-12 h-auto whitespace-normal bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-5 sm:px-8 py-3 text-base sm:text-lg">
+                <BrandMark className="h-5 w-5 mr-2" />
+                Vou procurar
               </Button>
-              <Button onClick={() => onGetStarted('company')} variant="outline" size="lg" className="border-accent-agile text-accent-agile hover:bg-accent-agile/10 px-8 py-4 text-lg">
-                Vou vender — cadastrar empresa
+              <Button onClick={() => onGetStarted('company')} variant="outline" size="lg" className="w-full min-h-12 h-auto whitespace-normal border-accent-agile text-accent-agile hover:bg-accent-agile/10 px-5 sm:px-8 py-3 text-base sm:text-lg">
+                Vou vender
               </Button>
             </div>
           </motion.div>

@@ -4,9 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { AlertOctagon, Send, X } from 'lucide-react';
+import { AlertOctagon, Send } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { toast } from '@/components/ui/use-toast';
 
 const FACES = [
   { value: 1, emoji: '😞' },
@@ -19,27 +19,25 @@ const FACES = [
 const FeedbackModal = ({ isOpen, onClose, onSubmit, feedbackType }) => {
   const [text, setText] = useState('');
   const [rating, setRating] = useState(0);
-  const [contact, setContact] = useState('');
 
   const handleSubmit = () => {
     if (feedbackType === 'rating' && rating === 0) {
-      alert("Por favor, selecione uma avaliação.");
+      toast({ title: 'Selecione uma avaliação', description: 'Escolha uma das opções antes de enviar.', variant: 'destructive' });
       return;
     }
     if (feedbackType === 'problem' && text.trim() === '') {
-      alert("Por favor, escreva sua mensagem.");
+      toast({ title: 'Descrição obrigatória', description: 'Conte o que aconteceu antes de enviar.', variant: 'destructive' });
       return;
     }
-    onSubmit({ type: feedbackType, text, rating: feedbackType === 'rating' ? rating : null, contact: feedbackType === 'problem' ? contact : null });
+    onSubmit({ type: feedbackType, text, rating: feedbackType === 'rating' ? rating : null });
     setText('');
     setRating(0);
-    setContact('');
     onClose();
   };
 
   const getTitleAndIcon = () => {
     switch (feedbackType) {
-      case 'problem': return { title: 'Relatar um Problema', icon: <AlertOctagon className="h-6 w-6 text-destructive" /> };
+      case 'problem': return { title: 'Relatar um Problema', icon: <AlertOctagon className="h-6 w-6 text-danger" /> };
       case 'rating': return { title: 'Encontrou o que procurava?', icon: <span className="text-2xl leading-none">🙂</span> };
       default: return { title: 'Encontrou o que procurava?', icon: <span className="text-2xl leading-none">🙂</span> };
     }
@@ -97,25 +95,11 @@ const FeedbackModal = ({ isOpen, onClose, onSubmit, feedbackType }) => {
             />
           </div>
 
-          {feedbackType === 'problem' && (
-             <div>
-              <Label htmlFor="contactInfo" className="block text-sm font-medium mb-2 text-muted-foreground">
-                Seu Email ou Telefone (Opcional, para entrarmos em contato)
-              </Label>
-              <Input
-                id="contactInfo"
-                value={contact}
-                onChange={(e) => setContact(e.target.value)}
-                placeholder="seu@email.com ou (XX) XXXXX-XXXX"
-                className="bg-input border-border"
-              />
-            </div>
-          )}
+          {feedbackType === 'problem' && <p className="text-xs leading-relaxed text-muted-foreground">Se precisarmos falar com você, usaremos os dados já cadastrados na sua conta.</p>}
         </motion.div>
 
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" onClick={onClose} className="border-muted-foreground/50 text-muted-foreground hover:border-primary hover:text-primary">
-            <X className="h-4 w-4 mr-2" />
             Cancelar
           </Button>
           <Button onClick={handleSubmit} className="gradient-bg hover:opacity-90 text-primary-foreground">

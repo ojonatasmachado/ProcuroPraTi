@@ -1,0 +1,14 @@
+{
+  "rewrites": [
+    { "source": "/confirmacao", "destination": "/index.html" },
+    { "source": "/redefinir-senha", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(sw.js|push-sw.js|manifest.webmanifest)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    }
+  ]
+}

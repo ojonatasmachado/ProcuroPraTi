@@ -1,11 +1,25 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
+
+  RewriteRule ^index\.html$ - [L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule ^ index.html [L]
+  RewriteRule . /index.html [L]
+</IfModule>
+
+<IfModule mod_mime.c>
+  AddType application/manifest+json .webmanifest
 </IfModule>
 
 <IfModule mod_headers.c>
-  Header set X-Powered-By "Hostinger Horizons"
+  <FilesMatch "^(sw\.js|push-sw\.js|manifest\.webmanifest)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+  </FilesMatch>
+  <Files "sw.js">
+    Header set Service-Worker-Allowed "/"
+  </Files>
+  <FilesMatch "\.(js|css|png|svg|woff2)$">
+    Header append Vary "Accept-Encoding"
+  </FilesMatch>
 </IfModule>

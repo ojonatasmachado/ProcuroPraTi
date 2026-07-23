@@ -3,7 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
-import { Users, Building2, PackageSearch, MessageSquare, BarChart3, ShieldCheck, TrendingUp, AlertTriangle, CheckSquare, MapPin, ThumbsDown, CheckCircle, XCircle, ListChecks, Mail, Phone, CalendarDays, Eye, Star, Filter as FilterIcon, Clock, Users2, BarChartHorizontalBig, DollarSign, Ban, History, Edit } from 'lucide-react';
+import { Users, Building2, PackageSearch, MessageSquare, BarChart3, ShieldCheck, TrendingUp, AlertTriangle, CheckSquare, MapPin, ThumbsDown, CheckCircle, XCircle, ListChecks, Mail, Phone, CalendarDays, Eye, Star, Filter as FilterIcon, Clock, Users2, BarChartHorizontalBig, DollarSign, Ban, History, Edit, Trophy, Car, Activity, Award, MapPinned, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
@@ -13,9 +13,12 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import useScrollToTop from '@/hooks/useScrollToTop';
+import CatalogAdminPanel from '@/components/CatalogAdminPanel';
+import PlansAdminPanel from '@/components/PlansAdminPanel';
 
 
-const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanies, feedbacks = [], allStatesAndCities = [] }) => {
+const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanies, feedbacks = [], registrationProgress = [], allStatesAndCities = [], readOnly = false }) => {
   const [selectedState, setSelectedState] = useState('all-states');
   const [selectedCity, setSelectedCity] = useState('all-cities');
   const [availableCities, setAvailableCities] = useState([]);
@@ -26,6 +29,8 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
   const [showReasonModal, setShowReasonModal] = useState(false);
   const [currentCompanyForReason, setCurrentCompanyForReason] = useState(null);
   const [validationReason, setValidationReason] = useState('');
+  const [showLocationHealth, setShowLocationHealth] = useState(false);
+  useScrollToTop(activeTab);
 
 
   const states = useMemo(() => {
@@ -104,13 +109,106 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
     .sort((a,b) => b.pendingResponses - a.pendingResponses);
   }, [procuras, companies]);
 
+  const businessMetrics = useMemo(() => {
+    const responseCounts = new Map(companies.map(company => [company.id, { responses: 0, positive: 0 }]));
+    procuras.forEach(procura => {
+      (procura.responses || []).forEach(response => {
+        if (!responseCounts.has(response.companyId)) return;
+        const companyCount = responseCounts.get(response.companyId);
+        companyCount.responses += 1;
+        if (response.status === 'available') companyCount.positive += 1;
+      });
+    });
+
+    const companyRanking = companies.map(company => ({
+      id: company.id,
+      name: company.name,
+      accesses: Array.isArray(company.accessHistory) ? company.accessHistory.length : 0,
+      responses: responseCounts.get(company.id)?.responses || 0,
+      positive: responseCounts.get(company.id)?.positive || 0,
+    }));
+    const totalAccesses = companyRanking.reduce((sum, company) => sum + company.accesses, 0);
+    const totalCompanyResponses = companyRanking.reduce((sum, company) => sum + company.responses, 0);
+
+    const vehicleCounts = new Map();
+    procuras.filter(procura => procura.vehicleType === 'car').forEach(procura => {
+      const label = [procura.vehicleBrand, procura.vehicleModel].filter(Boolean).join(' ') || 'Não informado';
+      vehicleCounts.set(label, (vehicleCounts.get(label) || 0) + 1);
+    });
+
+    const mostSearchedCars = [...vehicleCounts.entries()].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+
+    return {
+      averageAccesses: companies.length ? (totalAccesses / companies.length).toFixed(1) : '0.0',
+      averageResponses: companies.length ? (totalCompanyResponses / companies.length).toFixed(1) : '0.0',
+      totalAccesses,
+      mostResponsive: [...companyRanking].sort((a, b) => b.responses - a.responses || b.positive - a.positive || a.name.localeCompare(b.name)).slice(0, 10),
+      leastResponsive: [...companyRanking].sort((a, b) => a.responses - b.responses || a.name.localeCompare(b.name)).slice(0, 10),
+      mostPositive: [...companyRanking].sort((a, b) => b.positive - a.positive || b.responses - a.responses || a.name.localeCompare(b.name)).slice(0, 10),
+      distinctSearchedCars: vehicleCounts.size,
+      mostSearchedCars: mostSearchedCars.slice(0, 10),
+      searchesWithoutPositive: procuras.filter(procura => !(procura.responses || []).some(response => response.status === 'available')).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
+    };
+  }, [companies, procuras]);
+
+  const registrationMetrics = useMemo(() => {
+    const incomplete = registrationProgress.filter(item => item.stage !== 'completed');
+    return {
+      started: registrationProgress.length,
+      completed: registrationProgress.filter(item => item.stage === 'completed').length,
+      incomplete,
+      byStage: ['personal', 'address', 'vehicle'].map(stage => ({ stage, count: incomplete.filter(item => item.stage === stage).length })),
+    };
+  }, [registrationProgress]);
+
+  const locationHealth = useMemo(() => {
+    const companyLocations = companies.map(item => ({
+      kind: 'company',
+      source: item.locationSource || 'legacy',
+      valid: [item.latitude, item.longitude].every(Number.isFinite),
+      createdAt: item.createdAt,
+    }));
+    const searchLocations = procuras.map(item => ({
+      kind: 'search',
+      source: item.searchLocationSource || 'legacy',
+      valid: [item.searchLatitude, item.searchLongitude].every(Number.isFinite),
+      createdAt: item.createdAt,
+    }));
+    const locations = [...companyLocations, ...searchLocations];
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const recentFailures = locations.filter(item => !item.valid && new Date(item.createdAt || 0).getTime() >= sevenDaysAgo).length;
+    const precise = locations.filter(item => item.valid).length;
+    const precisionRate = locations.length ? Math.round((precise / locations.length) * 100) : 100;
+    const sourceCounts = locations.reduce((counts, item) => ({ ...counts, [item.source]: (counts[item.source] || 0) + 1 }), {});
+    const status = recentFailures === 0 && precisionRate >= 95 ? 'normal' : precisionRate >= 80 ? 'attention' : 'critical';
+    return { total: locations.length, precisionRate, recentFailures, sourceCounts, status };
+  }, [companies, procuras]);
+
+  const renderCompanyRanking = (title, items, field, valueLabel, icon) => (
+    <Card className="glass-effect border-border/30 h-full">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base sm:text-lg text-foreground flex items-center gap-2">{icon}{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ol className="space-y-2">
+          {items.map((company, index) => (
+            <li key={company.id} className="flex items-center justify-between gap-3 rounded-md bg-input/50 px-3 py-2 text-sm">
+              <span className="min-w-0 truncate"><strong className="mr-2 text-primary">{index + 1}.</strong>{company.name}</span>
+              <Badge variant="secondary" className="shrink-0">{company[field]} {valueLabel}</Badge>
+            </li>
+          ))}
+        </ol>
+      </CardContent>
+    </Card>
+  );
+
   const stats = [
-    { title: "Total de Procuras", value: procuras.length, icon: <PackageSearch className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />, color: "primary" },
-    { title: "Procuras Ativas (Global)", value: procuras.filter(s => s.status === 'active').length, icon: <PackageSearch className="h-5 w-5 sm:h-6 sm:w-6 text-green-500" />, color: "green-500" },
-    { title: "Total Usuários", value: users.length, icon: <Users className="h-5 w-5 sm:h-6 sm:w-6 text-pink-500" />, color: "pink-500" },
-    { title: "Total Empresas", value: companies.length, icon: <Building2 className="h-5 w-5 sm:h-6 sm:w-6 text-teal-500" />, color: "teal-500" },
-    { title: "Média Respostas/Procura", value: averageResponsesPerProcura, icon: <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-orange-500" />, color: "orange-500" },
-    { title: "Total Feedbacks", value: feedbacks.length, icon: <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 text-purple-500" />, color: "purple-500" },
+    { title: "Total de Procuras", value: procuras.length, icon: <PackageSearch className="h-5 w-5 text-primary sm:h-6 sm:w-6" />, hoverBorder: 'hover:border-primary/50' },
+    { title: "Procuras Ativas (Global)", value: procuras.filter(s => s.status === 'active').length, icon: <PackageSearch className="h-5 w-5 text-success sm:h-6 sm:w-6" />, hoverBorder: 'hover:border-success/50' },
+    { title: "Total Usuários", value: users.length, icon: <Users className="h-5 w-5 text-primary sm:h-6 sm:w-6" />, hoverBorder: 'hover:border-primary/50' },
+    { title: "Total Empresas", value: companies.length, icon: <Building2 className="h-5 w-5 text-accent-agile sm:h-6 sm:w-6" />, hoverBorder: 'hover:border-accent-agile/50' },
+    { title: "Média Respostas/Procura", value: averageResponsesPerProcura, icon: <TrendingUp className="h-5 w-5 text-warning sm:h-6 sm:w-6" />, hoverBorder: 'hover:border-warning/50' },
+    { title: "Total Feedbacks", value: feedbacks.length, icon: <MessageSquare className="h-5 w-5 text-primary sm:h-6 sm:w-6" />, hoverBorder: 'hover:border-primary/50' },
   ];
 
   const cardVariants = {
@@ -122,30 +220,42 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
     })
   };
 
-  const generateChartData = (dataType) => { return []; };
-  const chartDataUsers = generateChartData('users');
-  const chartDataProcuras = generateChartData('procuras');
-  const chartDataPositiveResponses = generateChartData('positiveResponses');
+  const buildSevenDayData = (items, getDate) => {
+    const days = Array.from({ length: 7 }, (_, index) => {
+      const date = new Date();
+      date.setHours(0, 0, 0, 0);
+      date.setDate(date.getDate() - (6 - index));
+      return { key: date.toISOString().slice(0, 10), date: date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }), value: 0 };
+    });
+    const byKey = new Map(days.map(day => [day.key, day]));
+    items.forEach(item => {
+      const value = getDate(item);
+      if (!value) return;
+      const key = new Date(value).toISOString().slice(0, 10);
+      if (byKey.has(key)) byKey.get(key).value += 1;
+    });
+    return days;
+  };
+  const chartDataUsers = buildSevenDayData(users, user => user.createdAt);
+  const chartDataProcuras = buildSevenDayData(procuras, procura => procura.createdAt);
+  const positiveResponses = procuras.flatMap(procura => (procura.responses || []).filter(response => response.status === 'available'));
+  const chartDataPositiveResponses = buildSevenDayData(positiveResponses, response => response.responseDate);
 
-  const renderChartPlaceholder = (title, data, icon, color) => (
+  const renderSevenDayChart = (title, data, icon) => {
+    const maximum = Math.max(...data.map(item => item.value), 1);
+    return (
     <Card className="glass-effect border-border/30 h-full flex flex-col">
       <CardHeader>
-        <CardTitle className={`text-md sm:text-lg text-${color || 'primary'} flex items-center gap-2`}>
+        <CardTitle className="text-md sm:text-lg text-foreground flex items-center gap-2">
           {icon || <BarChart3 />} {title}
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex-grow flex flex-col justify-center">
-        <div className="h-32 sm:h-48 bg-input/30 rounded-md flex items-center justify-center">
-          <p className="text-muted-foreground text-xs text-center">
-            Gráfico de {title.toLowerCase()} funcional.<br/>(Dados simulados dos últimos 7 dias)
-          </p>
-        </div>
-        {data.length > 0 && <ul className="text-xs mt-2 space-y-0.5 max-h-20 overflow-y-auto">
-          {data.map(d => <li key={d.date}>{d.date}: {d.value}</li>)}
-        </ul>}
+      <CardContent className="flex-grow flex items-end gap-2 h-44">
+        {data.map(item => <div key={item.key} className="flex-1 h-full flex flex-col justify-end items-center gap-1"><span className="text-xs font-semibold text-foreground">{item.value}</span><div className="w-full rounded-t bg-primary min-h-[3px]" style={{ height: `${Math.max(3, (item.value / maximum) * 100)}%` }} /><span className="text-[10px] text-muted-foreground">{item.date}</span></div>)}
       </CardContent>
     </Card>
-  );
+    );
+  };
   
   const handleCompanyValidationStatusChange = (companyId, newStatus) => {
     if (newStatus === 'unauthorized') {
@@ -207,9 +317,9 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
 
   const getValidationStatusBadge = (status) => {
     switch (status) {
-      case 'validated': return <Badge variant="default" className="bg-green-600/90 border-green-700 text-xs px-1.5 py-0.5">Validado</Badge>;
-      case 'pending': return <Badge variant="outline" className="border-yellow-500 text-yellow-500 text-xs px-1.5 py-0.5">Pendente</Badge>;
-      case 'unauthorized': return <Badge variant="destructive" className="bg-red-600/90 border-red-700 text-xs px-1.5 py-0.5">Não Autorizado</Badge>;
+      case 'validated': return <Badge variant="default" className="border-success bg-success text-xs text-success-foreground px-1.5 py-0.5">Validado</Badge>;
+      case 'pending': return <Badge variant="outline" className="border-warning text-warning text-xs px-1.5 py-0.5">Pendente</Badge>;
+      case 'unauthorized': return <Badge variant="destructive" className="border-destructive-foreground/40 text-xs px-1.5 py-0.5">Não Autorizado</Badge>;
       default: return <Badge variant="secondary" className="text-xs px-1.5 py-0.5">Desconhecido</Badge>;
     }
   };
@@ -225,11 +335,14 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
       </motion.div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-6 sm:mb-8 bg-input/70 border border-border">
-          <TabsTrigger value="overview" className="text-xs sm:text-sm data-[state=active]:bg-primary/20 data-[state=active]:text-primary">Visão Geral</TabsTrigger>
-          <TabsTrigger value="companyManagement" className="text-xs sm:text-sm data-[state=active]:bg-primary/20 data-[state=active]:text-primary">Gerenciar Empresas</TabsTrigger>
-          <TabsTrigger value="pendingResponses" className="text-xs sm:text-sm data-[state=active]:bg-primary/20 data-[state=active]:text-primary">Empresas Pendentes</TabsTrigger>
-          <TabsTrigger value="feedbacks" className="text-xs sm:text-sm data-[state=active]:bg-primary/20 data-[state=active]:text-primary">Feedbacks</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 h-auto mb-6 sm:mb-8 bg-input/70 border border-border">
+          <TabsTrigger value="overview" className="min-h-11 whitespace-normal py-2 text-xs sm:text-sm">Visão geral</TabsTrigger>
+          <TabsTrigger value="metrics" className="min-h-11 whitespace-normal py-2 text-xs sm:text-sm">Métricas</TabsTrigger>
+          <TabsTrigger value="companyManagement" className="min-h-11 whitespace-normal py-2 text-xs sm:text-sm">Empresas</TabsTrigger>
+          <TabsTrigger value="pendingResponses" className="min-h-11 whitespace-normal py-2 text-xs sm:text-sm">Pendências</TabsTrigger>
+          <TabsTrigger value="feedbacks" className="min-h-11 whitespace-normal py-2 text-xs sm:text-sm">Feedbacks</TabsTrigger>
+          <TabsTrigger value="catalog" className="min-h-11 whitespace-normal py-2 text-xs sm:text-sm">Catálogo</TabsTrigger>
+          <TabsTrigger value="plans" className="min-h-11 whitespace-normal py-2 text-xs sm:text-sm">Planos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -261,13 +374,25 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
             </CardContent>
           </Card>
 
+          <button type="button" onClick={() => setShowLocationHealth(true)} className="mb-6 flex min-h-20 w-full items-center gap-3 rounded-card border border-border bg-card px-4 py-3 text-left shadow-sm transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${locationHealth.status === 'normal' ? 'bg-accent-agile/15 text-accent-agile' : locationHealth.status === 'attention' ? 'bg-warning/15 text-warning' : 'bg-danger/15 text-danger'}`}>
+              <MapPinned className="h-5 w-5" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-bold text-foreground">Saúde da localização</span>
+              <span className="mt-0.5 block text-xs text-muted-foreground">{locationHealth.precisionRate}% com coordenadas válidas · {locationHealth.recentFailures} falha(s) nos últimos 7 dias</span>
+            </span>
+            <Badge variant="outline" className={`hidden shrink-0 sm:inline-flex ${locationHealth.status === 'normal' ? 'border-accent-agile/50 text-accent-agile' : locationHealth.status === 'attention' ? 'border-warning/50 text-warning' : 'border-danger/50 text-danger'}`}>{locationHealth.status === 'normal' ? 'Normal' : locationHealth.status === 'attention' ? 'Atenção' : 'Crítico'}</Badge>
+            <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+          </button>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {stats.map((stat, i) => (
               <motion.custom key={stat.title} variants={cardVariants} initial="hidden" animate="visible" custom={i}>
-                <Card className={`glass-effect border-border/30 hover:shadow-lg hover:border-${stat.color}/50 transition-all duration-300 h-full flex flex-col`}>
+                <Card className={`glass-effect border-border/30 hover:shadow-lg ${stat.hoverBorder} transition-all duration-300 h-full flex flex-col`}>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className={`text-xs sm:text-sm font-medium text-muted-foreground`}>{stat.title}</CardTitle>
-                    {React.cloneElement(stat.icon, { className: `h-5 w-5 sm:h-6 sm:w-6 text-${stat.color}`})}
+                    {stat.icon}
                   </CardHeader>
                   <CardContent className="flex-grow flex items-center justify-center py-2 sm:py-4">
                     <div className={`font-bold text-foreground ${stat.isText ? 'text-md sm:text-xl text-center' : 'text-xl sm:text-3xl'}`}>{stat.value}</div>
@@ -278,12 +403,43 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mt-6">
-            {renderChartPlaceholder("Novos Usuários (7d)", chartDataUsers, <Users2 className="text-pink-500"/>, 'pink-500')}
-            {renderChartPlaceholder("Procuras Realizadas (7d)", chartDataProcuras, <PackageSearch className="text-primary"/>, 'primary')}
-            {renderChartPlaceholder("Respostas Positivas (7d)", chartDataPositiveResponses, <CheckCircle className="text-green-500"/>, 'green-500')}
-            {renderChartPlaceholder("Tempo Médio Login Usuário", [], <Clock className="text-blue-500"/>, 'blue-500')}
-            {renderChartPlaceholder("Tempo Médio Login Empresa", [], <Clock className="text-teal-500"/>, 'teal-500')}
-            {renderChartPlaceholder("Média Acessos Usuários (Semanal)", [], <BarChartHorizontalBig className="text-orange-500"/>, 'orange-500')}
+            {renderSevenDayChart("Novos Usuários (7d)", chartDataUsers, <Users2 className="text-primary"/>)}
+            {renderSevenDayChart("Procuras Realizadas (7d)", chartDataProcuras, <PackageSearch className="text-primary"/>)}
+            {renderSevenDayChart("Respostas Positivas (7d)", chartDataPositiveResponses, <CheckCircle className="text-success"/>)}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="metrics">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+            <Card className="glass-effect border-border/30"><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><Activity className="h-4 w-4 text-primary"/>Média de acessos por empresa</CardTitle></CardHeader><CardContent><p className="text-3xl font-bold text-foreground">{businessMetrics.averageAccesses}</p><p className="text-xs text-muted-foreground">{businessMetrics.totalAccesses} logins registrados desde o início da medição</p></CardContent></Card>
+            <Card className="glass-effect border-border/30"><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><MessageSquare className="h-4 w-4 text-primary"/>Média de respostas por empresa</CardTitle></CardHeader><CardContent><p className="text-3xl font-bold text-foreground">{businessMetrics.averageResponses}</p><p className="text-xs text-muted-foreground">Considera todas as empresas cadastradas</p></CardContent></Card>
+            <Card className="glass-effect border-border/30"><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-warning"/>Sem resposta positiva</CardTitle></CardHeader><CardContent><p className="text-3xl font-bold text-foreground">{businessMetrics.searchesWithoutPositive.length}</p><p className="text-xs text-muted-foreground">Procuras sem nenhuma oferta disponível</p></CardContent></Card>
+            <Card className="glass-effect border-border/30"><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><Car className="h-4 w-4 text-accent-agile"/>Carros diferentes procurados</CardTitle></CardHeader><CardContent><p className="text-3xl font-bold text-foreground">{businessMetrics.distinctSearchedCars}</p><p className="text-xs text-muted-foreground">Ranking exibe os 10 mais procurados</p></CardContent></Card>
+            <Card className="glass-effect border-warning/30"><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><Users className="h-4 w-4 text-warning"/>Cadastros não concluídos</CardTitle></CardHeader><CardContent><p className="text-3xl font-bold text-foreground">{registrationMetrics.incomplete.length}</p><p className="text-xs text-muted-foreground">De {registrationMetrics.started} pessoas que iniciaram</p></CardContent></Card>
+          </div>
+
+          <Card className="glass-effect border-border/30 mb-6">
+            <CardHeader className="pb-3"><CardTitle className="text-base sm:text-lg flex items-center gap-2"><Users className="h-5 w-5 text-warning"/>Funil de cadastro de clientes</CardTitle><CardDescription>{registrationMetrics.completed} cadastros concluídos e {registrationMetrics.incomplete.length} ainda em andamento.</CardDescription></CardHeader>
+            <CardContent className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {registrationMetrics.byStage.map(({ stage, count }) => <div key={stage} className="rounded-lg bg-input/50 p-3"><p className="text-xs text-muted-foreground">{({ personal: 'Dados pessoais', address: 'Endereço', vehicle: 'Veículo' })[stage]}</p><p className="mt-1 text-2xl font-bold text-foreground">{count}</p><p className="text-xs text-muted-foreground">não concluíram nesta etapa</p></div>)}
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+            {renderCompanyRanking('Quem mais responde', businessMetrics.mostResponsive, 'responses', 'respostas', <Trophy className="h-5 w-5 text-warning" />)}
+            {renderCompanyRanking('Quem menos responde', businessMetrics.leastResponsive, 'responses', 'respostas', <ThumbsDown className="h-5 w-5 text-warning" />)}
+            {renderCompanyRanking('Mais respostas positivas', businessMetrics.mostPositive, 'positive', 'positivas', <Award className="h-5 w-5 text-accent-agile" />)}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card className="glass-effect border-border/30">
+              <CardHeader><CardTitle className="text-base sm:text-lg flex items-center gap-2"><Car className="h-5 w-5 text-primary"/>Carros mais procurados</CardTitle></CardHeader>
+              <CardContent><ol className="space-y-2">{businessMetrics.mostSearchedCars.map((vehicle, index) => <li key={vehicle.name} className="flex items-center justify-between gap-3 rounded-md bg-input/50 px-3 py-2 text-sm"><span className="truncate"><strong className="mr-2 text-primary">{index + 1}.</strong>{vehicle.name}</span><Badge variant="secondary">{vehicle.count} procuras</Badge></li>)}</ol></CardContent>
+            </Card>
+            <Card className="glass-effect border-border/30">
+              <CardHeader><CardTitle className="text-base sm:text-lg flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-warning"/>Procuras sem resposta positiva</CardTitle><CardDescription>Inclui procuras sem respostas e procuras com apenas respostas indisponíveis.</CardDescription></CardHeader>
+              <CardContent><ScrollArea className="h-[420px] pr-3">{businessMetrics.searchesWithoutPositive.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">Todas as procuras receberam ao menos uma resposta positiva.</p> : <div className="space-y-2">{businessMetrics.searchesWithoutPositive.map(procura => <div key={procura.id} className="rounded-md bg-input/50 px-3 py-2"><div className="flex justify-between gap-2"><p className="font-medium text-sm text-foreground">{procura.partName}</p><Badge variant="outline" className="shrink-0">{(procura.responses || []).length} respostas</Badge></div><p className="text-xs text-muted-foreground">{procura.vehicleBrand} {procura.vehicleModel} • {formatDate(procura.createdAt)}</p></div>)}</div>}</ScrollArea></CardContent>
+            </Card>
           </div>
         </TabsContent>
 
@@ -329,11 +485,11 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
                           <p className="flex items-center gap-1"><MapPin size={12}/> {company.address || "Endereço não informado"}</p>
                           <p className="flex items-center gap-1"><CalendarDays size={12}/> Cadastrado em: {formatDate(company.createdAt)}</p>
                           {company.validationStatus === 'unauthorized' && company.validationReason && (
-                            <p className="text-red-400 flex items-center gap-1"><Ban size={12}/> Motivo: {company.validationReason}</p>
+                            <p className="text-danger flex items-center gap-1"><Ban size={12}/> Motivo: {company.validationReason}</p>
                           )}
-                          {company.paymentExemptUntil && new Date(company.paymentExemptUntil) > new Date() && <p className="text-green-500 flex items-center gap-1"><DollarSign size={12}/> Isento até: {formatDate(company.paymentExemptUntil)}</p>}
+                          {company.paymentExemptUntil && new Date(company.paymentExemptUntil) > new Date() && <p className="text-success flex items-center gap-1"><DollarSign size={12}/> Isento até: {formatDate(company.paymentExemptUntil)}</p>}
                         </CardContent>
-                        <CardFooter className="p-3 pt-2 flex flex-col sm:flex-row gap-2">
+                        {!readOnly && <CardFooter className="p-3 pt-2 flex flex-col sm:flex-row gap-2">
                           <Select onValueChange={(status) => handleCompanyValidationStatusChange(company.id, status)} value={company.validationStatus || 'pending'}>
                             <SelectTrigger className="text-xs flex-1 h-7 bg-input border-border"><SelectValue placeholder="Alterar Status" /></SelectTrigger>
                             <SelectContent className="bg-popover border-border">
@@ -351,7 +507,7 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
                               <SelectItem value="12">12 Meses</SelectItem>
                             </SelectContent>
                           </Select>
-                        </CardFooter>
+                        </CardFooter>}
                       </Card>
                     )
                   )}
@@ -365,7 +521,7 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
         <TabsContent value="pendingResponses">
           <Card className="glass-effect border-border/30">
             <CardHeader>
-              <CardTitle className="text-lg sm:text-xl text-foreground flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-orange-500"/>Empresas com Respostas Pendentes</CardTitle>
+              <CardTitle className="text-lg sm:text-xl text-foreground flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-warning"/>Empresas com Respostas Pendentes</CardTitle>
               <CardDescription>Lista de empresas validadas que têm procuras atribuídas e ainda não responderam.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -403,7 +559,7 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
           <Card className="glass-effect border-border/30">
             <CardHeader>
               <CardTitle className="text-lg sm:text-xl text-foreground flex items-center gap-2"><MessageSquare className="h-5 w-5"/>Feedbacks e Problemas</CardTitle>
-              <CardDescription>Visualize os feedbacks e problemas relatados.</CardDescription>
+              <CardDescription>Visualize avaliações, problemas e respostas de “Queremos ouvir você”.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
@@ -412,6 +568,7 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
                   <SelectContent className="bg-popover border-border">
                     <SelectItem value="all">Todos os Tipos</SelectItem>
                     <SelectItem value="problem">Problema</SelectItem>
+                    <SelectItem value="rating">Avaliação</SelectItem>
                     <SelectItem value="suggestion_popup">Sugestão (Popup)</SelectItem>
                   </SelectContent>
                 </Select>
@@ -431,7 +588,7 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
                     <Card key={fb.id} className="bg-input/50 border-border/50">
                       <CardHeader className="pb-2 p-3">
                         <div className="flex justify-between items-center">
-                           <CardTitle className="text-sm text-foreground capitalize">{fb.type.replace('_', ' ')}</CardTitle>
+                           <CardTitle className="text-sm text-foreground">{fb.type === 'suggestion_popup' ? 'Queremos ouvir você' : fb.type === 'problem' ? 'Problema' : 'Avaliação'}</CardTitle>
                            <Badge variant="outline" className="text-xs">{fb.userType === 'user' ? 'Usuário' : 'Empresa'}: {fb.userName}</Badge>
                         </div>
                         <p className="text-xs text-muted-foreground">{formatDateTime(fb.createdAt)}</p>
@@ -448,7 +605,43 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
             </CardContent>
           </Card>
         </TabsContent>
+        <TabsContent value="catalog">
+          <CatalogAdminPanel />
+        </TabsContent>
+        <TabsContent value="plans">
+          <PlansAdminPanel companies={companies} />
+        </TabsContent>
       </Tabs>
+
+      <Dialog open={showLocationHealth} onOpenChange={setShowLocationHealth}>
+        <DialogContent className="max-w-md border-border bg-card text-foreground">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl"><MapPinned className="h-6 w-6 text-primary" />Saúde da localização</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-xl border border-border bg-input/40 p-3"><p className="text-xs text-muted-foreground">Coordenadas válidas</p><p className="mt-1 text-2xl font-extrabold text-foreground">{locationHealth.precisionRate}%</p></div>
+              <div className="rounded-xl border border-border bg-input/40 p-3"><p className="text-xs text-muted-foreground">Falhas em 7 dias</p><p className="mt-1 text-2xl font-extrabold text-foreground">{locationHealth.recentFailures}</p></div>
+            </div>
+            <div>
+              <p className="mb-2 text-sm font-bold text-foreground">Origem das localizações</p>
+              <div className="space-y-2 text-sm">
+                {[
+                  ['gps', 'GPS do aparelho'],
+                  ['cep', 'CEP da empresa'],
+                  ['manual', 'Ponto ajustado'],
+                  ['city_center', 'Centro da cidade'],
+                  ['legacy', 'Registros anteriores'],
+                ].map(([source, label]) => (
+                  <div key={source} className="flex items-center justify-between rounded-lg bg-input/40 px-3 py-2"><span className="text-muted-foreground">{label}</span><Badge variant="secondary">{locationHealth.sourceCounts[source] || 0}</Badge></div>
+                ))}
+              </div>
+            </div>
+            <p className="text-xs leading-relaxed text-muted-foreground">O painel mostra somente os indicadores úteis. Carregamentos internos e cálculos de distância permanecem ocultos enquanto estiverem dentro do funcionamento esperado.</p>
+          </div>
+          <DialogFooter><Button type="button" onClick={() => setShowLocationHealth(false)} className="w-full sm:w-auto">Fechar</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={showReasonModal} onOpenChange={setShowReasonModal}>
         <DialogContent className="max-w-md bg-card border-border text-foreground">

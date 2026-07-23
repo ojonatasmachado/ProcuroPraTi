@@ -1,8 +1,9 @@
 
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { BarChart3, PackageSearch, MessageSquare, CheckCircle, XCircle, TrendingUp, Percent, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { BarChart3, MessageSquare, CheckCircle, XCircle, TrendingUp, Percent } from 'lucide-react';
+import BrandMark from '@/components/BrandMark';
 import { motion } from 'framer-motion';
 
 const CompanyMiniDashboard = ({ currentUser, procuras, onClose }) => {
@@ -11,7 +12,8 @@ const CompanyMiniDashboard = ({ currentUser, procuras, onClose }) => {
   const companyProcuras = useMemo(() => {
     if (!currentUser || !procuras) return [];
     return procuras.filter(p => 
-      (p.locations || []).some(loc => (currentUser.servesLocations || []).includes(loc.value)) || 
+      (((p.locations || []).some(loc => (currentUser.servesLocations || []).includes(loc.value))) &&
+        (currentUser.vehicleTypes || ['car', 'motorcycle', 'truck', 'bus']).includes(p.vehicleType || 'car')) ||
       (p.responses || []).some(r => r.companyId === companyId)
     );
   }, [procuras, companyId, currentUser]);
@@ -36,12 +38,12 @@ const CompanyMiniDashboard = ({ currentUser, procuras, onClose }) => {
   const taxaDisponibilidade = totalRespostasEnviadas > 0 ? ((respostasDisponiveis / totalRespostasEnviadas) * 100).toFixed(0) : 0;
 
   const stats = [
-    { title: "Procuras Recebidas", value: totalProcurasParaMim, icon: <PackageSearch className="h-6 w-6 text-primary" /> },
-    { title: "Respostas Enviadas", value: totalRespostasEnviadas, icon: <MessageSquare className="h-6 w-6 text-blue-500" /> },
-    { title: "Peças Disponíveis", value: respostasDisponiveis, icon: <CheckCircle className="h-6 w-6 text-green-500" /> },
-    { title: "Peças Indisponíveis", value: respostasIndisponiveis, icon: <XCircle className="h-6 w-6 text-red-500" /> },
-    { title: "Taxa de Resposta", value: `${taxaResposta}%`, icon: <TrendingUp className="h-6 w-6 text-yellow-500" /> },
-    { title: "Taxa de Disponibilidade", value: `${taxaDisponibilidade}%`, icon: <Percent className="h-6 w-6 text-indigo-500" /> },
+    { title: "Procuras Recebidas", value: totalProcurasParaMim, icon: <BrandMark className="h-6 w-6" /> },
+    { title: "Respostas Enviadas", value: totalRespostasEnviadas, icon: <MessageSquare className="h-6 w-6 text-primary" /> },
+    { title: "Peças Disponíveis", value: respostasDisponiveis, icon: <CheckCircle className="h-6 w-6 text-success" /> },
+    { title: "Peças Indisponíveis", value: respostasIndisponiveis, icon: <XCircle className="h-6 w-6 text-danger" /> },
+    { title: "Taxa de Resposta", value: `${taxaResposta}%`, icon: <TrendingUp className="h-6 w-6 text-warning" /> },
+    { title: "Taxa de Disponibilidade", value: `${taxaDisponibilidade}%`, icon: <Percent className="h-6 w-6 text-accent-agile" /> },
   ];
 
   const cardVariants = {
@@ -54,27 +56,19 @@ const CompanyMiniDashboard = ({ currentUser, procuras, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex justify-center items-center p-4 z-[100]">
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        transition={{ duration: 0.3 }}
-        className="w-full max-w-2xl bg-card p-4 sm:p-6 rounded-xl shadow-2xl border border-border"
-      >
-        <div className="flex justify-between items-center mb-4 sm:mb-6">
-          <h2 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
-            <BarChart3 className="h-6 w-6" />
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-h-[calc(100dvh-1rem)] max-w-2xl overflow-y-auto border-border bg-card text-foreground">
+        <DialogHeader className="pr-10 text-left">
+          <DialogTitle className="flex items-center gap-2 text-xl sm:text-2xl">
+            <BarChart3 className="h-6 w-6 text-primary" />
             Meu Desempenho
-          </h2>
-          <Button variant="ghost" size="icon" onClick={onClose} className="text-muted-foreground hover:text-primary">
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
+          </DialogTitle>
+          <DialogDescription>Resumo das suas interações e respostas na plataforma.</DialogDescription>
+        </DialogHeader>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
           {stats.map((stat, i) => (
-            <motion.custom
+            <motion.div
               key={stat.title}
               variants={cardVariants}
               initial="hidden"
@@ -90,14 +84,14 @@ const CompanyMiniDashboard = ({ currentUser, procuras, onClose }) => {
                   <div className="text-lg sm:text-2xl font-bold text-foreground">{stat.value}</div>
                 </CardContent>
               </Card>
-            </motion.custom>
+            </motion.div>
           ))}
         </div>
         <p className="text-xs text-muted-foreground mt-4 sm:mt-6 text-center">
           Estas são estatísticas baseadas nas suas interações na plataforma.
         </p>
-      </motion.div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

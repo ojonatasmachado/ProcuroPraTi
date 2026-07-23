@@ -38,6 +38,7 @@ module.exports = {
 					DEFAULT: 'hsl(var(--destructive))',
 					foreground: 'hsl(var(--destructive-foreground))',
 				},
+				danger: 'hsl(var(--danger))',
 				muted: {
 					DEFAULT: 'hsl(var(--muted))',
 					foreground: 'hsl(var(--muted-foreground))',
@@ -49,6 +50,14 @@ module.exports = {
 				'accent-agile': {
 					DEFAULT: 'hsl(var(--accent-agile))',
 					foreground: 'hsl(var(--accent-agile-foreground))',
+				},
+				success: {
+					DEFAULT: 'hsl(var(--success))',
+					foreground: 'hsl(var(--success-foreground))',
+				},
+				warning: {
+					DEFAULT: 'hsl(var(--warning))',
+					foreground: 'hsl(var(--warning-foreground))',
 				},
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
@@ -68,6 +77,7 @@ module.exports = {
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)',
 				pill: '999px',
+				card: 'var(--card-radius)',
 			},
 			keyframes: {
 				'accordion-down': {

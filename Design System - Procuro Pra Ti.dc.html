@@ -19,15 +19,15 @@ body{margin:0;background:#070D1A;}
 <div style="font-family:'Inter',sans-serif;background:#070D1A;color:#EAF0FB;">
 
   <div style="position:sticky;top:0;z-index:50;background:rgba(7,13,26,0.9);backdrop-filter:blur(10px);border-bottom:1px solid #1E2A44;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-    <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:15px;letter-spacing:-0.01em;text-transform:lowercase;">procuro<span style="color:{{ accent }}">.</span>pra ti</span>
-    <span style="font-size:12px;color:#90A0BE;letter-spacing:0.06em;text-transform:uppercase;">Design System · Componentes · v1</span>
+    <span style="display:inline-flex;align-items:center;gap:8px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:15px;letter-spacing:-0.01em;text-transform:lowercase;"><img src="./public/favicon.svg" alt="" style="width:28px;height:28px;border-radius:8px;"/><span>procuro <span style="color:#2E6FF3;">pra ti</span></span></span>
+    <span style="font-size:12px;color:#90A0BE;letter-spacing:0.06em;text-transform:uppercase;">Design System · Componentes · v2</span>
   </div>
 
   <section style="padding:72px 24px 56px;">
     <div style="max-width:1160px;margin:0 auto;">
       <div style="font-size:13px;letter-spacing:0.12em;text-transform:uppercase;color:#90A0BE;margin-bottom:16px;">Padrão de UI</div>
       <h1 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:clamp(32px,5vw,52px);line-height:1.05;letter-spacing:-0.02em;margin:0 0 20px;max-width:800px;">Biblioteca de componentes para o modelo de procura reversa</h1>
-      <p style="font-size:17px;color:#90A0BE;max-width:720px;line-height:1.6;margin:0;">Referência visual e de comportamento para implementação: o cliente publica o que <strong style="color:#EAF0FB;">procura</strong>, e só quem tem a oferta <strong style="color:#EAF0FB;">responde</strong> — sem catálogo público. Este documento é o padrão a seguir na reconstrução do produto.</p>
+      <p style="font-size:17px;color:#90A0BE;max-width:720px;line-height:1.6;margin:0;">Referência visual e de comportamento para implementação: o cliente publica o que <strong style="color:#EAF0FB;">procura</strong>, e só quem tem a oferta <strong style="color:#EAF0FB;">responde</strong>, sem catálogo público. Este documento é o padrão a seguir na reconstrução do produto.</p>
     </div>
   </section>
 
@@ -81,7 +81,7 @@ body{margin:0;background:#070D1A;}
         <button style="background:#2E6FF3;color:#F5F7FB;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;">sm</button>
         <button style="background:#2E6FF3;color:#F5F7FB;border:none;border-radius:10px;padding:12px 20px;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;">default</button>
         <button style="background:#2E6FF3;color:#F5F7FB;border:none;border-radius:12px;padding:16px 32px;font-size:17px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;">lg</button>
-        <span style="font-size:13px;color:#5A6B8A;margin-left:8px;">sm / default / lg — altura 36 / 40 / 48px</span>
+        <span style="font-size:13px;color:#5A6B8A;margin-left:8px;">sm / default / lg: altura 40 / 44 / 48px</span>
       </div>
     </div>
   </section>
@@ -123,7 +123,7 @@ body{margin:0;background:#070D1A;}
   <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
     <div style="max-width:1160px;margin:0 auto;">
       <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 8px;">Seletor de categoria e condição</h2>
-      <p style="color:#90A0BE;font-size:14px;margin:0 0 24px;">Base do fluxo: tipo de veículo define quem recebe a procura — <strong style="color:#EAF0FB;">Usada → CDVs</strong>, <strong style="color:#EAF0FB;">Nova → autopeças</strong>.</p>
+      <p style="color:#90A0BE;font-size:14px;margin:0 0 24px;">Tipo de veículo, condição e cidade ajudam a apresentar a procura às empresas compatíveis. Toda empresa aprovada pode responder quando puder atender.</p>
       <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
         <sc-for list="{{ vehicleTypes }}" as="v" hint-placeholder-count="3">
           <div style="display:flex;align-items:center;gap:8px;padding:12px 20px;border-radius:12px;background:{{ v.active ? 'rgba(46,111,243,0.15)' : '#111C30' }};border:1px solid {{ v.active ? '#2E6FF3' : '#1E2A44' }};color:{{ v.active ? '#EAF0FB' : '#90A0BE' }};font-size:14px;font-weight:600;">
@@ -132,8 +132,8 @@ body{margin:0;background:#070D1A;}
         </sc-for>
       </div>
       <div style="display:flex;gap:12px;">
-        <div style="padding:10px 20px;border-radius:999px;background:#2E6FF3;color:#F5F7FB;font-size:13px;font-weight:700;">Peça usada → CDV</div>
-        <div style="padding:10px 20px;border-radius:999px;background:{{ accent }};color:#06251F;font-size:13px;font-weight:700;">Peça nova → Autopeça</div>
+        <div style="padding:10px 20px;border-radius:999px;background:#2E6FF3;color:#F5F7FB;font-size:13px;font-weight:700;">Peça usada</div>
+        <div style="padding:10px 20px;border-radius:999px;background:{{ accent }};color:#06251F;font-size:13px;font-weight:700;">Peça nova</div>
       </div>
     </div>
   </section>
@@ -154,7 +154,7 @@ body{margin:0;background:#070D1A;}
   <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
     <div style="max-width:1160px;margin:0 auto;">
       <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 8px;">Card de Procura <span style="font-size:14px;color:#90A0BE;font-weight:400;">(visão do cliente)</span></h2>
-      <p style="color:#90A0BE;font-size:14px;margin:0 0 28px;">Anatomia completa: status, prazo, veículo, foto de referência (opcional), local e contagem de respostas — sem revelar quem respondeu até o cliente abrir.</p>
+      <p style="color:#90A0BE;font-size:14px;margin:0 0 28px;">Anatomia completa: status, prazo, veículo, foto de referência opcional, local e contagem de respostas. A empresa só é revelada quando o cliente abre as respostas.</p>
       <div style="max-width:400px;">
         <div style="background:#111C30;border:1px solid #1E2A44;border-left:3px solid #2E6FF3;border-radius:14px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.25);">
           <div style="padding:18px 20px 12px;">
@@ -192,7 +192,7 @@ body{margin:0;background:#070D1A;}
   <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
     <div style="max-width:1160px;margin:0 auto;">
       <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 8px;">Card de Resposta <span style="font-size:14px;color:#90A0BE;font-weight:400;">(visão da empresa)</span></h2>
-      <p style="color:#90A0BE;font-size:14px;margin:0 0 28px;">Borda de destaque na cor de agilidade. Contador de prazo sempre visível — responder rápido é o diferencial. Ação binária sem fricção; distância ajuda a priorizar.</p>
+      <p style="color:#90A0BE;font-size:14px;margin:0 0 28px;">Borda de destaque na cor de agilidade. Contador de prazo sempre visível. Responder rápido é o diferencial. Ação binária sem fricção; distância ajuda a priorizar.</p>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;max-width:820px;">
         <div style="background:#111C30;border:1px solid #1E2A44;border-left:3px solid {{ accent }};border-radius:14px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.25);">
           <div style="padding:18px 20px 12px;">
@@ -234,7 +234,7 @@ body{margin:0;background:#070D1A;}
   <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
     <div style="max-width:1160px;margin:0 auto;">
       <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 8px;">Tela: comparar respostas <span style="font-size:14px;color:#90A0BE;font-weight:400;">(modal do cliente)</span></h2>
-      <p style="color:#90A0BE;font-size:14px;margin:0 0 28px;">O momento de decisão: preço, condição, distância e selo de verificação lado a lado, com chat direto — este é o núcleo comercial do produto.</p>
+      <p style="color:#90A0BE;font-size:14px;margin:0 0 28px;">O momento de decisão reúne preço, condição, distância, selo de verificação e chat direto. Este é o núcleo comercial do produto.</p>
       <div style="background:#070D1A;border:1px solid #1E2A44;border-radius:16px;padding:32px;">
         <div style="max-width:640px;margin:0 auto;background:#111C30;border:1px solid #1E2A44;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.5);overflow:hidden;">
           <div style="padding:20px 24px;border-bottom:1px solid #1E2A44;display:flex;justify-content:space-between;align-items:center;">
@@ -274,7 +274,7 @@ body{margin:0;background:#070D1A;}
   <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
     <div style="max-width:1160px;margin:0 auto;">
       <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 8px;">Tela: Nova Procura <span style="font-size:14px;color:#90A0BE;font-weight:400;">(formulário do cliente)</span></h2>
-      <p style="color:#90A0BE;font-size:14px;margin:0 0 28px;">Cada campo aqui define o roteamento: tipo de veículo + condição decide se vai para CDV ou autopeça; localidade decide quem recebe.</p>
+      <p style="color:#90A0BE;font-size:14px;margin:0 0 28px;">Cada campo melhora a compatibilidade da procura. A cidade define quem recebe, e a duração é escolhida pela pessoa que criou.</p>
       <div style="max-width:520px;background:#111C30;border:1px solid #1E2A44;border-radius:16px;padding:28px;box-shadow:0 8px 24px rgba(0,0,0,0.2);">
         <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:18px;margin-bottom:20px;display:flex;align-items:center;gap:8px;">📦 Criar nova procura de peça</div>
 
@@ -291,8 +291,8 @@ body{margin:0;background:#070D1A;}
         <div style="margin-bottom:16px;">
           <label style="font-size:12px;color:#90A0BE;display:block;margin-bottom:8px;">Condição da peça *</label>
           <div style="display:flex;gap:8px;">
-            <div style="flex:1;text-align:center;padding:10px;border-radius:10px;background:#0B1424;border:1px solid #1E2A44;color:#90A0BE;font-size:13px;font-weight:600;">✨ Nova <span style="font-size:10px;display:block;color:#5A6B8A;">vai p/ autopeças</span></div>
-            <div style="flex:1;text-align:center;padding:10px;border-radius:10px;background:rgba(46,111,243,0.15);border:1px solid #2E6FF3;color:#EAF0FB;font-size:13px;font-weight:600;">♻️ Usada <span style="font-size:10px;display:block;color:#90A0BE;">vai p/ CDVs</span></div>
+            <div style="flex:1;text-align:center;padding:10px;border-radius:10px;background:#0B1424;border:1px solid #1E2A44;color:#90A0BE;font-size:13px;font-weight:600;">✨ Nova</div>
+            <div style="flex:1;text-align:center;padding:10px;border-radius:10px;background:rgba(46,111,243,0.15);border:1px solid #2E6FF3;color:#EAF0FB;font-size:13px;font-weight:600;">♻️ Usada</div>
           </div>
         </div>
 
@@ -355,7 +355,7 @@ body{margin:0;background:#070D1A;}
     <div style="max-width:1160px;margin:0 auto;">
       <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 24px;">Cabeçalho do app</h2>
       <div style="background:#0B1424;border:1px solid #1E2A44;border-radius:14px;padding:14px 22px;display:flex;align-items:center;justify-content:space-between;">
-        <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:18px;letter-spacing:-0.02em;text-transform:lowercase;"><span style="color:#EAF0FB;">procuro</span> <span style="color:#2E6FF3;">pra ti</span></span>
+        <span style="display:inline-flex;align-items:center;gap:8px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:18px;letter-spacing:-0.02em;text-transform:lowercase;"><img src="./public/favicon.svg" alt="" style="width:32px;height:32px;border-radius:8px;"/><span><span style="color:#EAF0FB;">procuro</span> <span style="color:#2E6FF3;">pra ti</span></span></span>
         <div style="display:flex;align-items:center;gap:16px;">
           <div style="position:relative;">
             <span style="font-size:18px;">🔔</span>
@@ -417,7 +417,7 @@ body{margin:0;background:#070D1A;}
   <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
     <div style="max-width:1160px;margin:0 auto;">
       <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 8px;">Modelo de categoria <span style="font-size:14px;color:#90A0BE;font-weight:400;">(genérico, não travado em autopeças)</span></h2>
-      <p style="color:#90A0BE;font-size:14px;max-width:760px;margin:0 0 28px;line-height:1.6;">A lógica do produto é sempre a mesma — <strong style="color:#EAF0FB;">cliente publica o que procura → só quem tem responde</strong> — independente da categoria. Peças é a vertical de lançamento; a estrutura de card, formulário e resposta deve funcionar sem alterações quando entrarem carros, imóveis etc. Nenhum componente acima usa nomes de campo específicos de autopeças no nível estrutural — apenas o conteúdo muda.</p>
+      <p style="color:#90A0BE;font-size:14px;max-width:760px;margin:0 0 28px;line-height:1.6;">A lógica do produto é sempre a mesma: <strong style="color:#EAF0FB;">cliente publica o que procura → só quem tem responde</strong>. Esse padrão independe da categoria. Peças é a vertical de lançamento; a estrutura de card, formulário e resposta deve funcionar sem alterações quando entrarem novas verticais. Nenhum componente usa nomes específicos no nível estrutural; apenas o conteúdo muda.</p>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;">
         <sc-for list="{{ verticals }}" as="v" hint-placeholder-count="4">
           <div style="background:#111C30;border:1px solid #1E2A44;border-radius:14px;padding:20px;{{ v.active ? 'border-color:#2E6FF3;' : 'opacity:0.55;' }}">
@@ -435,10 +435,10 @@ body{margin:0;background:#070D1A;}
   <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
     <div style="max-width:1160px;margin:0 auto;">
       <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 8px;">Tela: Home / Landing</h2>
-      <p style="color:#90A0BE;font-size:14px;margin:0 0 28px;">Login trocado por duas intenções claras — <strong style="color:#EAF0FB;">vou procurar</strong> (cliente) e <strong style="color:#EAF0FB;">vou vender</strong> (CDV/autopeça) — em vez de um "Entrar" genérico.</p>
+      <p style="color:#90A0BE;font-size:14px;margin:0 0 28px;">O acesso começa por duas intenções claras: <strong style="color:#EAF0FB;">Vou procurar</strong> e <strong style="color:#EAF0FB;">Vou vender</strong>. O email é informado antes da senha ou do cadastro.</p>
       <div style="background:#070D1A;border:1px solid #1E2A44;border-radius:16px;overflow:hidden;">
         <div style="padding:16px 28px;border-bottom:1px solid #1E2A44;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-          <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:16px;text-transform:lowercase;"><span style="color:#EAF0FB;">procuro</span> <span style="color:#2E6FF3;">pra ti</span></span>
+          <span style="display:inline-flex;align-items:center;gap:8px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:16px;text-transform:lowercase;"><img src="./public/favicon.svg" alt="" style="width:30px;height:30px;border-radius:8px;"/><span><span style="color:#EAF0FB;">procuro</span> <span style="color:#2E6FF3;">pra ti</span></span></span>
           <div style="display:flex;gap:20px;align-items:center;font-size:13px;color:#90A0BE;">
             <span>Como funciona</span><span>Categorias</span>
             <span style="border:1px solid #3A4A6B;color:#EAF0FB;padding:8px 16px;border-radius:8px;font-weight:600;">Vou vender</span>
@@ -447,12 +447,12 @@ body{margin:0;background:#070D1A;}
         </div>
 
         <div style="padding:64px 28px 48px;text-align:center;">
-          <div style="font-size:12px;color:{{ accent }};text-transform:uppercase;letter-spacing:0.1em;margin-bottom:16px;">Peças automotivas · em breve, mais categorias</div>
+          <div style="font-size:12px;color:{{ accent }};text-transform:uppercase;letter-spacing:0.1em;margin-bottom:16px;">Procura reversa simples, rápida e segura</div>
           <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:38px;max-width:680px;margin:0 auto 16px;line-height:1.15;">Diga o que você procura. As empresas certas respondem.</div>
-          <div style="font-size:15px;color:#90A0BE;max-width:540px;margin:0 auto 28px;line-height:1.6;">Sem catálogos infinitos. Você publica o que precisa e só recebe respostas de quem realmente tem — com preço, condição e distância.</div>
+          <div style="font-size:15px;color:#90A0BE;max-width:540px;margin:0 auto 28px;line-height:1.6;">Sem catálogos infinitos. Você publica o que precisa e recebe respostas de quem pode atender, com preço, condição e distância.</div>
           <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-            <button style="background:#2E6FF3;color:#F5F7FB;border:none;border-radius:10px;padding:14px 28px;font-size:14px;font-weight:700;cursor:pointer;">🔍 Vou procurar uma peça</button>
-            <button style="background:transparent;border:1px solid {{ accent }};color:{{ accent }};border-radius:10px;padding:14px 28px;font-size:14px;font-weight:700;cursor:pointer;">🏪 Vou vender — cadastrar empresa</button>
+            <button style="background:#2E6FF3;color:#F5F7FB;border:none;border-radius:10px;padding:14px 28px;font-size:14px;font-weight:700;cursor:pointer;">Vou procurar</button>
+            <button style="background:transparent;border:1px solid {{ accent }};color:{{ accent }};border-radius:10px;padding:14px 28px;font-size:14px;font-weight:700;cursor:pointer;">Vou vender</button>
           </div>
         </div>
 
@@ -481,8 +481,8 @@ body{margin:0;background:#070D1A;}
         <div style="padding:0 28px 40px;">
           <div style="background:#111C30;border:1px solid #1E2A44;border-radius:14px;padding:24px 28px;display:flex;flex-wrap:wrap;gap:24px;justify-content:space-around;text-align:center;">
             <div><div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:22px;color:{{ accent }};">100% grátis</div><div style="font-size:12px;color:#90A0BE;">para quem procura</div></div>
-            <div><div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:22px;color:{{ accent }};">CDVs verificados</div><div style="font-size:12px;color:#90A0BE;">antes de aparecer nas procuras</div></div>
-            <div><div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:22px;color:{{ accent }};">Resposta em até 24h</div><div style="font-size:12px;color:#90A0BE;">prazo para empresas responderem</div></div>
+            <div><div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:22px;color:{{ accent }};">Empresas verificadas</div><div style="font-size:12px;color:#90A0BE;">selo exibido somente após validação</div></div>
+            <div><div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:22px;color:{{ accent }};">Resposta rápida</div><div style="font-size:12px;color:#90A0BE;">a procura respeita a duração escolhida</div></div>
           </div>
         </div>
 
@@ -503,7 +503,7 @@ body{margin:0;background:#070D1A;}
   <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
     <div style="max-width:1160px;margin:0 auto;">
       <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 8px;">Tela: Cadastro</h2>
-      <p style="color:#90A0BE;font-size:14px;margin:0 0 28px;">Duas jornadas no mesmo padrão visual — cliente (quem procura) e empresa (quem responde) — alternadas por abas, nunca telas separadas de marca.</p>
+      <p style="color:#90A0BE;font-size:14px;margin:0 0 28px;">Duas jornadas no mesmo padrão visual: cliente, quem procura, e empresa, quem responde. Elas são alternadas por abas, nunca por marcas ou experiências diferentes.</p>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:24px;max-width:900px;">
         <div style="background:#111C30;border:1px solid #1E2A44;border-radius:16px;padding:28px;">
           <div style="display:inline-flex;background:#0B1424;border:1px solid #1E2A44;border-radius:10px;padding:4px;gap:4px;margin-bottom:20px;">
@@ -527,12 +527,6 @@ body{margin:0;background:#070D1A;}
           <div style="display:flex;flex-direction:column;gap:12px;">
             <div><label style="font-size:11px;color:#90A0BE;display:block;margin-bottom:5px;">Razão social</label><div style="background:#0B1424;border:1px solid #1E2A44;border-radius:8px;padding:9px 12px;font-size:13px;color:#EAF0FB;">Auto Peças Sul Ltda</div></div>
             <div><label style="font-size:11px;color:#90A0BE;display:block;margin-bottom:5px;">CNPJ</label><div style="background:#0B1424;border:1px solid #1E2A44;border-radius:8px;padding:9px 12px;font-size:13px;color:#EAF0FB;">00.000.000/0001-00</div></div>
-            <div><label style="font-size:11px;color:#90A0BE;display:block;margin-bottom:5px;">Tipo de negócio</label>
-              <div style="display:flex;gap:8px;">
-                <span style="flex:1;text-align:center;padding:8px;border-radius:7px;background:rgba(46,111,243,0.15);border:1px solid #2E6FF3;color:#EAF0FB;font-size:12px;">CDV (usadas)</span>
-                <span style="flex:1;text-align:center;padding:8px;border-radius:7px;background:#0B1424;border:1px solid #1E2A44;color:#90A0BE;font-size:12px;">Autopeça (novas)</span>
-              </div>
-            </div>
             <div><label style="font-size:11px;color:#90A0BE;display:block;margin-bottom:5px;">Regiões atendidas</label><div style="background:#0B1424;border:1px solid #1E2A44;border-radius:8px;padding:9px 12px;font-size:13px;color:#EAF0FB;">Porto Alegre e região</div></div>
             <div style="font-size:11px;color:#90A0BE;background:#0B1424;border-radius:8px;padding:10px 12px;">🔍 Seu cadastro passa por validação antes de aparecer nas procuras.</div>
             <button style="background:{{ accent }};color:#06251F;border:none;border-radius:9px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;margin-top:2px;">Cadastrar empresa</button>
@@ -546,7 +540,7 @@ body{margin:0;background:#070D1A;}
   <section style="padding:56px 24px;border-top:1px solid #1E2A44;">
     <div style="max-width:1160px;margin:0 auto;">
       <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:26px;margin:0 0 8px;">Pesquisa de satisfação</h2>
-      <p style="color:#90A0BE;font-size:14px;margin:0 0 24px;">Disparada após o cliente marcar uma procura como resolvida — curta, direta, sem obrigar texto.</p>
+      <p style="color:#90A0BE;font-size:14px;margin:0 0 24px;">Exibida 7 dias após o primeiro acesso e, depois, a cada 45 dias. Deve ser curta, direta e sem obrigar texto.</p>
       <div style="background:#070D1A;border:1px solid #1E2A44;border-radius:16px;padding:40px;display:flex;justify-content:center;">
         <div style="background:#111C30;border:1px solid #1E2A44;border-radius:16px;padding:26px;max-width:380px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
           <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:16px;margin-bottom:6px;">Encontrou o que procurava?</div>
@@ -616,7 +610,7 @@ class Component extends DCLogic {
         { label: 'Ativa', bg: 'rgba(46,111,243,0.15)', color: '#2E6FF3', border: '#2E6FF3' },
         { label: 'Respondida', bg: `rgba(33,199,176,0.15)`, color: accent, border: accent },
         { label: 'Encerrada', bg: '#1E2A44', color: '#90A0BE', border: '#3A4A6B' },
-        { label: 'CDV verificado', bg: 'transparent', color: '#EAF0FB', border: accent },
+        { label: 'Empresa verificada', bg: 'transparent', color: '#EAF0FB', border: accent },
         { label: 'Novo', bg: 'rgba(46,111,243,0.15)', color: '#2E6FF3', border: '#2E6FF3' },
         { label: 'Usado', bg: '#1E2A44', color: '#90A0BE', border: '#3A4A6B' },
         { label: '📷 Fotos solicitadas', bg: 'rgba(242,184,75,0.12)', color: '#F2B84B', border: '#F2B84B' },
@@ -639,20 +633,20 @@ class Component extends DCLogic {
         { emoji: '😞', selected: false }, { emoji: '😕', selected: false }, { emoji: '😐', selected: false }, { emoji: '🙂', selected: true }, { emoji: '😄', selected: false },
       ],
       buildSteps: [
-        { n: '1', title: 'Atualizar tokens em index.css', desc: 'Adicionar --accent-agile (teal, hsl equivalente a #21C7B0) como nova variável ao lado de --primary. Não remover --accent atual — ele fica reservado para o azul secundário existente.' },
-        { n: '2', title: 'Trocar wordmark em LandingHeader.jsx e AppHeader.jsx', desc: 'Substituir o ícone SVG + texto gradiente por texto puro minúsculo "procuro" + "pra ti" (Plus Jakarta Sans 800), conforme seção Logotipo. Manter os mesmos componentes de navegação ao redor.' },
-        { n: '3', title: 'Generalizar o modelo de dados de Procura', desc: 'Renomear campos genéricos onde fizer sentido (ex: category em vez de vehicleType como campo-mãe, com vehicleType como subtipo dentro de category="pecas"). Isso evita reescrever tudo quando entrarem imóveis/veículos.' },
-        { n: '4', title: 'Adicionar "Ônibus" como vehicleType', desc: 'Incluir em SearchForm.jsx (Select de tipo de veículo), mockData.js (marcas/modelos de ônibus) e nos ícones (lucide Bus) ao lado de Car/Bike/Truck.' },
-        { n: '5', title: 'Trocar CTA de login por intenção', desc: 'LandingPage/LandingHeader: substituir botão único "Entrar" por dois CTAs — "Vou procurar" (fluxo atual de usuário) e "Vou vender" (fluxo atual de empresa). Isso é só rótulo/roteamento, a lógica de userType já existe em App.jsx.' },
-        { n: '6', title: 'Reconstruir SearchList/CompanyDashboard cards', desc: 'Aplicar a anatomia do Card de Procura e Card de Resposta desta página: status pill, prazo, foto de referência (novo campo photoUrl opcional na criação), distância no card da empresa.' },
-        { n: '7', title: 'Novo modal de comparação de respostas', desc: 'Substituir/estender ResponseModal.jsx para listar respostas lado a lado com foto, selo "Verificado", preço e botão de chat — layout da seção "Tela: comparar respostas".' },
-        { n: '8', title: 'Home/Landing completa', desc: 'Reestruturar LandingPage.jsx com hero + CTAs de intenção + tira de categorias (inclui Ônibus) + como funciona + prova social simples + CTA final, conforme seção Home/Landing.' },
-        { n: '9', title: 'Cadastro em abas', desc: 'UserRegistration.jsx: unificar em duas abas "Vou procurar" / "Vou vender" no mesmo card, em vez de fluxos visualmente distintos.' },
-        { n: '10', title: 'Pesquisa de satisfação', desc: 'Novo FeedbackModal de avaliação por emojis (5 níveis) disparado ao finalizar uma procura — reaproveitar FeedbackModal.jsx existente, trocar formulário de texto por seletor de emoji + campo opcional.' },
+        { n: '1', title: 'Usar tokens oficiais', desc: 'Toda cor de interface deve vir de primary, accent-agile, success, warning, destructive ou dos tokens de superfície.' },
+        { n: '2', title: 'Usar a assinatura completa', desc: 'BrandLogo reúne o ícone oficial com o nome em Plus Jakarta Sans 800. BrandMark representa ações de procura.' },
+        { n: '3', title: 'Garantir toque seguro', desc: 'Ações principais e fechamentos devem oferecer pelo menos 40 px, preferencialmente 44 ou 48 px no celular.' },
+        { n: '4', title: 'Padronizar janelas', desc: 'Todos os overlays usam Dialog, altura dinâmica, foco controlado, uma única ação de fechar e área segura.' },
+        { n: '5', title: 'Manter CTAs por intenção', desc: 'Os rótulos são sempre curtos: Vou procurar e Vou vender.' },
+        { n: '6', title: 'Preservar a anatomia dos cartões', desc: 'Status, prazo, veículo, condição, cidade, foto, resposta e ações mantêm a mesma hierarquia.' },
+        { n: '7', title: 'Validar antes de exibir confiança', desc: 'O selo Empresa verificada aparece somente quando a validação administrativa estiver aprovada.' },
+        { n: '8', title: 'Manter a marca em todas as jornadas', desc: 'Landing, acesso, cadastro, perfil e área interna usam os mesmos componentes de marca e tema.' },
+        { n: '9', title: 'Começar cada tela no topo', desc: 'Mudanças de etapa reposicionam a rolagem e formulários longos nunca são centralizados verticalmente.' },
+        { n: '10', title: 'Auditar antes de publicar', desc: 'Build, design system, responsividade, PWA e jornadas devem estar verdes antes da publicação.' },
       ],
       offers: [
         { name: 'Auto Peças Sul', price: 'R$ 180,00', condition: 'Excelente', distance: '3,2 km' },
-        { name: 'CDV Bom Retiro', price: 'R$ 145,00', condition: 'Boa', distance: '7,8 km' },
+        { name: 'Peças Bom Retiro', price: 'R$ 145,00', condition: 'Boa', distance: '7,8 km' },
       ],
       tiles: [
         { icon: '📝', title: 'Nova Procura', desc: 'Precisa de uma peça? Publique sua procura agora.', cta: 'Criar nova procura', primary: true },

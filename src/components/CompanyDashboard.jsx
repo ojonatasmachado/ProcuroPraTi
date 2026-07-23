@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,13 +7,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Building2, Car, Clock, MapPin, DollarSign, MessageCircle, Send, Camera, Upload, ListFilter, History, Edit3, PackageSearch, CalendarDays, EyeOff, Eye, AlertTriangle, CheckCircle2, XCircle, Wrench, MessageSquare as ChatIcon, ArrowLeft, Bike, Truck, Bus, Timer } from 'lucide-react';
+import { Car, Clock, MapPin, Send, Camera, Upload, ListFilter, History, Edit3, EyeOff, Eye, CheckCircle2, XCircle, ArrowLeft, Bike, Truck, Bus, Timer, SlidersHorizontal, Search, RotateCcw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from '@/components/ui/use-toast';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { getSearchRemainingMs } from '@/lib/searchDuration';
+import BrandMark from '@/components/BrandMark';
+import { distanceInKm } from '@/lib/geocoding';
+import useScrollToTop from '@/hooks/useScrollToTop';
+import { formatCurrency, formatCurrencyInput, normalizeCurrencyValue, sanitizeCurrencyInput } from '@/lib/currency';
+import DashboardSectionTabs from '@/components/DashboardSectionTabs';
+import { SubscriptionBlockedDialog, TrialProgressCard } from '@/components/CompanyTrialExperience';
 
-const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseSubmit, currentUser, vehicleData, onOpenChat, users = [] }) => {
+const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseSubmit, onPhotoUpload, currentUser, vehicleData, users = [], openProcuraId = null, onPushDestinationHandled, isDataLoaded = false, subscriptionContext = null, onShowPlans }) => {
   const [selectedProcura, setSelectedProcura] = useState(null);
   const [isEditingResponse, setIsEditingResponse] = useState(false);
   const [responseForm, setResponseForm] = useState({
@@ -28,45 +35,74 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
   const [filterPartName, setFilterPartName] = useState('');
   const [filterVehicle, setFilterVehicle] = useState('');
   const fileInputRef = useRef(null);
-  const [currentView, setCurrentView] = useState('home');
+  const [currentView, setCurrentView] = useState('to-respond');
+  const [returnView, setReturnView] = useState('to-respond');
+  const [showFilters, setShowFilters] = useState(false);
   const [showPhotoConfirmDialog, setShowPhotoConfirmDialog] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [isSubmittingResponse, setIsSubmittingResponse] = useState(false);
+  const [responseErrors, setResponseErrors] = useState({});
+  const [showSubscriptionBlock, setShowSubscriptionBlock] = useState(false);
+  useScrollToTop(currentView);
 
-  const unrespondedProcurasCount = useMemo(() => {
-    return (allProcuras || []).filter(p => !(companyResponses || []).some(myRes => myRes.id === p.id)).length;
-  }, [allProcuras, companyResponses]);
+  useEffect(() => {
+    if (!openProcuraId || !isDataLoaded) return undefined;
+    const targetIsVisible = allProcuras.some(procura => procura.id === openProcuraId)
+      || companyResponses.some(procura => procura.id === openProcuraId);
+    if (!targetIsVisible) return undefined;
+    const alreadyResponded = companyResponses.some(procura => procura.id === openProcuraId);
+    setCurrentView(alreadyResponded ? 'responded' : 'to-respond');
+
+    const timer = window.setTimeout(() => {
+      document.getElementById(`procura-${openProcuraId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      onPushDestinationHandled?.();
+    }, 150);
+    return () => window.clearTimeout(timer);
+  }, [openProcuraId, companyResponses, allProcuras, onPushDestinationHandled, isDataLoaded]);
 
   const handlePhotoUpload = () => {
-    toast({
-      title: "🚧 Upload de Fotos Não Implementado",
-      description: "Esta funcionalidade de upload de fotos ainda não foi implementada. Por favor, insira um URL de imagem por enquanto. Você pode solicitar a implementação completa no próximo prompt! 🚀",
-      variant: "default",
-      duration: 7000
-    });
+    fileInputRef.current?.click();
   };
 
-  const handleFileChange = (event) => {
+  const handleFileChange = async (event) => {
     const file = event.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result);
-        setResponseForm(prev => ({ ...prev, photoUrl: reader.result }));
-        toast({ title: "Foto Carregada (Simulado)", description: "A foto foi carregada para pré-visualização." });
-      };
-      reader.readAsDataURL(file);
+      const temporaryUrl = URL.createObjectURL(file);
+      setPhotoPreview(temporaryUrl);
+      setIsUploadingPhoto(true);
+      try {
+        const publicUrl = await onPhotoUpload(file);
+        setPhotoPreview(publicUrl);
+        setResponseForm(prev => ({ ...prev, photoUrl: publicUrl }));
+        toast({ title: "Foto enviada", description: "A imagem foi salva com segurança." });
+      } catch (error) {
+        setPhotoPreview(null);
+        toast({ title: "Não foi possível enviar a foto", description: error.message, variant: "destructive" });
+      } finally {
+        URL.revokeObjectURL(temporaryUrl);
+        setIsUploadingPhoto(false);
+        event.target.value = '';
+      }
     }
   };
 
   const handleResponseFormSubmit = (e) => {
     e.preventDefault();
-    
-    if (!responseForm.status) {
-      toast({ title: "Status obrigatório", description: "Por favor, informe se a peça está disponível.", variant: "destructive" });
-      return;
-    }
-
-    if (responseForm.status === 'available' && (!responseForm.partCondition || !responseForm.partType)) {
-      toast({ title: "Informações obrigatórias", description: "Condição e tipo (original/paralela) da peça são obrigatórios.", variant: "destructive" });
+    const errors = {};
+    if (!responseForm.status) errors.status = 'Informe se a peça está disponível.';
+    if (responseForm.status === 'available' && !responseForm.partCondition) errors.partCondition = 'Selecione a condição da peça.';
+    if (responseForm.status === 'available' && !responseForm.partType) errors.partType = 'Selecione se a peça é original ou paralela.';
+    const normalizedPrice = Number(normalizeCurrencyValue(responseForm.price));
+    if (responseForm.status === 'available' && (!Number.isFinite(normalizedPrice) || normalizedPrice <= 0)) errors.price = 'Informe um preço válido, incluindo os centavos.';
+    setResponseErrors(errors);
+    const firstError = Object.keys(errors)[0];
+    if (firstError) {
+      window.requestAnimationFrame(() => {
+        const field = document.getElementById(`response-${firstError}`) || document.getElementById(firstError);
+        field?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        window.setTimeout(() => field?.focus?.(), 250);
+      });
+      toast({ title: 'Revise a resposta', description: errors[firstError], variant: 'destructive' });
       return;
     }
 
@@ -75,10 +111,12 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
       return;
     }
 
-    submitResponse();
+    void submitResponse();
   };
 
-  const submitResponse = () => {
+  const submitResponse = async () => {
+    if (!selectedProcura || isSubmittingResponse) return;
+    setIsSubmittingResponse(true);
     const response = {
       id: isEditingResponse ? selectedProcura.myResponse.id : Date.now().toString(),
       searchId: selectedProcura.id,
@@ -86,6 +124,7 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
       companyName: currentUser.name, 
       responseDate: new Date().toISOString(),
       ...responseForm,
+      price: responseForm.status === 'available' && responseForm.price !== '' ? normalizeCurrencyValue(responseForm.price) : null,
       message: responseForm.status === 'unavailable' ? 'Peça indisponível no momento.' : responseForm.message,
       cnpj: currentUser.cnpj,
       address: currentUser.address, 
@@ -94,21 +133,35 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
       isReadByCompany: true,
     };
 
-    onResponseSubmit(selectedProcura.id, response);
-    
-    setResponseForm({ status: '', partCondition: '', partType: '', price: '', message: '', photoUrl: '' });
-    setPhotoPreview(null);
-    setSelectedProcura(null);
-    setIsEditingResponse(false);
-    setShowPhotoConfirmDialog(false);
+    try {
+      const saved = await onResponseSubmit(selectedProcura.id, response);
+      if (!saved) return;
 
-    toast({ title: `Resposta ${isEditingResponse ? 'atualizada' : 'enviada'} com sucesso! 🎉`, description: "Sua resposta foi registrada." });
+      const wasEditing = isEditingResponse;
+      setResponseForm({ status: '', partCondition: '', partType: '', price: '', message: '', photoUrl: '' });
+      setResponseErrors({});
+      setPhotoPreview(null);
+      setSelectedProcura(null);
+      setIsEditingResponse(false);
+      setShowPhotoConfirmDialog(false);
+      setCurrentView(wasEditing ? 'responded' : 'to-respond');
+
+      toast({ title: `Resposta ${wasEditing ? 'atualizada' : 'enviada'} com sucesso! 🎉`, description: "Continue respondendo às procuras abertas." });
+    } finally {
+      setIsSubmittingResponse(false);
+    }
   };
 
-  const handleQuickResponse = (procura, hasItem) => {
+  const handleQuickResponse = async (procura, hasItem) => {
+    if (subscriptionContext && !subscriptionContext.canRespond) {
+      setShowSubscriptionBlock(true);
+      return;
+    }
     if (hasItem) {
       handleSelectProcura(procura, false);
     } else {
+      if (isSubmittingResponse) return;
+      setIsSubmittingResponse(true);
       const response = {
         id: Date.now().toString(),
         searchId: procura.id,
@@ -128,12 +181,25 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
         isReadByCompany: true,
       };
 
-      onResponseSubmit(procura.id, response);
-      toast({ title: "Resposta enviada!", description: "Informamos que a peça não está disponível." });
+      try {
+        const saved = await onResponseSubmit(procura.id, response);
+        if (saved) {
+          setCurrentView('to-respond');
+          toast({ title: "Resposta enviada!", description: "Informamos que a peça não está disponível. Continue respondendo às procuras abertas." });
+        }
+      } finally {
+        setIsSubmittingResponse(false);
+      }
     }
   };
 
   const handleSelectProcura = (procura, isEdit = false) => {
+    if (!isEdit && subscriptionContext && !subscriptionContext.canRespond) {
+      setShowSubscriptionBlock(true);
+      return;
+    }
+    setReturnView(isEdit ? 'responded' : 'to-respond');
+    setResponseErrors({});
     setSelectedProcura(procura);
     setIsEditingResponse(isEdit);
     if (isEdit && procura.myResponse) {
@@ -141,7 +207,7 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
         status: procura.myResponse.status || '', 
         partCondition: procura.myResponse.partCondition || '',
         partType: procura.myResponse.partType || '',
-        price: procura.myResponse.price || '', 
+        price: formatCurrencyInput(procura.myResponse.price),
         message: procura.myResponse.message || '',
         photoUrl: procura.myResponse.photoUrl || ''
       });
@@ -156,25 +222,19 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
   const formatDate = (dateString) => new Date(dateString).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   
   const getTimeRemaining = (procura) => {
-    if (procura.status !== 'active') return { hours: 0, minutes: 0, expired: true };
-    const createdTime = new Date(procura.createdAt).getTime();
-    const now = new Date().getTime();
-    const elapsed = now - createdTime;
-    const remaining = (24 * 60 * 60 * 1000) - elapsed;
-    
-    if (remaining <= 0) return { hours: 0, minutes: 0, expired: true };
-    
-    const hours = Math.floor(remaining / (60 * 60 * 1000));
+    const remaining = getSearchRemainingMs(procura);
+    if (remaining <= 0) return { days: 0, hours: 0, minutes: 0, expired: true };
+    const days = Math.floor(remaining / (24 * 60 * 60 * 1000));
+    const hours = Math.floor((remaining % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
     const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
-    
-    return { hours, minutes, expired: false };
+    return { days, hours, minutes, expired: false };
   };
 
   const filteredProcurasToRespond = useMemo(() => {
     return (allProcuras || [])
       .filter(p => !(companyResponses || []).some(myRes => myRes.id === p.id))
       .filter(p => {
-        const partNameMatch = filterPartName ? p.partName.toLowerCase().includes(filterPartName.toLowerCase()) : true;
+        const partNameMatch = filterPartName ? (p.partName || '').toLowerCase().includes(filterPartName.toLowerCase()) : true;
         const vehicleMatch = filterVehicle ? 
           `${p.vehicleBrand} ${p.vehicleModel} ${p.vehicleYear}`.toLowerCase().includes(filterVehicle.toLowerCase()) : true;
         return partNameMatch && vehicleMatch;
@@ -183,7 +243,7 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
 
   const filteredCompanyResponses = useMemo(() => {
     return (companyResponses || []).filter(p => {
-      const partNameMatch = filterPartName ? p.partName.toLowerCase().includes(filterPartName.toLowerCase()) : true;
+      const partNameMatch = filterPartName ? (p.partName || '').toLowerCase().includes(filterPartName.toLowerCase()) : true;
       const vehicleMatch = filterVehicle ? 
         `${p.vehicleBrand} ${p.vehicleModel} ${p.vehicleYear}`.toLowerCase().includes(filterVehicle.toLowerCase()) : true;
       return partNameMatch && vehicleMatch;
@@ -224,16 +284,30 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
     return <Car className="h-3 w-3" />;
   };
 
+  const getCompactTimeRemaining = (procura) => {
+    const remaining = getSearchRemainingMs(procura);
+    if (remaining <= 0) return 'encerrando';
+    const days = Math.floor(remaining / (24 * 60 * 60 * 1000));
+    const hours = Math.floor((remaining % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+    return days > 0 ? `${days}d ${hours}h` : `${hours}h`;
+  };
+
   const renderProcuraCard = (procura, type) => {
     const hasResponded = type === 'responded';
     const response = hasResponded ? procura.myResponse : null;
     const currentUsers = users || [];
     const user = currentUsers.find(u => u.id === procura.userId);
     const timeRemaining = getTimeRemaining(procura);
+    const distance = distanceInKm(
+      { latitude: currentUser.latitude, longitude: currentUser.longitude },
+      { latitude: procura.searchLatitude, longitude: procura.searchLongitude },
+    );
+    const preferredCondition = ({ new: 'Nova', used: 'Usada', any: 'Qualquer condição' }[procura.preferredCondition] || 'Qualquer condição');
 
     return (
       <motion.div 
         key={procura.id} 
+        id={`procura-${procura.id}`}
         initial={{ opacity: 0, y: 20 }} 
         animate={{ opacity: 1, y: 0 }} 
         transition={{ duration: 0.3, delay: Math.random() * 0.1 }}
@@ -245,34 +319,41 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
               <CardTitle className="text-sm sm:text-base text-foreground font-heading">{procura.partName}</CardTitle>
               <div className="flex items-center gap-1 flex-wrap">
                 {!timeRemaining.expired && !hasResponded && (
-                  <Badge variant="outline" className="rounded-full border-yellow-500 text-yellow-500 flex items-center gap-1 text-xs font-bold">
-                    <Timer className="h-3 w-3" /> {timeRemaining.hours}h {timeRemaining.minutes}m
+                  <Badge variant="outline" className="rounded-full border-warning text-warning flex items-center gap-1 text-xs font-bold">
+                    <Timer className="h-3 w-3" /> {timeRemaining.days > 0 ? `${timeRemaining.days}d ` : ''}{timeRemaining.hours}h {timeRemaining.minutes}m
                   </Badge>
                 )}
-                {procura.wantsPhotos && (<Badge variant="outline" className="border-yellow-500 text-yellow-500 flex items-center gap-1 text-xs shrink-0"><Camera className="h-3 w-3" /> Fotos</Badge>)}
+                {procura.wantsPhotos && (<Badge variant="outline" className="border-warning text-warning flex items-center gap-1 text-xs shrink-0"><Camera className="h-3 w-3" /> Fotos</Badge>)}
               </div>
             </div>
             <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
               <span className="flex items-center gap-1">{getVehicleIcon(procura.vehicleType)}{procura.vehicleBrand} {procura.vehicleModel} ({procura.vehicleYear || 'N/A'})</span>
             </div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground/80"><Clock className="h-3 w-3" />{formatDate(procura.createdAt)}</div>
-            {user && <div className="flex items-center gap-1 text-xs text-muted-foreground/80">👤 {user.name}</div>}
+            <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground/80">
+              {user && <span>👤 {user.name}</span>}
+              {distance !== null && <span>📍 {distance < 1 ? `${Math.round(distance * 1000)} m` : `${distance.toFixed(1)} km`} de você</span>}
+            </div>
           </CardHeader>
           <CardContent className="flex-grow p-3 text-xs">
-            {procura.partDescription && (
-              <div className="bg-popover rounded-lg px-2.5 py-2 mb-2 text-foreground/90">{procura.partDescription}</div>
-            )}
+            <div className="flex gap-3 mb-2">
+              {procura.referencePhotoUrl && <img src={procura.referencePhotoUrl} alt={`Referência para ${procura.partName}`} className="h-20 w-20 shrink-0 rounded-[10px] border border-border object-cover" />}
+              <div className="min-w-0 flex-1">
+                {procura.partDescription && <div className="bg-popover rounded-lg px-2.5 py-2 mb-2 text-foreground/90">{procura.partDescription}</div>}
+                <Badge variant="secondary" className="text-[11px]">Preferência: {preferredCondition}</Badge>
+              </div>
+            </div>
             <div className="flex items-center gap-1 text-primary bg-primary/8 rounded-md px-2 py-1 w-fit mb-1">
               <MapPin className="h-3 w-3" />{(procura.locations || []).map(l => l.label).join(', ') || 'Não especificado'}
             </div>
             {hasResponded && response && (
               <div className="mt-2 p-2.5 bg-popover rounded-lg text-xs">
                 <p className="font-semibold text-foreground mb-1">Sua resposta</p>
-                <div className="flex justify-between"><span className="text-muted-foreground">Status</span><span className={`font-semibold flex items-center gap-1 ${response.status === 'available' ? 'text-accent-agile' : response.status === 'unavailable' ? 'text-red-400' : 'text-yellow-500'}`}>{getStatusIcon(response.status)}{getStatusText(response.status)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Status</span><span className={`font-semibold flex items-center gap-1 ${response.status === 'available' ? 'text-accent-agile' : response.status === 'unavailable' ? 'text-danger' : 'text-warning'}`}>{getStatusIcon(response.status)}{getStatusText(response.status)}</span></div>
                 {response.partType && <div className="flex justify-between mt-0.5"><span className="text-muted-foreground">Tipo</span><span className="text-foreground">{response.partType === 'original' ? 'Original' : 'Paralela'}</span></div>}
                 {response.partCondition && <div className="flex justify-between mt-0.5"><span className="text-muted-foreground">Condição</span><span className="text-foreground">{getConditionText(response.partCondition)}</span></div>}
-                {response.price && <div className="flex justify-between mt-0.5"><span className="text-muted-foreground">Preço</span><span className="text-foreground font-bold">R$ {response.price}</span></div>}
-                <p className={`flex items-center gap-1 mt-1.5 ${response.isReadByUser ? 'text-accent-agile' : 'text-yellow-500'}`}>
+                {response.price && <div className="flex justify-between mt-0.5"><span className="text-muted-foreground">Preço</span><span className="text-foreground font-bold">{formatCurrency(response.price)}</span></div>}
+                <p className={`flex items-center gap-1 mt-1.5 ${response.isReadByUser ? 'text-accent-agile' : 'text-warning'}`}>
                   {response.isReadByUser ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
                   {response.isReadByUser ? "Visualizada pelo usuário" : "Não visualizada pelo cliente"}
                 </p>
@@ -281,22 +362,17 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
           </CardContent>
           <CardFooter className="p-3 pt-2 border-t border-border/50 flex flex-col gap-2">
             {!hasResponded ? (
-              <div className="flex flex-col sm:flex-row gap-2 w-full">
-                <Button onClick={() => handleQuickResponse(procura, true)} className="flex-1 bg-accent-agile hover:bg-accent-agile/90 text-accent-agile-foreground text-xs py-1.5 h-auto font-bold">
-                  <CheckCircle2 className="h-3 w-3 mr-1" />Tenho essa peça
+              <div className="grid w-full grid-cols-2 gap-3">
+                <Button onClick={() => handleQuickResponse(procura, true)} disabled={isSubmittingResponse} className="min-h-12 w-full bg-accent-agile px-3 text-sm font-bold text-accent-agile-foreground hover:bg-accent-agile/90">
+                  <CheckCircle2 className="mr-2 h-5 w-5 shrink-0" />Tenho
                 </Button>
-                <Button onClick={() => handleQuickResponse(procura, false)} variant="outline" className="flex-1 border-red-500/70 text-red-400 hover:bg-red-500/10 text-xs py-1.5 h-auto">
-                  <XCircle className="h-3 w-3 mr-1" />Não tenho
+                <Button onClick={() => handleQuickResponse(procura, false)} disabled={isSubmittingResponse} variant="outline" className="min-h-12 w-full border-2 border-danger/70 px-3 text-sm font-bold text-danger hover:bg-destructive hover:text-destructive-foreground">
+                  {isSubmittingResponse ? <><span className="mr-2 inline-flex gap-1" aria-hidden="true"><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current" /><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:120ms]" /><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:240ms]" /></span>Enviando</> : <><XCircle className="mr-2 h-5 w-5 shrink-0" />Não tenho</>}
                 </Button>
               </div>
             ) : (
-              <Button onClick={() => handleSelectProcura(procura, hasResponded)} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs py-1.5 h-auto">
+              <Button onClick={() => handleSelectProcura(procura, hasResponded)} className="min-h-11 w-full bg-primary text-xs text-primary-foreground hover:bg-primary/90">
                 <Edit3 className="h-3 w-3 mr-1" />Editar Resposta
-              </Button>
-            )}
-            {user && (
-              <Button variant="outline" onClick={() => onOpenChat(user.id)} className="w-full text-xs py-1.5 h-auto border-primary/70 text-primary hover:bg-primary/10">
-                <ChatIcon className="h-3 w-3 mr-1" /> Chat
               </Button>
             )}
           </CardFooter>
@@ -305,30 +381,41 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
     );
   };
 
+  const renderCompactProcuraCard = (procura, type = 'to-respond') => {
+    const hasResponded = type === 'responded';
+    const response = procura.myResponse;
+    const distance = distanceInKm({ latitude: currentUser.latitude, longitude: currentUser.longitude }, { latitude: procura.searchLatitude, longitude: procura.searchLongitude });
+    const isAvailable = response?.status === 'available';
+    return <Card key={procura.id} id={`procura-${procura.id}`} className={`overflow-hidden border-border border-l-[3px] bg-card shadow-sm ${hasResponded ? isAvailable ? 'border-l-accent-agile' : 'border-l-muted-foreground' : 'border-l-primary'}`}><CardContent className="p-3.5"><div className="flex items-start justify-between gap-3"><div className="min-w-0 flex-1"><p className="line-clamp-2 min-h-10 text-lg font-extrabold leading-5 tracking-tight text-foreground">{procura.partName}</p><p className="mt-1 flex min-h-8 flex-wrap items-start gap-1 text-xs leading-4 text-muted-foreground">{getVehicleIcon(procura.vehicleType)} <span>{procura.vehicleBrand} {procura.vehicleModel} {procura.vehicleYear ? `(${procura.vehicleYear})` : ''}</span></p></div>{hasResponded ? <Badge className={`shrink-0 font-extrabold ${isAvailable ? 'border-transparent bg-accent-agile text-accent-agile-foreground' : 'bg-secondary text-muted-foreground'}`}>{isAvailable ? 'Tenho' : 'Não tenho'}</Badge> : <Badge variant="outline" className="shrink-0 border-warning text-warning"><Timer className="mr-1 h-3 w-3" />{getCompactTimeRemaining(procura)}</Badge>}</div><div className="flex min-h-5 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">{distance !== null && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{distance < 1 ? `${Math.round(distance * 1000)} m` : `${distance.toFixed(0)} km`} de você</span>}{hasResponded && isAvailable && response?.price != null && <span className="font-bold text-foreground">{formatCurrency(response.price)}</span>}{hasResponded && <span className={response?.isReadByUser ? 'text-accent-agile' : 'text-warning'}>{response?.isReadByUser ? 'Visualizada' : 'Aguardando visualização'}</span>}</div><div className="mt-2 grid grid-cols-2 gap-2">{hasResponded ? <Button onClick={() => handleSelectProcura(procura, true)} className="col-span-2 min-h-11 bg-primary text-xs font-bold text-primary-foreground"><Edit3 className="mr-1.5 h-4 w-4" />Editar resposta</Button> : <><Button onClick={() => handleQuickResponse(procura, true)} disabled={isSubmittingResponse} className="min-h-11 bg-accent-agile px-2 text-xs font-bold text-accent-agile-foreground hover:bg-accent-agile/90"><CheckCircle2 className="mr-1.5 h-4 w-4 shrink-0" />Tenho</Button><Button onClick={() => handleQuickResponse(procura, false)} disabled={isSubmittingResponse} variant="outline" className="min-h-11 border-danger/60 px-2 text-xs font-bold text-danger hover:bg-destructive hover:text-destructive-foreground"><XCircle className="mr-1.5 h-4 w-4 shrink-0" />Não tenho</Button></>}</div></CardContent></Card>;
+  };
+
   if (currentView === 'response_form' && selectedProcura) {
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
         <Card className="glass-effect border-primary/30 max-w-2xl mx-auto">
           <CardHeader>
-            <div className="flex justify-between items-start">
+            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-start gap-3">
               <CardTitle className="text-foreground text-lg sm:text-xl">{isEditingResponse ? 'Editar Resposta para:' : 'Responder Procura:'} {selectedProcura.partName}</CardTitle>
-              <Button variant="outline" size="sm" onClick={() => { setSelectedProcura(null); setIsEditingResponse(false); setCurrentView('home'); }} className="border-muted-foreground/50 text-muted-foreground hover:border-primary hover:text-primary"><ArrowLeft className="h-4 w-4 mr-1"/>Voltar</Button>
+              <Button variant="outline" size="sm" onClick={() => { setSelectedProcura(null); setIsEditingResponse(false); setCurrentView(returnView); }} className="w-full sm:w-auto border-muted-foreground/50 text-muted-foreground hover:border-primary hover:text-primary"><ArrowLeft className="h-4 w-4 mr-1"/>Voltar</Button>
             </div>
             <div className="text-muted-foreground text-sm">{selectedProcura.vehicleType} - {selectedProcura.vehicleBrand} {selectedProcura.vehicleModel} ({selectedProcura.vehicleYear || 'N/A'})</div>
-            {selectedProcura.wantsPhotos && <Badge variant="outline" className="border-yellow-500 text-yellow-500 flex items-center gap-1 w-fit"><Camera className="h-4 w-4" /> Usuário solicitou fotos</Badge>}
+            {selectedProcura.wantsPhotos && <Badge variant="outline" className="border-warning text-warning flex items-center gap-1 w-fit"><Camera className="h-4 w-4" /> Usuário solicitou fotos</Badge>}
           </CardHeader>
           <CardContent>
             <div className="mb-4 p-3 bg-input/50 rounded-lg text-sm">
               <h3 className="font-semibold mb-1 text-foreground">Detalhes da Procura:</h3>
               {selectedProcura.partDescription && <p className="text-muted-foreground mb-1">{selectedProcura.partDescription}</p>}
+              {selectedProcura.referencePhotoUrl && <a href={selectedProcura.referencePhotoUrl} target="_blank" rel="noreferrer" className="mt-2 block rounded-[10px] border border-border bg-muted p-1" aria-label="Abrir foto de referência em tamanho maior"><img src={selectedProcura.referencePhotoUrl} alt="Foto de referência enviada pelo comprador" className="max-h-72 w-full rounded-lg object-contain" /><span className="block py-1 text-center text-xs font-medium text-primary">Abrir imagem em tamanho maior</span></a>}
               {(selectedProcura.locations || []).length > 0 && <p className="text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3"/> {(selectedProcura.locations || []).map(l => l.label).join(', ')}</p>}
             </div>
-            <form onSubmit={handleResponseFormSubmit} className="space-y-3 sm:space-y-4">
+            <form onSubmit={handleResponseFormSubmit} onKeyDown={(event) => {
+              if (event.key === 'Enter' && event.target.tagName === 'INPUT') event.preventDefault();
+            }} className="space-y-3 sm:space-y-4" noValidate>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <Label htmlFor="partCondition" className="block text-sm font-medium mb-2 text-muted-foreground">Condição da Peça *</Label>
-                  <Select value={responseForm.partCondition} onValueChange={(value) => setResponseForm({...responseForm, partCondition: value})}>
-                    <SelectTrigger id="partCondition" className="bg-input border-border"><SelectValue placeholder="Selecione a condição" /></SelectTrigger>
+                  <Select value={responseForm.partCondition} onValueChange={(value) => { setResponseForm({...responseForm, partCondition: value}); setResponseErrors(current => ({ ...current, partCondition: '' })); }}>
+                    <SelectTrigger id="response-partCondition" aria-invalid={Boolean(responseErrors.partCondition)} className={`bg-input ${responseErrors.partCondition ? 'border-danger ring-1 ring-danger' : 'border-border'}`}><SelectValue placeholder="Selecione a condição" /></SelectTrigger>
                     <SelectContent className="bg-popover border-border text-popover-foreground">
                       <SelectItem value="new">🆕 Nova (sem uso)</SelectItem>
                       <SelectItem value="excellent">⭐ Excelente (quase nova)</SelectItem>
@@ -337,33 +424,34 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
                       <SelectItem value="poor">🔧 Ruim (precisa reparo)</SelectItem>
                     </SelectContent>
                   </Select>
+                  {responseErrors.partCondition && <p className="mt-1.5 text-xs font-medium text-danger" role="alert">{responseErrors.partCondition}</p>}
                 </div>
                 <div>
                   <Label htmlFor="partType" className="block text-sm font-medium mb-2 text-muted-foreground">Tipo da Peça *</Label>
-                  <Select value={responseForm.partType} onValueChange={(value) => setResponseForm({...responseForm, partType: value})}>
-                    <SelectTrigger id="partType" className="bg-input border-border"><SelectValue placeholder="Original ou Paralela" /></SelectTrigger>
+                  <Select value={responseForm.partType} onValueChange={(value) => { setResponseForm({...responseForm, partType: value}); setResponseErrors(current => ({ ...current, partType: '' })); }}>
+                    <SelectTrigger id="response-partType" aria-invalid={Boolean(responseErrors.partType)} className={`bg-input ${responseErrors.partType ? 'border-danger ring-1 ring-danger' : 'border-border'}`}><SelectValue placeholder="Original ou Paralela" /></SelectTrigger>
                     <SelectContent className="bg-popover border-border text-popover-foreground">
                       <SelectItem value="original">🔩 Original</SelectItem>
                       <SelectItem value="parallel">⚙️ Paralela</SelectItem>
                     </SelectContent>
                   </Select>
+                  {responseErrors.partType && <p className="mt-1.5 text-xs font-medium text-danger" role="alert">{responseErrors.partType}</p>}
                 </div>
               </div>
 
               {selectedProcura.wantsPhotos && (
                 <div>
-                  <Label htmlFor="photoUrl" className="block text-sm font-medium mb-2 text-muted-foreground">URL da Foto da Peça {selectedProcura.wantsPhotos ? '*' : ''}</Label>
-                  <div className="flex gap-2">
-                    <Input id="photoUrl" type="url" placeholder="https://exemplo.com/imagem.jpg" value={responseForm.photoUrl} onChange={(e) => { setResponseForm({...responseForm, photoUrl: e.target.value}); setPhotoPreview(e.target.value); }} className="bg-input border-border"/>
-                    <Button type="button" variant="outline" onClick={handlePhotoUpload} className="border-primary text-primary shrink-0"><Upload className="h-4 w-4 sm:mr-2"/> <span className="hidden sm:inline">Upload</span></Button>
-                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
-                  </div>
+                  <Label className="block text-sm font-medium mb-2 text-muted-foreground">Foto da Peça *</Label>
+                  <Button type="button" variant="outline" onClick={handlePhotoUpload} disabled={isUploadingPhoto} className="w-full border-primary text-primary"><Upload className={`mr-2 h-4 w-4 ${isUploadingPhoto ? 'animate-pulse' : ''}`}/> {isUploadingPhoto ? 'Enviando foto...' : 'Adicionar foto'}</Button>
+                  <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+                  <p className="mt-1 text-xs text-muted-foreground">A imagem será otimizada automaticamente para manter os detalhes sem ocupar espaço desnecessário.</p>
                   {photoPreview && <div className="mt-2"><img src={photoPreview} alt="Pré-visualização da peça" className="max-h-32 rounded-md border border-border" /></div>}
                 </div>
               )}
               <div>
-                <Label htmlFor="price" className="block text-sm font-medium mb-2 text-muted-foreground">Preço (R$)</Label>
-                <Input id="price" type="number" placeholder="Ex: 250.00" value={responseForm.price} onChange={(e) => setResponseForm({...responseForm, price: e.target.value})} className="bg-input border-border"/>
+                <Label htmlFor="response-price" className="block text-sm font-medium mb-2 text-muted-foreground">Preço (R$) *</Label>
+                <Input id="response-price" type="text" inputMode="decimal" placeholder="Ex: 250,00" value={responseForm.price} onChange={(e) => { setResponseForm({...responseForm, price: sanitizeCurrencyInput(e.target.value)}); setResponseErrors(current => ({ ...current, price: '' })); }} onBlur={(e) => setResponseForm(current => ({ ...current, price: formatCurrencyInput(e.target.value) }))} aria-invalid={Boolean(responseErrors.price)} className={`bg-input ${responseErrors.price ? 'border-danger ring-1 ring-danger' : 'border-border'}`}/>
+                {responseErrors.price && <p className="mt-1.5 text-xs font-medium text-danger" role="alert">{responseErrors.price}</p>}
               </div>
               <div>
                 <Label htmlFor="message" className="block text-sm font-medium mb-2 text-muted-foreground">Mensagem Adicional</Label>
@@ -376,7 +464,9 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
                   rows={2}
                 />
               </div>
-              <Button type="submit" className="w-full gradient-bg hover:opacity-90 text-primary-foreground font-semibold py-2.5 sm:py-3"><Send className="h-5 w-5 mr-2" /> {isEditingResponse ? 'Atualizar Resposta' : 'Enviar Resposta'}</Button>
+              <Button type="submit" disabled={isSubmittingResponse || isUploadingPhoto} className="w-full gradient-bg hover:opacity-90 text-primary-foreground font-semibold py-2.5 sm:py-3" aria-live="polite">
+                {isSubmittingResponse ? <><span className="mr-2 inline-flex gap-1" aria-hidden="true"><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current" /><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:120ms]" /><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:240ms]" /></span>Enviando resposta</> : <><Send className="h-5 w-5 mr-2" /> {isEditingResponse ? 'Atualizar Resposta' : 'Enviar Resposta'}</>}
+              </Button>
             </form>
           </CardContent>
         </Card>
@@ -398,8 +488,8 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
               <Button variant="outline" onClick={() => setShowPhotoConfirmDialog(false)} className="border-muted-foreground/50 text-muted-foreground hover:border-primary hover:text-primary">
                 Cancelar e Adicionar Foto
               </Button>
-              <Button onClick={submitResponse} className="gradient-bg hover:opacity-90 text-primary-foreground">
-                Sim, Enviar sem Foto
+              <Button onClick={() => void submitResponse()} disabled={isSubmittingResponse} className="gradient-bg hover:opacity-90 text-primary-foreground" aria-live="polite">
+                {isSubmittingResponse ? 'Enviando resposta...' : 'Sim, Enviar sem Foto'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -408,89 +498,36 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
     );
   }
 
+  const hasActiveFilters = Boolean(filterPartName || filterVehicle);
+  const clearFilters = () => { setFilterPartName(''); setFilterVehicle(''); };
+
   return (
-    <div className="space-y-6 sm:space-y-8">
-      <div className="text-center">
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 flex items-center justify-center gap-2"><Building2 className="h-7 w-7 sm:h-8 sm:w-8" /> Painel da Empresa</h1>
-        <p className="text-muted-foreground text-sm sm:text-base">Responda às procuras de peças dos usuários e gerencie suas respostas com excelência.</p>
-      </div>
-
-      {currentView === 'home' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="glass-effect hover:border-primary/50 transition-all">
-            <CardHeader>
-              <CardTitle className="text-lg text-foreground flex items-center gap-2"><PackageSearch size={20}/> Procuras Ativas</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{unrespondedProcurasCount}</p>
-              <p className="text-xs text-muted-foreground">Procuras aguardando sua resposta</p>
-            </CardContent>
-            <CardFooter>
-              <Button onClick={() => setCurrentView('to-respond')} className="w-full gradient-bg">Ver Procuras para Responder</Button>
-            </CardFooter>
-          </Card>
-          <Card className="glass-effect hover:border-primary/50 transition-all">
-            <CardHeader>
-              <CardTitle className="text-lg text-foreground flex items-center gap-2"><History size={20}/> Minhas Respostas</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{(companyResponses || []).length}</p>
-              <p className="text-xs text-muted-foreground">Total de respostas enviadas</p>
-            </CardContent>
-            <CardFooter>
-              <Button onClick={() => setCurrentView('responded')} variant="outline" className="w-full">Ver Histórico de Respostas</Button>
-            </CardFooter>
-          </Card>
-        </div>
-      )}
-
-      {currentView !== 'home' && (
-        <>
-          <Button onClick={() => setCurrentView('home')} variant="outline" className="mb-4"><ArrowLeft className="h-4 w-4 mr-2"/> Voltar para Home da Empresa</Button>
-          <Card className="glass-effect p-4">
-            <CardHeader className="p-2 pb-3 sm:p-4 sm:pb-4">
-                <CardTitle className="text-md sm:text-lg text-foreground">Filtrar Procuras</CardTitle>
-            </CardHeader>
-            <CardContent className="p-2 sm:p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <div>
-                    <Label htmlFor="filterPartName" className="text-xs sm:text-sm text-muted-foreground mb-2 block">Nome da Peça</Label>
-                    <Input 
-                        id="filterPartName" 
-                        placeholder="Ex: Farol, Motor..." 
-                        value={filterPartName} 
-                        onChange={(e) => setFilterPartName(e.target.value)}
-                        className="bg-input border-border text-sm"
-                    />
-                </div>
-                <div>
-                    <Label htmlFor="filterVehicle" className="text-xs sm:text-sm text-muted-foreground mb-2 block">Veículo (Marca, Modelo, Ano)</Label>
-                    <Input 
-                        id="filterVehicle" 
-                        placeholder="Ex: Fiat Palio 2010..." 
-                        value={filterVehicle} 
-                        onChange={(e) => setFilterVehicle(e.target.value)}
-                        className="bg-input border-border text-sm"
-                    />
-                </div>
-            </CardContent>
-          </Card>
-
-          <Tabs defaultValue={currentView} value={currentView} onValueChange={setCurrentView} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6 sm:mb-8 bg-input/70 border border-border">
-              <TabsTrigger value="to-respond" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm data-[state=active]:bg-primary/20 data-[state=active]:text-primary"><ListFilter className="h-3 w-3 sm:h-4 sm:w-4" /> A Responder ({filteredProcurasToRespond.length})</TabsTrigger>
-              <TabsTrigger value="responded" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm data-[state=active]:bg-green-500/20 data-[state=active]:text-green-500"><History className="h-3 w-3 sm:h-4 sm:w-4" /> Já Respondidas ({filteredCompanyResponses.length})</TabsTrigger>
-            </TabsList>
+    <div className="mx-auto max-w-3xl space-y-4 pb-20">
+          <TrialProgressCard context={subscriptionContext} onShowPlans={onShowPlans} />
+          <Tabs value={currentView} onValueChange={setCurrentView} className="w-full">
+            <div className="mb-3 flex items-start justify-between gap-3">
+              <div><h2 className="text-xl font-extrabold tracking-tight text-foreground sm:text-2xl">{currentView === 'responded' ? 'Procuras respondidas' : 'Procuras para responder'}</h2><p className="mt-1 text-sm leading-5 text-muted-foreground">{currentView === 'responded' ? 'Revise ou edite as respostas que você enviou.' : 'Responda primeiro às oportunidades que sua empresa pode atender.'}</p></div>
+              <Button type="button" variant="outline" size="sm" onClick={() => setShowFilters(value => !value)} className={`relative min-h-10 shrink-0 px-3 ${showFilters || hasActiveFilters ? 'border-primary text-primary' : ''}`} aria-expanded={showFilters} aria-controls="company-search-filters"><SlidersHorizontal className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Filtros</span>{hasActiveFilters && <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-accent-agile ring-2 ring-background" />}</Button>
+            </div>
+            <DashboardSectionTabs value={currentView} onChange={setCurrentView} items={[{ value: 'to-respond', label: 'Ativas', count: filteredProcurasToRespond.length, icon: ListFilter }, { value: 'responded', label: 'Respondidas', count: filteredCompanyResponses.length, icon: History }]} />
+            {showFilters && <Card id="company-search-filters" className="mb-4 mt-3 border-border bg-card shadow-sm"><CardContent className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2"><div><Label htmlFor="filterPartName" className="mb-1.5 block text-xs text-muted-foreground">Nome da peça</Label><div className="relative"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input id="filterPartName" placeholder="Ex: Farol, motor..." value={filterPartName} onChange={(e) => setFilterPartName(e.target.value)} className="min-h-11 bg-input pl-9 text-sm" /></div></div><div><Label htmlFor="filterVehicle" className="mb-1.5 block text-xs text-muted-foreground">Marca, modelo ou ano</Label><div className="relative"><Car className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input id="filterVehicle" placeholder="Ex: Fiat Palio 2010..." value={filterVehicle} onChange={(e) => setFilterVehicle(e.target.value)} className="min-h-11 bg-input pl-9 text-sm" /></div></div>{hasActiveFilters && <Button type="button" variant="ghost" size="sm" onClick={clearFilters} className="justify-self-start text-muted-foreground sm:col-span-2"><RotateCcw className="mr-2 h-4 w-4" />Limpar filtros</Button>}</CardContent></Card>}
             <TabsContent value="to-respond">
-              {filteredProcurasToRespond.length === 0 ? (<div className="text-center py-12"><PackageSearch className="h-12 w-12 sm:h-16 sm:w-16 mx-auto text-muted-foreground mb-4" /><h3 className="text-lg sm:text-xl font-semibold text-foreground">Nenhuma procura para responder.</h3><p className="text-muted-foreground text-sm">Aguarde novas procuras ou ajuste seus filtros!</p></div>) 
-              : (<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">{filteredProcurasToRespond.map(procura => renderProcuraCard(procura, 'to-respond'))}</div>)}
+              {filteredProcurasToRespond.length === 0 ? (<Card className="border-border bg-card"><CardContent className="py-10 text-center"><BrandMark className="mx-auto mb-3 h-12 w-12 rounded-xl" /><p className="font-semibold text-foreground">{hasActiveFilters ? 'Nenhuma procura encontrada.' : 'Nenhuma procura aguardando resposta.'}</p><p className="mt-1 text-sm text-muted-foreground">{hasActiveFilters ? 'Limpe ou altere os filtros para ver outras procuras.' : 'Quando houver oportunidades na sua região, elas aparecerão aqui.'}</p></CardContent></Card>)
+              : (<div className="mx-auto grid max-w-3xl grid-cols-1 gap-3">{filteredProcurasToRespond.map(procura => renderCompactProcuraCard(procura, 'to-respond'))}</div>)}
             </TabsContent>
             <TabsContent value="responded">
-               {filteredCompanyResponses.length === 0 ? (<div className="text-center py-12"><MessageCircle className="h-12 w-12 sm:h-16 sm:w-16 mx-auto text-muted-foreground mb-4" /><h3 className="text-lg sm:text-xl font-semibold text-foreground">Você ainda não respondeu nenhuma procura.</h3><p className="text-muted-foreground text-sm">Suas respostas aparecerão aqui.</p></div>) 
-               : (<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">{filteredCompanyResponses.map(procura => renderProcuraCard(procura, 'responded'))}</div>)}
+               {filteredCompanyResponses.length === 0 ? (<Card className="border-border bg-card"><CardContent className="py-10 text-center"><BrandMark className="mx-auto mb-3 h-12 w-12 rounded-xl" /><p className="font-semibold text-foreground">{hasActiveFilters ? 'Nenhuma resposta encontrada.' : 'Você ainda não respondeu nenhuma procura.'}</p><p className="mt-1 text-sm text-muted-foreground">{hasActiveFilters ? 'Limpe ou altere os filtros para ver outras respostas.' : 'Suas respostas aparecerão aqui.'}</p></CardContent></Card>)
+               : (<div className="mx-auto grid max-w-3xl grid-cols-1 gap-3">{filteredCompanyResponses.map(procura => renderCompactProcuraCard(procura, 'responded'))}</div>)}
             </TabsContent>
           </Tabs>
-        </>
-      )}
+          <SubscriptionBlockedDialog
+            open={showSubscriptionBlock}
+            onClose={() => setShowSubscriptionBlock(false)}
+            onShowPlans={() => {
+              setShowSubscriptionBlock(false);
+              onShowPlans?.();
+            }}
+          />
     </div>
   );
 };
