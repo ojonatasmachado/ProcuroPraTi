@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from '@/components/ui/button';
 import NotificationDropdown from '@/components/NotificationDropdown.jsx';
-import { UserCircle, ChevronDown, BarChartHorizontalBig, FileText, Star, AlertOctagon, LogIn, BellRing, BellOff, Users, Sparkles } from 'lucide-react';
+import { UserCircle, ChevronDown, BarChartHorizontalBig, FileText, Star, AlertOctagon, LogIn, BellRing, BellOff, Users, CreditCard, Home } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import BrandLogo from '@/components/BrandLogo';
 import { disablePush, enablePush, getPushState, getPushSupport, PUSH_STATE_CHANGE_EVENT } from '@/lib/pushNotifications';
@@ -21,6 +21,7 @@ const AppHeader = ({
   userType, 
   unreadNotifications, 
   onNotificationClick,
+  onShowHome,
   onShowProfile,
   onShowCompanyMiniDashboard,
   onShowCompanyTeam,
@@ -60,8 +61,8 @@ const AppHeader = ({
     }
   };
   return (
-    <header className="safe-header py-3 px-3 sm:px-4 shadow-md bg-card/80 backdrop-blur-md sticky top-0 z-50 border-b border-border">
-      <div className="container mx-auto flex min-w-0 justify-between items-center gap-2">
+    <header className="safe-header sticky top-0 z-50 min-h-[72px] border-b border-border bg-card/80 px-3 py-3 shadow-md backdrop-blur-md sm:px-4">
+      <div className="container mx-auto flex min-h-12 min-w-0 items-center justify-between gap-2">
         <BrandLogo as="h1" compactOnMobile iconClassName="h-9 w-9 sm:h-10 sm:w-10" textClassName="text-lg sm:text-2xl" className="min-w-0" />
         <div className="flex shrink-0 items-center gap-1 sm:gap-4">
           <ThemeToggle />
@@ -80,6 +81,10 @@ const AppHeader = ({
             <DropdownMenuContent className="bg-popover border-border text-popover-foreground w-56">
               <DropdownMenuLabel className="text-muted-foreground">{companyAccess?.operatorName ? `${companyAccess.operatorName} · ${currentUser?.name}` : currentUser?.name || currentUser?.email}</DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-border"/>
+              <DropdownMenuItem onClick={onShowHome} className="cursor-pointer font-semibold focus:!bg-primary/15 focus:!text-foreground">
+                <Home className="mr-2 h-4 w-4 text-primary" />
+                <span>Home</span>
+              </DropdownMenuItem>
               {userType !== 'admin' && !isCompanyOperator && (
                 <DropdownMenuItem onClick={onShowProfile} className="cursor-pointer focus:!bg-primary/15 focus:!text-foreground">
                   <UserCircle className="mr-2 h-4 w-4 text-primary" />
@@ -94,7 +99,7 @@ const AppHeader = ({
               )}
               {userType === 'company' && !isCompanyOperator && (
                 <DropdownMenuItem onClick={onShowCompanyPlans} className="cursor-pointer font-semibold focus:!bg-primary/15 focus:!text-foreground">
-                  <Sparkles className="mr-2 h-4 w-4 text-primary" />
+                  <CreditCard className="mr-2 h-4 w-4 text-primary" />
                   <span>Planos e assinatura</span>
                 </DropdownMenuItem>
               )}

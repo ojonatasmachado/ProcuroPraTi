@@ -1,9 +1,9 @@
-import React from 'react';
-import { ArrowLeft, Check, Clock3, MapPinned, ShieldCheck, Sparkles, Users } from 'lucide-react';
-import BrandLogo from '@/components/BrandLogo';
+import React, { useState } from 'react';
+import { Check, Clock3, CreditCard, MapPinned, ShieldCheck, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { toast } from '@/components/ui/use-toast';
 import { SUBSCRIPTION_PLANS } from '@/lib/subscriptionPlans';
 
@@ -12,9 +12,71 @@ const formatPrice = value => Number(value).toLocaleString('pt-BR', {
   currency: 'BRL',
   minimumFractionDigits: 2,
 });
-const COMMON_FEATURES = ['Selo de empresa verificada', 'Fotos nas respostas', 'Página pública da empresa', 'Programa de indicação'];
+const COMMON_FEATURES = ['Selo de empresa verificada', 'Fotos nas respostas', 'Selo de reputação', 'Página pública da empresa', 'Programa de indicação'];
 
-const CompanyPlans = ({ currentPlanCode, subscriptionState, onClose }) => {
+const FEATURE_EXPLANATIONS = {
+  reach: 'Distância de onde vêm as procuras que sua empresa recebe. Quanto maior o alcance, mais oportunidades chegam até você.',
+  priority: 'Define quem vê a procura primeiro. Quanto maior a prioridade, mais cedo sua empresa recebe em relação aos demais planos.',
+  accesses: 'Quantidade de pessoas da equipe que podem acessar e responder pela mesma conta ao mesmo tempo.',
+  'Selo de empresa verificada': 'Mostra a quem procura que os dados da empresa foram confirmados na plataforma, gerando mais confiança.',
+  'Fotos nas respostas': 'Permite anexar uma foto da peça na resposta, ajudando quem procura a decidir mais rápido.',
+  'Selo de reputação': 'Exibe a nota e os comentários deixados por quem procura depois de fechar negócio com a empresa.',
+  'Página pública da empresa': 'Uma página exclusiva da empresa na plataforma, visível mesmo para quem ainda não abriu uma procura ativa.',
+  'Programa de indicação': 'Ao indicar outra empresa, você ganha desconto na mensalidade quando ela assinar.',
+  'Tudo do Local': 'Inclui todos os recursos disponíveis no plano Local.',
+  'Tudo do Regional': 'Inclui todos os recursos disponíveis nos planos Local e Regional.',
+  'Tudo do Multirregional': 'Inclui todos os recursos disponíveis nos planos Local, Regional e Multirregional.',
+  'Tudo do Estadual': 'Inclui todos os recursos disponíveis nos planos Local, Regional, Multirregional e Estadual.',
+  'Resposta destacada nas comparações': 'Sua resposta aparece com um destaque visual na lista que a pessoa usa para comparar as opções.',
+  'Relatório básico de desempenho': 'Resumo mensal das peças e dos veículos mais procurados na sua região.',
+  'Respostas fixadas no topo': 'Sua resposta fica entre as primeiras, independentemente da ordem por proximidade ou preço.',
+  'Relatório completo': 'Inclui sazonalidade, comparação com a média do estado e oportunidades que ficaram sem resposta.',
+  'Oportunidades nacionais': 'Inclui procuras de peças raras ou de maior valor em todo o Brasil quando fizer sentido para a empresa.',
+  'Selo para peças raras': 'Selo exclusivo que mostra a quem procura que sua empresa é referência em peças difíceis de encontrar.',
+};
+
+const HelpTip = ({ label, description }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          onMouseEnter={() => setOpen(true)}
+          onMouseLeave={() => setOpen(false)}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setOpen(false)}
+          className="ml-1 inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full border border-muted-foreground/60 text-[10px] font-extrabold leading-none text-muted-foreground transition-colors hover:border-accent-agile hover:text-accent-agile focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          aria-label={`Explicação sobre ${label}`}
+        >
+          ?
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        side="top"
+        align="center"
+        sideOffset={7}
+        onOpenAutoFocus={event => event.preventDefault()}
+        className="w-[min(17rem,calc(100vw-2rem))] border-accent-agile bg-popover p-3 text-xs leading-5 text-popover-foreground shadow-xl"
+      >
+        <strong className="mb-1 block text-foreground">{label}</strong>
+        {description}
+      </PopoverContent>
+    </Popover>
+  );
+};
+
+const PlanItem = ({ icon: Icon, label, children, explanation, positive = false }) => (
+  <div className="flex items-start gap-2 text-sm leading-5">
+    <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${positive ? 'text-accent-agile' : 'text-primary'}`} />
+    <span className="min-w-0">
+      {children}
+      <HelpTip label={label} description={explanation} />
+    </span>
+  </div>
+);
+
+const CompanyPlans = ({ currentPlanCode, subscriptionState }) => {
   const selectPlan = plan => {
     toast({
       title: `${plan.name} selecionado`,
@@ -23,17 +85,7 @@ const CompanyPlans = ({ currentPlanCode, subscriptionState, onClose }) => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="safe-header sticky top-0 z-40 border-b border-border bg-card/95 px-3 py-3 backdrop-blur">
-        <div className="container mx-auto flex items-center justify-between gap-3">
-          <BrandLogo compactOnMobile iconClassName="h-9 w-9" textClassName="text-lg sm:text-xl" />
-          <Button type="button" variant="outline" size="sm" onClick={onClose}>
-            <ArrowLeft className="mr-2 h-4 w-4" />Voltar
-          </Button>
-        </div>
-      </header>
-
-      <main className="container mx-auto max-w-7xl px-3 py-8 sm:px-5">
+    <section className="mx-auto w-full max-w-7xl">
         <div className="mx-auto max-w-3xl text-center">
           <Badge className="mb-3 border-transparent bg-accent-agile text-accent-agile-foreground">Planos para empresas</Badge>
           <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Escolha até onde sua empresa quer vender</h1>
@@ -66,15 +118,19 @@ const CompanyPlans = ({ currentPlanCode, subscriptionState, onClose }) => {
                 </CardHeader>
                 <CardContent className="flex flex-1 flex-col p-5 pt-2">
                   <div className="space-y-2.5 rounded-xl bg-secondary/60 p-3 text-sm">
-                    <p className="flex items-start gap-2"><MapPinned className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><span><strong>Alcance:</strong> {plan.reach}</span></p>
-                    <p className="flex items-start gap-2"><Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><span>{plan.priority}</span></p>
-                    <p className="flex items-start gap-2"><Users className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><span>{plan.accesses}</span></p>
+                    <PlanItem icon={MapPinned} label="Alcance" explanation={FEATURE_EXPLANATIONS.reach}><strong>Alcance:</strong> {plan.reach}</PlanItem>
+                    <PlanItem icon={Clock3} label="Prioridade de resposta" explanation={FEATURE_EXPLANATIONS.priority}>{plan.priority}</PlanItem>
+                    <PlanItem icon={Users} label="Acessos simultâneos" explanation={FEATURE_EXPLANATIONS.accesses}>{plan.accesses}</PlanItem>
                   </div>
                   <ul className="mt-4 flex-1 space-y-2.5">
-                    {[...new Set([...COMMON_FEATURES, ...plan.features])].map(feature => <li key={feature} className="flex gap-2 text-sm leading-5"><Check className="mt-0.5 h-4 w-4 shrink-0 text-accent-agile" /><span>{feature}</span></li>)}
+                    {[...new Set([...COMMON_FEATURES, ...plan.features])].map(feature => (
+                      <li key={feature}>
+                        <PlanItem icon={Check} label={feature} explanation={FEATURE_EXPLANATIONS[feature] || 'Este recurso está incluído neste plano.'} positive>{feature}</PlanItem>
+                      </li>
+                    ))}
                   </ul>
                   <Button type="button" onClick={() => selectPlan(plan)} disabled={isCurrent} className={`mt-5 min-h-12 w-full font-bold ${plan.featured ? 'bg-primary text-primary-foreground' : ''}`}>
-                    {isCurrent ? <><ShieldCheck className="mr-2 h-4 w-4" />Plano atual</> : <><Sparkles className="mr-2 h-4 w-4" />Escolher plano</>}
+                    {isCurrent ? <><ShieldCheck className="mr-2 h-4 w-4" />Plano atual</> : <><CreditCard className="mr-2 h-4 w-4" />Escolher plano</>}
                   </Button>
                 </CardContent>
               </Card>
@@ -85,8 +141,7 @@ const CompanyPlans = ({ currentPlanCode, subscriptionState, onClose }) => {
         <p className="mx-auto mt-6 max-w-2xl text-center text-xs leading-5 text-muted-foreground">
           A contratação depende de confirmação explícita da empresa. O fim do período de experiência não gera cobrança automática.
         </p>
-      </main>
-    </div>
+    </section>
   );
 };
 

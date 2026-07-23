@@ -12,8 +12,6 @@ import CepAddressLookup, { formatCep } from '@/components/CepAddressLookup.jsx';
 import CnpjLookup from '@/components/CnpjLookup.jsx';
 import { formatCnpj, isValidCnpj } from '@/lib/cnpj';
 import VehicleSelector, { EMPTY_VEHICLE } from '@/components/VehicleSelector';
-import ThemeToggle from '@/components/ThemeToggle';
-import BrandLogo from '@/components/BrandLogo';
 import { geocodeAddress } from '@/lib/geocoding';
 import CityCombobox from '@/components/CityCombobox';
 import VehicleTypeSelector from '@/components/VehicleTypeSelector';
@@ -183,18 +181,12 @@ const UserProfileForm = ({ user, userType, onSave, onDeleteAccount, onCancel, al
   const sortedStates = useMemo(() => [...allStatesAndCities].sort((a,b) => a.label.localeCompare(b.label)), [allStatesAndCities]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col items-center">
-      <header className="safe-header sticky top-0 z-40 w-full border-b border-border bg-card/90 px-3 py-3 shadow-sm backdrop-blur-md sm:px-4">
-        <div className="container mx-auto flex items-center justify-between gap-3">
-          <BrandLogo as="h1" compactOnMobile iconClassName="h-9 w-9 sm:h-10 sm:w-10" textClassName="text-lg sm:text-2xl" />
-          <ThemeToggle />
-        </div>
-      </header>
+    <section className="mx-auto flex w-full max-w-lg flex-col items-center text-foreground">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="my-auto w-full max-w-lg p-4"
+        className="w-full"
       >
         <Card className="glass-effect border-border/30">
           <CardHeader className="text-center">
@@ -321,7 +313,7 @@ const UserProfileForm = ({ user, userType, onSave, onDeleteAccount, onCancel, al
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </section>
   );
 };
 

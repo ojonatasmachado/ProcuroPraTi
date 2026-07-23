@@ -849,6 +849,20 @@ function App() {
     setCompanyAccess(context);
   };
 
+  const showAuthenticatedHome = () => {
+    setShowProfile(false);
+    setShowCompanyMiniDashboard(false);
+    setShowCompanyTeam(false);
+    setShowCompanyPlans(false);
+  };
+
+  const showAuthenticatedSection = (section) => {
+    setShowProfile(section === 'profile');
+    setShowCompanyMiniDashboard(section === 'performance');
+    setShowCompanyTeam(section === 'team');
+    setShowCompanyPlans(section === 'plans');
+  };
+
   const handleOpenChatWithUser = useCallback((userId, procuraId = null) => {
     const currentUsers = Array.isArray(users) ? users : [];
     const currentCompanies = Array.isArray(companies) ? companies : [];
@@ -1100,26 +1114,6 @@ function App() {
     return <TermsModal isOpen={showTerms} onClose={() => {}} onAccept={handleAcceptTerms} onReject={handleLogout} userType={userType} termsAcceptedDate={termsAcceptedDate} />;
   }
 
-  if (showProfile) {
-    return <UserProfile user={currentUser} userType={userType} onSave={handleProfileUpdate} onDeleteAccount={handleDeleteCompanyAccount} onCancel={() => setShowProfile(false)} allStatesAndCities={BRAZILIAN_STATES_AND_CITIES} />;
-  }
-
-  if (showCompanyTeam && userType === 'company' && companyAccess?.role === 'owner') {
-    return <CompanyTeamManagement company={currentUser} access={companyAccess} onEnabled={handleCompanyAccessEnabled} onClose={() => setShowCompanyTeam(false)} />;
-  }
-
-  if (showCompanyPlans && userType === 'company' && companyAccess?.role !== 'operator') {
-    return <CompanyPlans currentPlanCode={subscriptionContext?.planCode} subscriptionState={subscriptionContext?.state} onClose={() => setShowCompanyPlans(false)} />;
-  }
-
-  if (showCompanyMiniDashboard && userType === 'company') {
-    return <CompanyMiniDashboard 
-              currentUser={currentUser}
-              procuras={Array.isArray(procuras) ? procuras : []} 
-              onClose={() => setShowCompanyMiniDashboard(false)} 
-            />;
-  }
-
   const activeChatId = activeChatTarget && currentUser
     ? createChatId(currentUser.id, activeChatTarget.id, activeChatProcuraId)
     : null;
@@ -1134,10 +1128,11 @@ function App() {
         userType={userType}
         unreadNotifications={unreadNotifications}
         onNotificationClick={handleNotificationClick}
-        onShowProfile={() => setShowProfile(true)}
-        onShowCompanyMiniDashboard={() => setShowCompanyMiniDashboard(true)}
-        onShowCompanyTeam={() => setShowCompanyTeam(true)}
-        onShowCompanyPlans={() => setShowCompanyPlans(true)}
+        onShowHome={showAuthenticatedHome}
+        onShowProfile={() => showAuthenticatedSection('profile')}
+        onShowCompanyMiniDashboard={() => showAuthenticatedSection('performance')}
+        onShowCompanyTeam={() => showAuthenticatedSection('team')}
+        onShowCompanyPlans={() => showAuthenticatedSection('plans')}
         companyAccess={companyAccess}
         onShowTerms={() => setShowTerms(true)}
         onOpenFeedbackModal={openFeedbackModal}
@@ -1155,7 +1150,28 @@ function App() {
       )}
       
       <main className="container mx-auto px-2 sm:px-4 py-6 sm:py-8">
-        {userType === 'user' && (
+        {showProfile ? (
+          <UserProfile
+            user={currentUser}
+            userType={userType}
+            onSave={handleProfileUpdate}
+            onDeleteAccount={handleDeleteCompanyAccount}
+            onCancel={showAuthenticatedHome}
+            allStatesAndCities={BRAZILIAN_STATES_AND_CITIES}
+          />
+        ) : showCompanyTeam && userType === 'company' && companyAccess?.role === 'owner' ? (
+          <CompanyTeamManagement
+            company={currentUser}
+            access={companyAccess}
+            onEnabled={handleCompanyAccessEnabled}
+            onClose={showAuthenticatedHome}
+          />
+        ) : showCompanyPlans && userType === 'company' && companyAccess?.role !== 'operator' ? (
+          <CompanyPlans
+            currentPlanCode={subscriptionContext?.planCode}
+            subscriptionState={subscriptionContext?.state}
+          />
+        ) : userType === 'user' ? (
           <UserDashboard 
             key={currentUser.id} 
             userProcuras={(Array.isArray(procuras) ? procuras : []).filter(s => s.userId === currentUser.id)}
@@ -1173,8 +1189,7 @@ function App() {
             openResponsesForProcuraId={pendingPushDestination?.type === 'respostas' ? pendingPushDestination.procuraId : null}
             onPushDestinationHandled={handlePushDestinationHandled}
           />
-        )}
-        {userType === 'company' && (
+        ) : userType === 'company' ? (
           <CompanyDashboard 
             key={currentUser.id}
             allProcuras={(Array.isArray(procuras) ? procuras : []).filter(p => {
@@ -1201,7 +1216,7 @@ function App() {
             subscriptionContext={subscriptionContext}
             onShowPlans={() => setShowCompanyPlans(true)}
           />
-        )}
+        ) : null}
         <div className="fixed top-20 right-2 sm:right-10 opacity-10 floating-animation -z-10">
           <Settings className="h-12 w-12 sm:h-16 sm:w-16 text-primary" />
         </div>
@@ -1209,6 +1224,13 @@ function App() {
           <Building2 className="h-10 w-10 sm:h-12 sm:w-12 text-accent" />
         </div>
       </main>
+      {showCompanyMiniDashboard && userType === 'company' && (
+        <CompanyMiniDashboard
+          currentUser={currentUser}
+          procuras={Array.isArray(procuras) ? procuras : []}
+          onClose={() => setShowCompanyMiniDashboard(false)}
+        />
+      )}
       {userType === 'company' && companyAccess?.role !== 'operator' && (
         <>
           <TrialWelcomeModal
