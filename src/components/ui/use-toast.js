@@ -40,7 +40,7 @@ export const toast = ({ ...props }) => {
 
   if (props.variant === 'destructive') {
     logClientError({
-      message: [props.title, props.description].filter(Boolean).join(' — '),
+      message: [props.title, props.description].filter(Boolean).join(': '),
       source: 'error_toast',
     })
   }

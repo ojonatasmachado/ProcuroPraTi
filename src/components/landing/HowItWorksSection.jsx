@@ -35,12 +35,13 @@ const HowItWorksSection = () => (
   <section id="como-funciona" className="py-16 sm:py-24 px-4 bg-card/30">
     <div className="container mx-auto">
       <motion.div
-        initial={{ opacity: 0, y: 40 }}
+        initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
+        viewport={{ once: true, margin: '-100px' }}
+        transition={{ duration: 0.4 }}
         className="text-center mb-12 sm:mb-16"
       >
-        <span className="text-sm font-semibold uppercase tracking-[0.18em] text-accent-agile">Dois lados, uma conexão</span>
+        <span className="text-sm font-semibold uppercase tracking-[0.18em] text-accent-agile-text">Dois lados, uma conexão</span>
         <h2 className="text-3xl sm:text-5xl font-heading font-bold mt-4 mb-5 text-foreground">Como a Procuro Pra Ti funciona</h2>
         <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
           A plataforma organiza a procura e aproxima compradores e empresas em um ambiente pensado para tornar o contato mais rápido e seguro.
@@ -49,7 +50,7 @@ const HowItWorksSection = () => (
 
       <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 max-w-6xl mx-auto">
         {journeys.map(({ icon: Icon, eyebrow, title, accent, steps }) => (
-          <motion.div key={title} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          <motion.div key={title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 0.4 }}>
             <Card className="h-full border-border bg-card overflow-hidden">
               <CardHeader className="p-6 sm:p-8 pb-4">
                 <div className={`h-12 w-12 rounded-2xl flex items-center justify-center mb-5 ${accent === 'primary' ? 'bg-primary text-primary-foreground' : 'bg-accent-agile text-accent-agile-foreground'}`}>
@@ -79,7 +80,7 @@ const HowItWorksSection = () => (
           <p className="text-sm text-muted-foreground"><strong className="text-foreground">O comprador mantém o controle.</strong> Ele escolhe a duração da procura e decide quando iniciar uma conversa.</p>
         </div>
         <div className="rounded-2xl border border-border bg-background p-5 flex gap-4 items-start">
-          <MessagesSquare className="h-6 w-6 shrink-0 text-accent-agile" />
+          <MessagesSquare className="h-6 w-6 shrink-0 text-accent-agile-text" />
           <p className="text-sm text-muted-foreground"><strong className="text-foreground">A empresa responde com contexto.</strong> Ela fala com pessoas que já demonstraram uma necessidade real.</p>
         </div>
       </div>

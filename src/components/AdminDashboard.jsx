@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import useScrollToTop from '@/hooks/useScrollToTop';
 import CatalogAdminPanel from '@/components/CatalogAdminPanel';
 import PlansAdminPanel from '@/components/PlansAdminPanel';
+import DocumentationPanel from '@/components/DocumentationPanel';
 
 
 const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanies, feedbacks = [], registrationProgress = [], errorEvents = [], allStatesAndCities = [], readOnly = false }) => {
@@ -364,7 +365,7 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
       </motion.div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-8 h-auto mb-6 sm:mb-8 bg-input/70 border border-border">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 h-auto mb-6 sm:mb-8 bg-input/70 border border-border">
           <TabsTrigger value="overview" className="min-h-11 whitespace-normal py-2 text-xs sm:text-sm">Visão geral</TabsTrigger>
           <TabsTrigger value="metrics" className="min-h-11 whitespace-normal py-2 text-xs sm:text-sm">Métricas</TabsTrigger>
           <TabsTrigger value="companyManagement" className="min-h-11 whitespace-normal py-2 text-xs sm:text-sm">Empresas</TabsTrigger>
@@ -373,6 +374,7 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
           <TabsTrigger value="errors" className="min-h-11 whitespace-normal py-2 text-xs sm:text-sm">Erros{errorSummary.distinct > 0 ? ` (${errorSummary.distinct})` : ''}</TabsTrigger>
           <TabsTrigger value="catalog" className="min-h-11 whitespace-normal py-2 text-xs sm:text-sm">Catálogo</TabsTrigger>
           <TabsTrigger value="plans" className="min-h-11 whitespace-normal py-2 text-xs sm:text-sm">Planos</TabsTrigger>
+          <TabsTrigger value="documentation" className="min-h-11 whitespace-normal py-2 text-xs sm:text-sm">Documentação</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -418,7 +420,7 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {stats.map((stat, i) => (
-              <motion.custom key={stat.title} variants={cardVariants} initial="hidden" animate="visible" custom={i}>
+              <motion.div key={stat.title} variants={cardVariants} initial="hidden" animate="visible" custom={i}>
                 <Card className={`glass-effect border-border/30 hover:shadow-lg ${stat.hoverBorder} transition-all duration-300 h-full flex flex-col`}>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className={`text-xs sm:text-sm font-medium text-muted-foreground`}>{stat.title}</CardTitle>
@@ -428,7 +430,7 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
                     <div className={`font-bold text-foreground ${stat.isText ? 'text-md sm:text-xl text-center' : 'text-xl sm:text-3xl'}`}>{stat.value}</div>
                   </CardContent>
                 </Card>
-              </motion.custom>
+              </motion.div>
             ))}
           </div>
           
@@ -701,6 +703,9 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
         </TabsContent>
         <TabsContent value="plans">
           <PlansAdminPanel companies={companies} />
+        </TabsContent>
+        <TabsContent value="documentation">
+          <DocumentationPanel />
         </TabsContent>
       </Tabs>
 

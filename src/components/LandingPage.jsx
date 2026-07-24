@@ -1,13 +1,12 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Store } from 'lucide-react';
 import { motion } from 'framer-motion';
 import LandingHeader from '@/components/landing/LandingHeader.jsx';
 import HeroSection from '@/components/landing/HeroSection.jsx';
 import BrandStorySection from '@/components/landing/BrandStorySection.jsx';
 import HowItWorksSection from '@/components/landing/HowItWorksSection.jsx';
-import BenefitsSection from '@/components/landing/BenefitsSection.jsx';
 import FAQSection from '@/components/landing/FAQSection.jsx';
 import LandingFooter from '@/components/landing/LandingFooter.jsx';
 import BrandMark from '@/components/BrandMark';
@@ -21,9 +20,9 @@ const LandingPage = ({ onGetStarted }) => {
   };
 
   const fadeInUp = {
-    initial: { opacity: 0, y: 60 },
+    initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.6 }
+    transition: { duration: 0.4 }
   };
 
   return (
@@ -36,26 +35,24 @@ const LandingPage = ({ onGetStarted }) => {
         <div className="container mx-auto">
           <div className="bg-card border border-border rounded-2xl px-5 sm:px-8 py-8 grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
             <div className="min-w-0">
-              <div className="text-xl sm:text-2xl font-heading font-extrabold text-accent-agile">Para quem procura</div>
-              <div className="text-sm text-muted-foreground mt-1">publique sua necessidade com clareza</div>
+              <div className="text-xl sm:text-2xl font-heading font-extrabold text-accent-agile-text">Para quem procura</div>
+              <div className="text-sm text-muted-foreground mt-1">publique uma procura: um pedido com veículo, peça e prazo, pronto para empresas responderem</div>
             </div>
             <div className="min-w-0">
-              <div className="text-xl sm:text-2xl font-heading font-extrabold text-accent-agile">Para quem vende</div>
+              <div className="text-xl sm:text-2xl font-heading font-extrabold text-accent-agile-text">Para quem vende</div>
               <div className="text-sm text-muted-foreground mt-1">encontre oportunidades reais de negócio</div>
             </div>
             <div className="min-w-0">
-              <div className="text-xl sm:text-2xl font-heading font-extrabold text-accent-agile">Rápido e seguro</div>
+              <div className="text-xl sm:text-2xl font-heading font-extrabold text-accent-agile-text">Rápido e seguro</div>
               <div className="text-sm text-muted-foreground mt-1">conexões diretas dentro da plataforma</div>
             </div>
           </div>
         </div>
       </section>
 
-      <BrandStorySection />
-
       <HowItWorksSection />
 
-      <BenefitsSection />
+      <BrandStorySection />
 
       {/* Como Começar */}
       <section className="py-16 sm:py-24 px-4">
@@ -63,7 +60,7 @@ const LandingPage = ({ onGetStarted }) => {
           <motion.div
             initial="initial"
             whileInView="animate"
-            viewport={{ once: true }}
+            viewport={{ once: true, margin: '-100px' }}
             variants={fadeInUp}
           >
             <h2 className="text-3xl sm:text-5xl font-heading font-bold mb-6 text-foreground">
@@ -87,21 +84,22 @@ const LandingPage = ({ onGetStarted }) => {
           <motion.div
             initial="initial"
             whileInView="animate"
-            viewport={{ once: true }}
+            viewport={{ once: true, margin: '-100px' }}
             variants={fadeInUp}
           >
             <h2 className="text-3xl sm:text-5xl font-heading font-bold mb-6 text-foreground">
               Um lugar para procurar. Um lugar para vender.
             </h2>
             <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-              A plataforma aproxima necessidades reais de empresas que podem atendê-las, com uma experiência simples, rápida e segura.
+              Publique sua procura ou cadastre sua empresa — os dois lados começam em poucos minutos.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
               <Button onClick={() => onGetStarted('user')} size="lg" className="w-full min-h-12 h-auto whitespace-normal bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-5 sm:px-8 py-3 text-base sm:text-lg">
                 <BrandMark className="h-5 w-5 mr-2" />
                 Vou procurar
               </Button>
-              <Button onClick={() => onGetStarted('company')} variant="outline" size="lg" className="w-full min-h-12 h-auto whitespace-normal border-accent-agile text-accent-agile hover:bg-accent-agile/10 px-5 sm:px-8 py-3 text-base sm:text-lg">
+              <Button onClick={() => onGetStarted('company')} variant="outline" size="lg" className="w-full min-h-12 h-auto whitespace-normal border-accent-agile-text text-accent-agile-text hover:bg-accent-agile-text/10 px-5 sm:px-8 py-3 text-base sm:text-lg">
+                <Store className="h-5 w-5 mr-2" />
                 Vou vender
               </Button>
             </div>

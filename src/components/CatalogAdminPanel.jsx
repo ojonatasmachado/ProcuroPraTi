@@ -89,7 +89,7 @@ const CatalogAdminPanel = () => {
 
   // Itens importados (ex: Mercado Livre) trazem categorias que não existem na
   // lista curada abaixo. Sem isto, o seletor aparece vazio mesmo com um valor
-  // salvo, parecendo quebrado — e ao salvar sem tocar no campo, a categoria
+  // salvo, parecendo quebrado, e ao salvar sem tocar no campo a categoria
   // original acaba sendo descartada.
   const categoryOptions = useMemo(() => {
     if (!editor?.primaryCategory || CATEGORIES.includes(editor.primaryCategory)) return CATEGORIES;

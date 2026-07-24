@@ -28,6 +28,7 @@
 
     --accent-agile: 171.69 71.55% 45.49%;
     --accent-agile-foreground: 168.39 72.09% 8.43%;
+    --accent-agile-text: 171.69 71.55% 28%;
 
     --success: 172 72% 36%;
     --success-foreground: 0 0% 100%;
@@ -63,6 +64,7 @@
     --accent-foreground: 0 0% 100%;
     --accent-agile: 171.69 71.55% 45.49%;
     --accent-agile-foreground: 168.39 72.09% 8.43%;
+    --accent-agile-text: 171.69 71.55% 45.49%;
     --destructive: 343.33 45% 15.69%;
     --destructive-foreground: 0 90.6% 70.78%;
     --danger: 0 90.6% 70.78%;

@@ -28,7 +28,7 @@ const HeroSection = ({ onGetStarted, scrollToSection }) => {
               <BrandMark className="h-5 w-5 mr-2" />
               Vou procurar
             </Button>
-            <Button onClick={() => onGetStarted('company')} variant="outline" size="lg" className="w-full min-h-12 h-auto whitespace-normal border-accent-agile text-accent-agile hover:bg-accent-agile/10 px-5 sm:px-8 py-3 text-base sm:text-lg">
+            <Button onClick={() => onGetStarted('company')} variant="outline" size="lg" className="w-full min-h-12 h-auto whitespace-normal border-accent-agile-text text-accent-agile-text hover:bg-accent-agile-text/10 px-5 sm:px-8 py-3 text-base sm:text-lg">
               <Store className="h-5 w-5 mr-2" />
               Vou vender
             </Button>

@@ -50,6 +50,7 @@ module.exports = {
 				'accent-agile': {
 					DEFAULT: 'hsl(var(--accent-agile))',
 					foreground: 'hsl(var(--accent-agile-foreground))',
+					text: 'hsl(var(--accent-agile-text))',
 				},
 				success: {
 					DEFAULT: 'hsl(var(--success))',
