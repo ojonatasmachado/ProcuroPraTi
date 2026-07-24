@@ -392,13 +392,21 @@ export const dataService = {
     throwIfError(error);
     return client.storage.from('part-photos').getPublicUrl(path).data.publicUrl;
   },
+  async uploadCompanyLogo(file, companyId) {
+    const optimizedFile = await optimizeImageForUpload(file);
+    const path = `${companyId}/logo/${crypto.randomUUID()}.webp`;
+    const client = requireSupabase();
+    const { error } = await client.storage.from('part-photos').upload(path, optimizedFile, { cacheControl: '3600', contentType: 'image/webp', upsert: false });
+    throwIfError(error);
+    return client.storage.from('part-photos').getPublicUrl(path).data.publicUrl;
+  },
   async markMessageRead(messageId) {
     const { error } = await requireSupabase().rpc('mark_message_read', { p_message_id: messageId });
     throwIfError(error);
   },
   async updateProfile(type, userId, changes) {
     const allowed = type === 'company'
-      ? ['name', 'phone', 'whatsapp', 'cnpj', 'address', 'addressNumber', 'postalCode', 'latitude', 'longitude', 'locationSource', 'servesLocations', 'vehicleTypes', 'termsAcceptedDate']
+      ? ['name', 'phone', 'whatsapp', 'cnpj', 'address', 'addressNumber', 'postalCode', 'latitude', 'longitude', 'locationSource', 'servesLocations', 'vehicleTypes', 'termsAcceptedDate', 'logoUrl', 'bio']
       : ['name', 'phone', 'cpf', 'location', 'postalCode', 'vehicles', 'termsAcceptedDate'];
     const sanitized = Object.fromEntries(Object.entries(changes).filter(([key, value]) => allowed.includes(key) && value !== undefined));
     const table = type === 'company' ? 'companies' : 'users';

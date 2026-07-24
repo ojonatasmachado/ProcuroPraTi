@@ -3,10 +3,11 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Building2, MapPin, Clock, Image as ImageIcon, MessageSquare, Wrench, BadgeCheck, SlidersHorizontal, Edit3, Eye, Phone, Navigation, MapPinned, Smartphone, ExternalLink, Star, Zap, Loader2 } from 'lucide-react';
+import { Building2, MapPin, Clock, Image as ImageIcon, MessageSquare, Wrench, BadgeCheck, SlidersHorizontal, Edit3, Eye, Phone, Navigation, MapPinned, Smartphone, ExternalLink, Star, Zap, Loader2, UserSquare2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import CompanyProfileModal from '@/components/CompanyProfileModal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { formatCurrency } from '@/lib/currency';
@@ -57,6 +58,7 @@ const ResponseModal = ({ procura, isOpen, onClose, onMarkAsRead, onOpenChat, onE
   const [userCoordinates, setUserCoordinates] = useState(null);
   const [ratingForm, setRatingForm] = useState(null);
   const [submittingRating, setSubmittingRating] = useState(false);
+  const [viewingCompanyProfile, setViewingCompanyProfile] = useState(null);
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -268,7 +270,7 @@ const ResponseModal = ({ procura, isOpen, onClose, onMarkAsRead, onOpenChat, onE
                       )}
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-center gap-2">
-                          <span className="font-bold text-foreground text-sm truncate flex items-center gap-1"><Building2 className="h-3.5 w-3.5 shrink-0" />{response.companyName}</span>
+                          <button type="button" onClick={() => setViewingCompanyProfile(response.company)} className="flex min-w-0 items-center gap-1 truncate text-sm font-bold text-foreground underline-offset-2 hover:text-primary hover:underline"><Building2 className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{response.companyName}</span></button>
                           {response.price && (<span className="font-extrabold text-accent-agile text-sm shrink-0">{formatCurrency(response.price)}</span>)}
                         </div>
                         <div className="flex items-center gap-2 flex-wrap mt-1 text-[11px] text-muted-foreground">
@@ -314,7 +316,7 @@ const ResponseModal = ({ procura, isOpen, onClose, onMarkAsRead, onOpenChat, onE
         <DialogContent className="max-h-[calc(100dvh-1rem)] max-w-lg overflow-y-auto border-border bg-card p-0 text-foreground">
           {selectedResponse && <>
             <DialogHeader className="border-b border-border px-4 pb-4 pt-5 text-left sm:px-6">
-              <div className="flex items-start gap-3 pr-8"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10"><Building2 className="h-6 w-6 text-primary" /></span><div className="min-w-0"><DialogTitle className="text-left text-lg leading-tight">{selectedResponse.companyName}</DialogTitle><DialogDescription className="mt-1 text-left">Resposta para {procura.partName}</DialogDescription></div></div>
+              <div className="flex items-start gap-3 pr-8"><span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-primary/10">{selectedResponse.company?.logoUrl ? <img src={selectedResponse.company.logoUrl} alt="" className="h-full w-full object-cover" /> : <Building2 className="h-6 w-6 text-primary" />}</span><div className="min-w-0"><DialogTitle className="text-left text-lg leading-tight">{selectedResponse.companyName}</DialogTitle><DialogDescription className="mt-1 text-left">Resposta para {procura.partName}</DialogDescription><button type="button" onClick={() => setViewingCompanyProfile(selectedResponse.company)} className="mt-1 flex items-center gap-1 text-xs font-semibold text-primary underline-offset-2 hover:underline"><UserSquare2 className="h-3.5 w-3.5" />Ver perfil da empresa</button></div></div>
             </DialogHeader>
             <div className="space-y-4 px-4 py-4 sm:px-6">
               <div className="flex items-center justify-between gap-3 rounded-xl border border-accent-agile/30 bg-accent-agile/10 p-3"><div><p className="text-xs text-muted-foreground">Preço informado</p><p className="text-xl font-extrabold text-foreground">{selectedResponse.price ? formatCurrency(selectedResponse.price) : 'A combinar'}</p></div>{selectedResponse.company?.validationStatus === 'validated' && <span className="flex items-center gap-1 text-xs font-semibold text-accent-agile"><BadgeCheck className="h-4 w-4" />Verificada</span>}</div>
@@ -420,6 +422,8 @@ const ResponseModal = ({ procura, isOpen, onClose, onMarkAsRead, onOpenChat, onE
           })()}
         </DialogContent>
       </Dialog>
+
+      <CompanyProfileModal company={viewingCompanyProfile} onClose={() => setViewingCompanyProfile(null)} />
     </Dialog>
   );
 };

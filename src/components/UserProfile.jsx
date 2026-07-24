@@ -1,10 +1,11 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Save, X, Building2, Users, Trash2, AlertTriangle, Loader2 } from 'lucide-react';
+import { Save, X, Building2, Users, Trash2, AlertTriangle, Loader2, Upload } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from '@/components/ui/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -30,9 +31,11 @@ const splitSavedAddress = (address = '', savedNumber = '') => {
   return { addressState, addressCity, addressStreet, addressNumber };
 };
 
-const UserProfileForm = ({ user, userType, onSave, onDeleteAccount, onCancel, allStatesAndCities }) => {
+const UserProfileForm = ({ user, userType, onSave, onDeleteAccount, onCancel, allStatesAndCities, onLogoUpload }) => {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const logoInputRef = useRef(null);
   const savedAddress = splitSavedAddress(userType === 'company' ? user.address : user.location, userType === 'company' ? user.addressNumber : '');
   const [vehicle, setVehicle] = useState(user.vehicles?.[0] || EMPTY_VEHICLE);
   const [formData, setFormData] = useState({
@@ -47,6 +50,8 @@ const UserProfileForm = ({ user, userType, onSave, onDeleteAccount, onCancel, al
     latitude: user.latitude ?? null,
     longitude: user.longitude ?? null,
     locationSource: user.locationSource || 'city_center',
+    logoUrl: user.logoUrl || '',
+    bio: user.bio || '',
   });
   const availableCities = useMemo(() => {
     if (!formData.addressState) return [];
@@ -72,6 +77,8 @@ const UserProfileForm = ({ user, userType, onSave, onDeleteAccount, onCancel, al
       latitude: user.latitude ?? null,
       longitude: user.longitude ?? null,
       locationSource: user.locationSource || 'city_center',
+      logoUrl: user.logoUrl || '',
+      bio: user.bio || '',
       ...nextSavedAddress,
     });
   }, [user, userType]);
@@ -80,7 +87,23 @@ const UserProfileForm = ({ user, userType, onSave, onDeleteAccount, onCancel, al
     const resetsLocation = e.target.name === 'addressStreet' || e.target.name === 'addressNumber';
     setFormData({ ...formData, [e.target.name]: e.target.value, ...(resetsLocation ? { latitude: null, longitude: null, locationSource: 'city_center' } : {}) });
   };
-  
+
+  const handleLogoUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file || !onLogoUpload) return;
+    setIsUploadingLogo(true);
+    try {
+      const logoUrl = await onLogoUpload(file);
+      setFormData(prev => ({ ...prev, logoUrl }));
+      toast({ title: 'Foto adicionada', description: 'A foto da empresa foi salva.' });
+    } catch (error) {
+      toast({ title: 'Não foi possível enviar a foto', description: error.message, variant: 'destructive' });
+    } finally {
+      setIsUploadingLogo(false);
+      event.target.value = '';
+    }
+  };
+
   const handleSelectChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value, latitude: null, longitude: null, locationSource: 'city_center', ...(field === 'addressState' && { addressCity: '' }) }));
   };
@@ -174,6 +197,8 @@ const UserProfileForm = ({ user, userType, onSave, onDeleteAccount, onCancel, al
       vehicleTypes: userType === 'company' ? formData.vehicleTypes : undefined,
       location: userType === 'user' ? (fullAddress || user.location) : undefined,
       vehicles: userType === 'user' && vehicle.modelName ? [vehicle] : [],
+      logoUrl: userType === 'company' ? (formData.logoUrl || null) : undefined,
+      bio: userType === 'company' ? (formData.bio.trim() || null) : undefined,
     };
     await onSave(dataToSave);
   };
@@ -201,6 +226,28 @@ const UserProfileForm = ({ user, userType, onSave, onDeleteAccount, onCancel, al
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
               {userType === 'company' && (
+                <div className="space-y-2">
+                  <Label className="block text-xs sm:text-sm font-medium text-muted-foreground">Foto da empresa (opcional)</Label>
+                  <input ref={logoInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleLogoUpload} className="sr-only" />
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-popover">
+                      {formData.logoUrl ? <img src={formData.logoUrl} alt="Foto da empresa" className="h-full w-full object-cover" /> : <Building2 className="h-7 w-7 text-muted-foreground" />}
+                    </div>
+                    <div className="flex flex-1 flex-col gap-2 sm:flex-row">
+                      <Button type="button" variant="outline" size="sm" disabled={isUploadingLogo} onClick={() => logoInputRef.current?.click()}>
+                        {isUploadingLogo ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+                        {isUploadingLogo ? 'Enviando...' : formData.logoUrl ? 'Trocar foto' : 'Selecionar foto'}
+                      </Button>
+                      {formData.logoUrl && (
+                        <Button type="button" variant="outline" size="sm" onClick={() => setFormData(prev => ({ ...prev, logoUrl: '' }))}>
+                          <X className="mr-2 h-4 w-4" />Remover
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+              {userType === 'company' && (
                 <CnpjLookup
                   value={formData.cnpj}
                   onChange={(cnpj) => setFormData(prev => ({ ...prev, cnpj }))}
@@ -226,6 +273,11 @@ const UserProfileForm = ({ user, userType, onSave, onDeleteAccount, onCancel, al
               {userType === 'company' && <div>
                 <Label htmlFor="whatsapp" className="block text-xs sm:text-sm font-medium mb-1 text-muted-foreground">WhatsApp</Label>
                 <Input id="whatsapp" name="whatsapp" type="tel" inputMode="tel" value={formData.whatsapp} onChange={handleInputChange} placeholder="(XX) XXXXX-XXXX" className="bg-input border-border text-sm"/>
+              </div>}
+              {userType === 'company' && <div>
+                <Label htmlFor="bio" className="block text-xs sm:text-sm font-medium mb-1 text-muted-foreground">Sobre a empresa (opcional)</Label>
+                <Textarea id="bio" name="bio" value={formData.bio} onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value.slice(0, 300) }))} placeholder="Conte um pouco sobre sua empresa para quem procura peças." maxLength={300} rows={3} className="bg-input border-border text-sm"/>
+                <p className="mt-1 text-right text-xs text-muted-foreground">{formData.bio.length}/300</p>
               </div>}
 
               {userType === 'user' && (

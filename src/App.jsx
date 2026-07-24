@@ -1177,6 +1177,7 @@ function App() {
             onDeleteAccount={handleDeleteCompanyAccount}
             onCancel={showAuthenticatedHome}
             allStatesAndCities={BRAZILIAN_STATES_AND_CITIES}
+            onLogoUpload={(file) => dataService.uploadCompanyLogo(file, currentUser.id)}
           />
         ) : showCompanyTeam && userType === 'company' && companyAccess?.role === 'owner' ? (
           <CompanyTeamManagement
