@@ -87,6 +87,15 @@ const CatalogAdminPanel = () => {
     adminNotes: part.admin_notes || '',
   });
 
+  // Itens importados (ex: Mercado Livre) trazem categorias que não existem na
+  // lista curada abaixo. Sem isto, o seletor aparece vazio mesmo com um valor
+  // salvo, parecendo quebrado — e ao salvar sem tocar no campo, a categoria
+  // original acaba sendo descartada.
+  const categoryOptions = useMemo(() => {
+    if (!editor?.primaryCategory || CATEGORIES.includes(editor.primaryCategory)) return CATEGORIES;
+    return [editor.primaryCategory, ...CATEGORIES];
+  }, [editor?.primaryCategory]);
+
   const similarParts = useMemo(() => {
     if (!linking) return [];
     const term = normalize(linkSearch || linking.latest_term);
@@ -151,7 +160,7 @@ const CatalogAdminPanel = () => {
           {editor && <div className="grid gap-4">
             <div><Label>Nome principal *</Label><Input value={editor.name} onChange={event => setEditor({ ...editor, name: event.target.value })} /></div>
             <div><Label>Sinônimos separados por vírgula</Label><Input value={editor.aliasesText} onChange={event => setEditor({ ...editor, aliasesText: event.target.value })} placeholder="Ex: farol auxiliar, luz de neblina" /></div>
-            <div><Label>Categoria principal</Label><Select value={editor.primaryCategory} onValueChange={value => setEditor({ ...editor, primaryCategory: value })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{CATEGORIES.map(category => <SelectItem key={category} value={category}>{category}</SelectItem>)}</SelectContent></Select></div>
+            <div><Label>Categoria principal</Label><Select value={editor.primaryCategory} onValueChange={value => setEditor({ ...editor, primaryCategory: value })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{categoryOptions.map(category => <SelectItem key={category} value={category}>{category}</SelectItem>)}</SelectContent></Select></div>
             <div><Label>Categorias secundárias separadas por vírgula</Label><Input value={editor.secondaryText} onChange={event => setEditor({ ...editor, secondaryText: event.target.value })} /></div>
             <div><Label>Tipos de veículo</Label><div className="mt-2 grid grid-cols-2 gap-2">{[['car', 'Carro'], ['motorcycle', 'Moto'], ['truck', 'Caminhão'], ['bus', 'Ônibus']].map(([value, label]) => <label key={value} className="flex items-center gap-2 rounded-lg border border-border p-2 text-sm"><Checkbox checked={editor.vehicleTypes.includes(value)} onCheckedChange={checked => setEditor({ ...editor, vehicleTypes: checked ? [...new Set([...editor.vehicleTypes, value])] : editor.vehicleTypes.filter(item => item !== value) })} />{label}</label>)}</div></div>
             <label className="flex items-center gap-2 text-sm"><Checkbox checked={editor.isHighValue} onCheckedChange={isHighValue => setEditor({ ...editor, isHighValue: Boolean(isHighValue) })} />Item de alto valor</label>

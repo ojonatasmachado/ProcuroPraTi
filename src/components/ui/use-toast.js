@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { logClientError } from "@/lib/errorTelemetry"
 
 const TOAST_LIMIT = 1
 
@@ -36,6 +37,13 @@ const toastStore = {
 
 export const toast = ({ ...props }) => {
   const id = generateId()
+
+  if (props.variant === 'destructive') {
+    logClientError({
+      message: [props.title, props.description].filter(Boolean).join(' — '),
+      source: 'error_toast',
+    })
+  }
 
   const update = (props) =>
     toastStore.setState((state) => ({

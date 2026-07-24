@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Car, Clock, MapPin, Send, Camera, Upload, ListFilter, History, Edit3, EyeOff, Eye, CheckCircle2, XCircle, ArrowLeft, Bike, Truck, Bus, Timer, SlidersHorizontal, Search, RotateCcw } from 'lucide-react';
+import { Car, MapPin, Send, Camera, Upload, ListFilter, History, Edit3, CheckCircle2, XCircle, ArrowLeft, Bike, Truck, Bus, Timer, SlidersHorizontal, Search, RotateCcw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from '@/components/ui/use-toast';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
@@ -219,8 +219,6 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
     setCurrentView('response_form');
   };
 
-  const formatDate = (dateString) => new Date(dateString).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  
   const getTimeRemaining = (procura) => {
     const remaining = getSearchRemainingMs(procura);
     if (remaining <= 0) return { days: 0, hours: 0, minutes: 0, expired: true };
@@ -250,33 +248,6 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
     }).sort((a,b) => new Date(b.myResponse.responseDate) - new Date(a.myResponse.responseDate));
   }, [companyResponses, filterPartName, filterVehicle]);
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'available': return <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" />;
-      case 'unavailable': return <XCircle className="h-3 w-3 sm:h-4 sm:w-4" />;
-      default: return <Clock className="h-3 w-3 sm:h-4 sm:w-4" />;
-    }
-  };
-
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'available': return 'Disponível';
-      case 'unavailable': return 'Indisponível';
-      default: return 'Desconhecido';
-    }
-  };
-
-  const getConditionText = (condition) => {
-    switch (condition) {
-      case 'new': return 'Nova';
-      case 'excellent': return 'Excelente';
-      case 'good': return 'Boa';
-      case 'fair': return 'Regular';
-      case 'poor': return 'Ruim';
-      default: return condition;
-    }
-  };
-
   const getVehicleIcon = (type) => {
     if (type === 'motorcycle') return <Bike className="h-3 w-3" />;
     if (type === 'truck') return <Truck className="h-3 w-3" />;
@@ -290,95 +261,6 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
     const days = Math.floor(remaining / (24 * 60 * 60 * 1000));
     const hours = Math.floor((remaining % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
     return days > 0 ? `${days}d ${hours}h` : `${hours}h`;
-  };
-
-  const renderProcuraCard = (procura, type) => {
-    const hasResponded = type === 'responded';
-    const response = hasResponded ? procura.myResponse : null;
-    const currentUsers = users || [];
-    const user = currentUsers.find(u => u.id === procura.userId);
-    const timeRemaining = getTimeRemaining(procura);
-    const distance = distanceInKm(
-      { latitude: currentUser.latitude, longitude: currentUser.longitude },
-      { latitude: procura.searchLatitude, longitude: procura.searchLongitude },
-    );
-    const preferredCondition = ({ new: 'Nova', used: 'Usada', any: 'Qualquer condição' }[procura.preferredCondition] || 'Qualquer condição');
-
-    return (
-      <motion.div 
-        key={procura.id} 
-        id={`procura-${procura.id}`}
-        initial={{ opacity: 0, y: 20 }} 
-        animate={{ opacity: 1, y: 0 }} 
-        transition={{ duration: 0.3, delay: Math.random() * 0.1 }}
-        layout
-      >
-        <Card className="response-card hover:shadow-lg transition-all duration-300 flex flex-col h-full text-xs sm:text-sm">
-          <CardHeader className="p-3 pb-2">
-            <div className="flex justify-between items-start gap-2">
-              <CardTitle className="text-sm sm:text-base text-foreground font-heading">{procura.partName}</CardTitle>
-              <div className="flex items-center gap-1 flex-wrap">
-                {!timeRemaining.expired && !hasResponded && (
-                  <Badge variant="outline" className="rounded-full border-warning text-warning flex items-center gap-1 text-xs font-bold">
-                    <Timer className="h-3 w-3" /> {timeRemaining.days > 0 ? `${timeRemaining.days}d ` : ''}{timeRemaining.hours}h {timeRemaining.minutes}m
-                  </Badge>
-                )}
-                {procura.wantsPhotos && (<Badge variant="outline" className="border-warning text-warning flex items-center gap-1 text-xs shrink-0"><Camera className="h-3 w-3" /> Fotos</Badge>)}
-              </div>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-              <span className="flex items-center gap-1">{getVehicleIcon(procura.vehicleType)}{procura.vehicleBrand} {procura.vehicleModel} ({procura.vehicleYear || 'N/A'})</span>
-            </div>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground/80"><Clock className="h-3 w-3" />{formatDate(procura.createdAt)}</div>
-            <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground/80">
-              {user && <span>👤 {user.name}</span>}
-              {distance !== null && <span>📍 {distance < 1 ? `${Math.round(distance * 1000)} m` : `${distance.toFixed(1)} km`} de você</span>}
-            </div>
-          </CardHeader>
-          <CardContent className="flex-grow p-3 text-xs">
-            <div className="flex gap-3 mb-2">
-              {procura.referencePhotoUrl && <img src={procura.referencePhotoUrl} alt={`Referência para ${procura.partName}`} className="h-20 w-20 shrink-0 rounded-[10px] border border-border object-cover" />}
-              <div className="min-w-0 flex-1">
-                {procura.partDescription && <div className="bg-popover rounded-lg px-2.5 py-2 mb-2 text-foreground/90">{procura.partDescription}</div>}
-                <Badge variant="secondary" className="text-[11px]">Preferência: {preferredCondition}</Badge>
-              </div>
-            </div>
-            <div className="flex items-center gap-1 text-primary bg-primary/8 rounded-md px-2 py-1 w-fit mb-1">
-              <MapPin className="h-3 w-3" />{(procura.locations || []).map(l => l.label).join(', ') || 'Não especificado'}
-            </div>
-            {hasResponded && response && (
-              <div className="mt-2 p-2.5 bg-popover rounded-lg text-xs">
-                <p className="font-semibold text-foreground mb-1">Sua resposta</p>
-                <div className="flex justify-between"><span className="text-muted-foreground">Status</span><span className={`font-semibold flex items-center gap-1 ${response.status === 'available' ? 'text-accent-agile' : response.status === 'unavailable' ? 'text-danger' : 'text-warning'}`}>{getStatusIcon(response.status)}{getStatusText(response.status)}</span></div>
-                {response.partType && <div className="flex justify-between mt-0.5"><span className="text-muted-foreground">Tipo</span><span className="text-foreground">{response.partType === 'original' ? 'Original' : 'Paralela'}</span></div>}
-                {response.partCondition && <div className="flex justify-between mt-0.5"><span className="text-muted-foreground">Condição</span><span className="text-foreground">{getConditionText(response.partCondition)}</span></div>}
-                {response.price && <div className="flex justify-between mt-0.5"><span className="text-muted-foreground">Preço</span><span className="text-foreground font-bold">{formatCurrency(response.price)}</span></div>}
-                <p className={`flex items-center gap-1 mt-1.5 ${response.isReadByUser ? 'text-accent-agile' : 'text-warning'}`}>
-                  {response.isReadByUser ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
-                  {response.isReadByUser ? "Visualizada pelo usuário" : "Não visualizada pelo cliente"}
-                </p>
-              </div>
-            )}
-          </CardContent>
-          <CardFooter className="p-3 pt-2 border-t border-border/50 flex flex-col gap-2">
-            {!hasResponded ? (
-              <div className="grid w-full grid-cols-2 gap-3">
-                <Button onClick={() => handleQuickResponse(procura, true)} disabled={isSubmittingResponse} className="min-h-12 w-full bg-accent-agile px-3 text-sm font-bold text-accent-agile-foreground hover:bg-accent-agile/90">
-                  <CheckCircle2 className="mr-2 h-5 w-5 shrink-0" />Tenho
-                </Button>
-                <Button onClick={() => handleQuickResponse(procura, false)} disabled={isSubmittingResponse} variant="outline" className="min-h-12 w-full border-2 border-danger/70 px-3 text-sm font-bold text-danger hover:bg-destructive hover:text-destructive-foreground">
-                  {isSubmittingResponse ? <><span className="mr-2 inline-flex gap-1" aria-hidden="true"><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current" /><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:120ms]" /><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:240ms]" /></span>Enviando</> : <><XCircle className="mr-2 h-5 w-5 shrink-0" />Não tenho</>}
-                </Button>
-              </div>
-            ) : (
-              <Button onClick={() => handleSelectProcura(procura, hasResponded)} className="min-h-11 w-full bg-primary text-xs text-primary-foreground hover:bg-primary/90">
-                <Edit3 className="h-3 w-3 mr-1" />Editar Resposta
-              </Button>
-            )}
-          </CardFooter>
-        </Card>
-      </motion.div>
-    );
   };
 
   const renderCompactProcuraCard = (procura, type = 'to-respond') => {

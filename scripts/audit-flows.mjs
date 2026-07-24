@@ -134,13 +134,20 @@ try {
   noError('empresa altera os veículos atendidos', await company.from('companies').update({ vehicle_types: ['motorcycle'] }).eq('id', companyId));
   ok('empresa incompatível com o veículo não visualiza a procura', (noError('bloqueio da procura por tipo de veículo', await company.from('procuras').select('id').eq('id', procuraId))).length === 0);
   noError('empresa volta a atender o veículo da procura', await company.from('companies').update({ vehicle_types: ['car'] }).eq('id', companyId));
-  ok('empresa compatível dentro do raio visualiza a procura', (noError('leitura da procura compatível', await company.from('procuras').select('id').eq('id', procuraId))).length === 1);
-  noError('empresa é posicionada fora do raio', await company.from('companies').update({ serves_locations: ['Campinas, SP'], latitude: -22.90556, longitude: -47.06083 }).eq('id', companyId));
-  ok('empresa fora do raio não visualiza a procura', (noError('bloqueio da procura fora do raio', await company.from('procuras').select('id').eq('id', procuraId))).length === 0);
+  ok('empresa compatível dentro do estado visualiza a procura (sem assinatura, alcance estadual do trial)', (noError('leitura da procura compatível', await company.from('procuras').select('id').eq('id', procuraId))).length === 1);
+  noError('empresa é posicionada fora do estado', await company.from('companies').update({ serves_locations: ['Rio de Janeiro, RJ'], address: 'Rio de Janeiro, RJ', latitude: -22.90684, longitude: -43.17290 }).eq('id', companyId));
+  ok('empresa fora do estado não visualiza a procura (sem assinatura)', (noError('bloqueio da procura fora do estado', await company.from('procuras').select('id').eq('id', procuraId))).length === 0);
+  noError('empresa retorna ao estado da procura', await company.from('companies').update({ serves_locations: ['São Paulo, SP'], address: 'São Paulo, SP', latitude: -23.55052, longitude: -46.633308 }).eq('id', companyId));
+  noError('procura recuada para ultrapassar o atraso de visibilidade dos planos pagos', await admin.from('procuras').update({ created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString() }).eq('id', procuraId));
+  noError('admin assina plano local (raio 20km) para a empresa', await admin.from('companies').update({ plan_code: 'local', subscription_state: 'subscriber_active', manual_plan_indefinite: true }).eq('id', companyId));
+  ok('assinante do plano local dentro do raio de 20km visualiza a procura', (noError('leitura dentro do raio do plano', await company.from('procuras').select('id').eq('id', procuraId))).length === 1);
+  noError('empresa assinante é posicionada fora do raio do plano local', await company.from('companies').update({ latitude: -22.90556, longitude: -47.06083 }).eq('id', companyId));
+  ok('assinante do plano local fora do raio de 20km não visualiza a procura mesmo no mesmo estado', (noError('bloqueio por raio do plano', await company.from('procuras').select('id').eq('id', procuraId))).length === 0);
+  noError('admin remove o plano da empresa', await admin.from('companies').update({ plan_code: null, subscription_state: 'trial_active', manual_plan_indefinite: false }).eq('id', companyId));
   noError('admin habilita alcance nacional de teste', await admin.from('companies').update({ can_respond_anywhere: true }).eq('id', companyId));
   ok('empresa nacional de teste visualiza procura fora do raio', (noError('leitura nacional da procura', await company.from('procuras').select('id').eq('id', procuraId))).length === 1);
   noError('admin restaura alcance municipal', await admin.from('companies').update({ can_respond_anywhere: false }).eq('id', companyId));
-  noError('empresa retorna ao raio da procura', await company.from('companies').update({ serves_locations: ['São Paulo, SP'], latitude: -23.55052, longitude: -46.633308 }).eq('id', companyId));
+  noError('empresa retorna à posição original', await company.from('companies').update({ serves_locations: ['São Paulo, SP'], latitude: -23.55052, longitude: -46.633308 }).eq('id', companyId));
 
   const savedResponse = noError('resposta da empresa', await company.rpc('save_company_response', { p_procura_id: procuraId, p_response: {
     id: responseId, status: 'available', price: '100.00', message: 'Peça disponível', part_condition: 'good', part_type: 'original', location: 'São Paulo, SP',

@@ -3,7 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
-import { Users, Building2, PackageSearch, MessageSquare, BarChart3, ShieldCheck, TrendingUp, AlertTriangle, CheckSquare, MapPin, ThumbsDown, CheckCircle, XCircle, ListChecks, Mail, Phone, CalendarDays, Eye, Star, Filter as FilterIcon, Clock, Users2, BarChartHorizontalBig, DollarSign, Ban, History, Edit, Trophy, Car, Activity, Award, MapPinned, ChevronRight } from 'lucide-react';
+import { Users, Building2, PackageSearch, MessageSquare, BarChart3, ShieldCheck, TrendingUp, AlertTriangle, CheckSquare, MapPin, ThumbsDown, CheckCircle, XCircle, ListChecks, Mail, Phone, CalendarDays, Eye, Star, Filter as FilterIcon, Clock, Users2, BarChartHorizontalBig, DollarSign, Ban, History, Edit, Trophy, Car, Activity, Award, MapPinned, ChevronRight, Bug, ChevronDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
@@ -18,7 +18,7 @@ import CatalogAdminPanel from '@/components/CatalogAdminPanel';
 import PlansAdminPanel from '@/components/PlansAdminPanel';
 
 
-const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanies, feedbacks = [], registrationProgress = [], allStatesAndCities = [], readOnly = false }) => {
+const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanies, feedbacks = [], registrationProgress = [], errorEvents = [], allStatesAndCities = [], readOnly = false }) => {
   const [selectedState, setSelectedState] = useState('all-states');
   const [selectedCity, setSelectedCity] = useState('all-cities');
   const [availableCities, setAvailableCities] = useState([]);
@@ -30,6 +30,8 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
   const [currentCompanyForReason, setCurrentCompanyForReason] = useState(null);
   const [validationReason, setValidationReason] = useState('');
   const [showLocationHealth, setShowLocationHealth] = useState(false);
+  const [errorSourceFilter, setErrorSourceFilter] = useState('all');
+  const [expandedErrorIds, setExpandedErrorIds] = useState(() => new Set());
   useScrollToTop(activeTab);
 
 
@@ -315,6 +317,33 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
     setFeedbackFilters(prev => ({ ...prev, [filterName]: value }));
   };
 
+  const errorSourceLabel = (source) => ({
+    crash: 'Tela quebrou',
+    error_toast: 'Erro mostrado ao usuário',
+    unhandled_rejection: 'Falha silenciosa (promise)',
+    window_error: 'Erro de script',
+  })[source] || source;
+
+  const sortedErrorEvents = useMemo(() => {
+    return [...errorEvents]
+      .filter(item => errorSourceFilter === 'all' || item.source === errorSourceFilter)
+      .sort((a, b) => (b.occurrences || 1) - (a.occurrences || 1) || new Date(b.lastSeenAt) - new Date(a.lastSeenAt));
+  }, [errorEvents, errorSourceFilter]);
+
+  const errorSummary = useMemo(() => ({
+    distinct: errorEvents.length,
+    totalOccurrences: errorEvents.reduce((sum, item) => sum + (item.occurrences || 1), 0),
+    affectedLast24h: errorEvents.filter(item => Date.now() - new Date(item.lastSeenAt).getTime() < 24 * 60 * 60 * 1000).length,
+  }), [errorEvents]);
+
+  const toggleErrorExpanded = (id) => {
+    setExpandedErrorIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
   const getValidationStatusBadge = (status) => {
     switch (status) {
       case 'validated': return <Badge variant="default" className="border-success bg-success text-xs text-success-foreground px-1.5 py-0.5">Validado</Badge>;
@@ -335,12 +364,13 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
       </motion.div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 h-auto mb-6 sm:mb-8 bg-input/70 border border-border">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-8 h-auto mb-6 sm:mb-8 bg-input/70 border border-border">
           <TabsTrigger value="overview" className="min-h-11 whitespace-normal py-2 text-xs sm:text-sm">Visão geral</TabsTrigger>
           <TabsTrigger value="metrics" className="min-h-11 whitespace-normal py-2 text-xs sm:text-sm">Métricas</TabsTrigger>
           <TabsTrigger value="companyManagement" className="min-h-11 whitespace-normal py-2 text-xs sm:text-sm">Empresas</TabsTrigger>
           <TabsTrigger value="pendingResponses" className="min-h-11 whitespace-normal py-2 text-xs sm:text-sm">Pendências</TabsTrigger>
           <TabsTrigger value="feedbacks" className="min-h-11 whitespace-normal py-2 text-xs sm:text-sm">Feedbacks</TabsTrigger>
+          <TabsTrigger value="errors" className="min-h-11 whitespace-normal py-2 text-xs sm:text-sm">Erros{errorSummary.distinct > 0 ? ` (${errorSummary.distinct})` : ''}</TabsTrigger>
           <TabsTrigger value="catalog" className="min-h-11 whitespace-normal py-2 text-xs sm:text-sm">Catálogo</TabsTrigger>
           <TabsTrigger value="plans" className="min-h-11 whitespace-normal py-2 text-xs sm:text-sm">Planos</TabsTrigger>
         </TabsList>
@@ -599,6 +629,67 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
                       </CardContent>
                     </Card>
                   ))}
+                </div>
+                }
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="errors">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <Card className="glass-effect border-border/30"><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><Bug className="h-4 w-4 text-danger"/>Erros diferentes</CardTitle></CardHeader><CardContent><p className="text-3xl font-bold text-foreground">{errorSummary.distinct}</p></CardContent></Card>
+            <Card className="glass-effect border-border/30"><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><History className="h-4 w-4 text-warning"/>Ocorrências no total</CardTitle></CardHeader><CardContent><p className="text-3xl font-bold text-foreground">{errorSummary.totalOccurrences}</p></CardContent></Card>
+            <Card className="glass-effect border-border/30"><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><Clock className="h-4 w-4 text-primary"/>Ativos nas últimas 24h</CardTitle></CardHeader><CardContent><p className="text-3xl font-bold text-foreground">{errorSummary.affectedLast24h}</p></CardContent></Card>
+          </div>
+          <Card className="glass-effect border-border/30">
+            <CardHeader>
+              <CardTitle className="text-lg sm:text-xl text-foreground flex items-center gap-2"><Bug className="h-5 w-5"/>Log de erros da interface</CardTitle>
+              <CardDescription>Agrupado por erro; cada linha é um erro diferente, ordenado por quantas vezes aconteceu. Use isso pra priorizar o que pedir de ajuste.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-4">
+                <Select value={errorSourceFilter} onValueChange={setErrorSourceFilter}>
+                  <SelectTrigger className="bg-input border-border text-sm sm:w-64"><SelectValue placeholder="Tipo de erro" /></SelectTrigger>
+                  <SelectContent className="bg-popover border-border">
+                    <SelectItem value="all">Todos os tipos</SelectItem>
+                    <SelectItem value="crash">Tela quebrou</SelectItem>
+                    <SelectItem value="error_toast">Erro mostrado ao usuário</SelectItem>
+                    <SelectItem value="unhandled_rejection">Falha silenciosa (promise)</SelectItem>
+                    <SelectItem value="window_error">Erro de script</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <ScrollArea className="h-[560px] pr-3">
+                {sortedErrorEvents.length === 0 ? <p className="text-muted-foreground text-center py-8">Nenhum erro registrado com os filtros atuais. 🎉</p> :
+                <div className="space-y-3">
+                  {sortedErrorEvents.map(errorEvent => {
+                    const isExpanded = expandedErrorIds.has(errorEvent.id);
+                    return (
+                      <Card key={errorEvent.id} className="bg-input/50 border-border/50 text-xs">
+                        <button type="button" onClick={() => toggleErrorExpanded(errorEvent.id)} className="flex w-full items-start justify-between gap-3 p-3 text-left">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Badge variant="outline" className="shrink-0 text-[10px]">{errorSourceLabel(errorEvent.source)}</Badge>
+                              <Badge variant={errorEvent.occurrences >= 10 ? 'destructive' : 'secondary'} className="shrink-0 text-[10px]">{errorEvent.occurrences}x</Badge>
+                              {errorEvent.pagePath && <span className="truncate text-[11px] text-muted-foreground">{errorEvent.pagePath}</span>}
+                            </div>
+                            <p className="mt-1.5 truncate font-semibold text-foreground sm:whitespace-normal sm:line-clamp-2">{errorEvent.message}</p>
+                            <p className="mt-1 text-[11px] text-muted-foreground">Visto pela 1ª vez {formatDateTime(errorEvent.createdAt)} · última vez {formatDateTime(errorEvent.lastSeenAt)}</p>
+                          </div>
+                          <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                        </button>
+                        {isExpanded && (
+                          <CardContent className="space-y-2 border-t border-border/50 p-3 pt-2">
+                            <p><span className="text-muted-foreground">Último usuário afetado: </span><span className="text-foreground">{errorEvent.userId || 'não identificado'}</span></p>
+                            {errorEvent.userAgent && <p className="break-words"><span className="text-muted-foreground">Navegador: </span><span className="text-foreground">{errorEvent.userAgent}</span></p>}
+                            {errorEvent.componentStack && (
+                              <pre className="mt-1 max-h-64 overflow-auto whitespace-pre-wrap break-words rounded-md bg-popover p-2 text-[10px] text-foreground">{errorEvent.componentStack}</pre>
+                            )}
+                          </CardContent>
+                        )}
+                      </Card>
+                    );
+                  })}
                 </div>
                 }
               </ScrollArea>

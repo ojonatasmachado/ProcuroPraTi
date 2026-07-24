@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -46,6 +46,9 @@ const UserRegistration = ({ onRegister, onSaveRegistrationProgress, onLogin, onC
     addressStreet: '', addressNumber: '', addressCity: '', addressState: '',
     cnpj: '', latitude: null, longitude: null, locationSource: 'city_center', vehicleTypes: [],
   });
+  // Evita que uma resposta lenta da consulta de CNPJ sobrescreva um endereço
+  // que o usuário já preencheu (via CEP ou manualmente) enquanto ela ainda carregava.
+  const addressManuallySetRef = useRef(false);
   const availableCities = useMemo(() => {
     if (!formData.addressState) return [];
     const stateData = allStatesAndCities.find(s => s.value === formData.addressState);
@@ -66,12 +69,14 @@ const UserRegistration = ({ onRegister, onSaveRegistrationProgress, onLogin, onC
 
   const handleInputChange = (e) => {
     const resetsLocation = e.target.name === 'addressStreet' || e.target.name === 'addressNumber';
+    if (resetsLocation) addressManuallySetRef.current = true;
     setFieldErrors(prev => ({ ...prev, [e.target.name]: '' }));
     setFormError('');
     setFormData({ ...formData, [e.target.name]: e.target.value, ...(resetsLocation ? { latitude: null, longitude: null, locationSource: 'city_center' } : {}) });
   };
 
   const handleSelectChange = (field, value) => {
+    if (field === 'addressState' || field === 'addressCity') addressManuallySetRef.current = true;
     setFieldErrors(prev => ({ ...prev, [field]: '' }));
     setFormError('');
     setFormData(prev => ({ ...prev, [field]: value, latitude: null, longitude: null, locationSource: 'city_center', ...(field === 'addressState' && { addressCity: '' }) }));
@@ -93,6 +98,7 @@ const UserRegistration = ({ onRegister, onSaveRegistrationProgress, onLogin, onC
   };
 
   const handleAddressFound = (address) => {
+    addressManuallySetRef.current = true;
     const stateData = allStatesAndCities.find(item => item.value === address.addressState);
     const normalizedCity = (address.addressCity || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
     const city = stateData?.cities.find(item => item.value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim() === normalizedCity)?.value || address.addressCity;
@@ -115,23 +121,29 @@ const UserRegistration = ({ onRegister, onSaveRegistrationProgress, onLogin, onC
     const street = [company.logradouro, company.complemento, company.bairro].filter(Boolean).join(', ');
 
     const cep = formatCep(company.cep || '');
-    setFieldErrors(prev => ({ ...prev, cnpj: '', name: '', addressCep: '', addressStreet: '', addressCity: '', addressState: '' }));
+    const shouldFillAddress = !addressManuallySetRef.current;
+    setFieldErrors(prev => ({ ...prev, cnpj: '', name: '', ...(shouldFillAddress && { addressCep: '', addressStreet: '', addressCity: '', addressState: '' }) }));
     setFormError('');
     setFormData(prev => ({
       ...prev,
       name: company.razao_social || company.nome_fantasia || prev.name,
       phone: company.ddd_telefone_1 || prev.phone,
-      addressCep: cep,
-      addressStreet: street || prev.addressStreet,
-      addressNumber: company.numero || prev.addressNumber,
-      addressCity: city,
-      addressState: state,
-      latitude: null,
-      longitude: null,
-      locationSource: 'city_center',
+      ...(shouldFillAddress && {
+        addressCep: cep,
+        addressStreet: street || prev.addressStreet,
+        addressNumber: company.numero || prev.addressNumber,
+        addressCity: city,
+        addressState: state,
+        latitude: null,
+        longitude: null,
+        locationSource: 'city_center',
+      }),
     }));
+    // O CNPJ preenche o endereço só se o usuário ainda não informou um (via CEP ou manualmente);
+    // uma resposta lenta do CNPJ não deve sobrescrever um endereço que o usuário já digitou.
+    if (!shouldFillAddress) return;
     const coordinates = await geocodeAddress({ cep, street: [street, company.numero].filter(Boolean).join(', '), city, state });
-    if (coordinates) setFormData(prev => ({ ...prev, ...coordinates, locationSource: coordinates.source || 'cep' }));
+    if (coordinates && !addressManuallySetRef.current) setFormData(prev => ({ ...prev, ...coordinates, locationSource: coordinates.source || 'cep' }));
   };
 
   const handleSubmit = async (e) => {
@@ -387,6 +399,7 @@ const UserRegistration = ({ onRegister, onSaveRegistrationProgress, onLogin, onC
     setPasswordResetRequested(false);
     setFieldErrors({});
     setFormError('');
+    addressManuallySetRef.current = false;
     setFormData({ name: '', email: '', password: '', confirmPassword: '', phone: '', whatsapp: '', cpf: '', addressCep: '', addressStreet: '', addressNumber: '', addressCity: '', addressState: '', cnpj: '', latitude: null, longitude: null, locationSource: 'city_center', vehicleTypes: [] });
   };
 
@@ -576,7 +589,7 @@ const UserRegistration = ({ onRegister, onSaveRegistrationProgress, onLogin, onC
                 <>
                   <CepAddressLookup
                     value={formData.addressCep}
-                    onChange={(addressCep) => { setFieldErrors(prev => ({ ...prev, addressCep: '' })); setFormError(''); setFormData(prev => ({ ...prev, addressCep })); }}
+                    onChange={(addressCep) => { addressManuallySetRef.current = true; setFieldErrors(prev => ({ ...prev, addressCep: '' })); setFormError(''); setFormData(prev => ({ ...prev, addressCep })); }}
                     onAddressFound={handleAddressFound}
                     required
                     inputClassName="bg-popover border-border text-sm h-11"
@@ -648,7 +661,7 @@ const UserRegistration = ({ onRegister, onSaveRegistrationProgress, onLogin, onC
                   <p className="text-xs text-muted-foreground pt-1">Informe seu endereço para que suas procuras já comecem na sua cidade.</p>
                   <CepAddressLookup
                     value={formData.addressCep}
-                    onChange={(addressCep) => { setFieldErrors(prev => ({ ...prev, addressCep: '' })); setFormError(''); setFormData(prev => ({ ...prev, addressCep })); }}
+                    onChange={(addressCep) => { addressManuallySetRef.current = true; setFieldErrors(prev => ({ ...prev, addressCep: '' })); setFormError(''); setFormData(prev => ({ ...prev, addressCep })); }}
                     onAddressFound={handleAddressFound}
                     required
                     inputClassName="bg-popover border-border text-sm h-11"
@@ -679,7 +692,7 @@ const UserRegistration = ({ onRegister, onSaveRegistrationProgress, onLogin, onC
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className={`w-full font-semibold py-2.5 text-sm h-10 ${isCompanyIntent ? 'bg-accent-agile hover:bg-accent-agile/90 text-accent-agile-foreground' : 'bg-primary hover:bg-primary/90 text-primary-foreground'}`}
+                className={`w-full font-semibold py-2.5 text-sm h-11 ${isCompanyIntent ? 'bg-accent-agile hover:bg-accent-agile/90 text-accent-agile-foreground' : 'bg-primary hover:bg-primary/90 text-primary-foreground'}`}
               >
                 {isSubmitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : (step === 'email' ? <ArrowRight className="h-4 w-4 mr-2" /> : (isLogin ? <LogIn className="h-4 w-4 mr-2" /> : <UserPlus className="h-4 w-4 mr-2" />))}
                 {isSubmitting ? 'Aguarde...' : buttonText}

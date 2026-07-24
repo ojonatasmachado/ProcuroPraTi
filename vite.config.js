@@ -371,16 +371,17 @@ const adminPreviewDataPlugin = () => ({
 			};
 
 			try {
-				const [users, companies, procuras, feedbacks, registrationProgress] = await Promise.all([
+				const [users, companies, procuras, feedbacks, registrationProgress, errorEvents] = await Promise.all([
 					readTable('users?select=id,name,email,phone,location,vehicles,created_at,terms_accepted_date&is_demo=eq.false'),
 					readTable('companies?select=id,name,email,phone,cnpj,address,serves_locations,validation_status,validation_reason,vehicle_types,created_at,terms_accepted_date,payment_exempt_until,access_history&is_demo=eq.false&deleted_at=is.null'),
 					readTable('procuras?select=*,responses(*)&is_demo=eq.false'),
 					readTable('feedbacks?select=*&is_demo=eq.false'),
 					readTable('registration_progress?select=email,stage,updated_at'),
+					readTable('ui_error_events?select=*&order=last_seen_at.desc&limit=300'),
 				]);
 				response.setHeader('Content-Type', 'application/json; charset=utf-8');
 				response.setHeader('Cache-Control', 'no-store');
-				response.end(JSON.stringify({ users, companies, procuras, feedbacks, registrationProgress }));
+				response.end(JSON.stringify({ users, companies, procuras, feedbacks, registrationProgress, errorEvents }));
 			} catch (error) {
 				response.statusCode = 500;
 				response.end(JSON.stringify({ error: error.message }));

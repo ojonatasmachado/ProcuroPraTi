@@ -72,7 +72,7 @@ const NotificationDropdown = ({ notifications, onNotificationClick }) => {
               <DropdownMenuItem
                 key={notification.id}
                 onClick={() => onNotificationClick(notification)}
-                className="min-w-0 cursor-pointer hover:!bg-accent/20 p-3 flex flex-col items-start"
+                className="min-w-0 cursor-pointer hover:!bg-primary/10 focus:!bg-primary/15 p-3 flex flex-col items-start"
               >
                 <div className="flex min-w-0 items-center w-full">
                   {getIconForNotification(notification.type)}

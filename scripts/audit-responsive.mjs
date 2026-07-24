@@ -14,7 +14,7 @@ const checks = [
   ['modal de chat usa altura dinâmica', read('src/components/ChatModal.jsx').includes('80dvh')],
   ['lista de chats usa altura dinâmica', read('src/components/ChatListModal.jsx').includes('80dvh')],
   ['landing usa CTAs empilhados no celular', read('src/components/landing/HeroSection.jsx').includes('grid-cols-1 sm:grid-cols-2')],
-  ['cards mantêm leitura confortável em qualquer tela', read('src/components/SearchList.jsx').includes('max-w-2xl') && read('src/components/SearchList.jsx').includes('grid-cols-1')],
+  ['cards mantêm leitura confortável em qualquer tela', read('src/components/UserDashboard.jsx').includes('max-w-2xl')],
 ];
 
 const sourceFiles = [

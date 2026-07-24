@@ -9,6 +9,33 @@ const MAP_WIDTH = 1000;
 const MAP_HEIGHT = 600;
 const KM_PER_LATITUDE_DEGREE = 111.32;
 
+class MapCanvasErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error) {
+    console.error('Falha ao desenhar o mapa regional', error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex h-full w-full flex-col items-center justify-center gap-1 px-6 text-center text-xs leading-relaxed text-muted-foreground">
+          <p>Não foi possível carregar o mapa interativo agora.</p>
+          <p>Você pode continuar e criar a procura normalmente; vamos usar o centro da cidade selecionada.</p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const geometryPath = (geometry, project) => {
   if (!geometry?.coordinates) return '';
   const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.type === 'MultiPolygon' ? geometry.coordinates : [];
@@ -282,7 +309,9 @@ const LocationMapPicker = ({
           <div className="pointer-events-none absolute bottom-2 left-2 z-10 flex items-center gap-2 rounded-md bg-card/88 px-2 py-1 text-[9px] font-semibold text-muted-foreground"><span className="h-2 w-2 rounded-full bg-accent-agile" />Municípios no raio</div>
           <div className="pointer-events-none absolute bottom-2 right-2 z-10 rounded-md bg-card/85 px-2 py-1 text-[9px] font-medium text-muted-foreground">Limites municipais: IBGE</div>
           {isLoadingMesh && <div className="pointer-events-none absolute inset-x-0 bottom-7 z-10 text-center text-[10px] font-semibold text-muted-foreground">Desenhando municípios...</div>}
-          <RegionalMap center={center} radiusKm={radiusKm} showRadius={showRadius} cities={nearbyCities} municipalityMesh={municipalityMesh} stateMesh={stateMesh} focusMunicipalityId={municipality?.id} onPick={onChange} />
+          <MapCanvasErrorBoundary>
+            <RegionalMap center={center} radiusKm={radiusKm} showRadius={showRadius} cities={nearbyCities} municipalityMesh={municipalityMesh} stateMesh={stateMesh} focusMunicipalityId={municipality?.id} onPick={onChange} />
+          </MapCanvasErrorBoundary>
         </div>
       ) : (
         <div className="flex h-28 items-center justify-center rounded-md border border-border bg-muted/40 px-4 text-center text-xs leading-relaxed text-muted-foreground">Selecione uma cidade para visualizar a região.</div>

@@ -88,7 +88,7 @@ const CompanyAccessGate = ({ company, access, onClaim, onLogout }) => {
                   Você já está identificado pelo login da empresa. Não precisa de PIN — é só continuar.
                 </p>
               )}
-              {error && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive">{error}</p>}
+              {error && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm font-medium text-danger">{error}</p>}
               <Button type="submit" className="w-full" disabled={submitting}>
                 {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Liberando acesso...</> : 'Entrar'}
               </Button>

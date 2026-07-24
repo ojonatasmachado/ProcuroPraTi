@@ -35,7 +35,7 @@ try {
   assert(initial.data.enabled === false && initial.data.authorized === true, 'Empresa antiga não manteve o acesso compatível.');
 
   const enabled = await ownerClient.rpc('enable_company_team_access', {
-    p_owner_pin: '735194', p_device_id: 'audit-owner', p_device_name: 'Auditoria responsável',
+    p_device_id: 'audit-owner', p_device_name: 'Auditoria responsável',
   });
   if (enabled.error) throw enabled.error;
   assert(enabled.data.success && enabled.data.role === 'owner', 'Não foi possível ativar o responsável.');

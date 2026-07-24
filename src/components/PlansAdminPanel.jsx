@@ -22,7 +22,11 @@ const PlansAdminPanel = ({ companies = [] }) => {
 
   const filtered = useMemo(() => companies.filter(company => {
     const term = search.toLowerCase();
-    return !term || company.name?.toLowerCase().includes(term) || company.cnpj?.includes(search) || company.email?.toLowerCase().includes(term);
+    // CNPJ é comparado só em dígitos: buscar "38.175.536/0001-10" (como está
+    // no cartão CNPJ) precisa achar a empresa mesmo salva sem pontuação.
+    const digitsOnlySearch = search.replace(/\D/g, '');
+    const cnpjMatch = digitsOnlySearch && company.cnpj?.replace(/\D/g, '').includes(digitsOnlySearch);
+    return !term || company.name?.toLowerCase().includes(term) || cnpjMatch || company.email?.toLowerCase().includes(term);
   }).slice(0, 30), [companies, search]);
   const selected = companies.find(company => company.id === companyId);
 
@@ -70,6 +74,7 @@ const PlansAdminPanel = ({ companies = [] }) => {
           {action === 'grant_plan' && <label className="flex items-center gap-2 text-sm"><Checkbox checked={indefinite} onCheckedChange={value => setIndefinite(Boolean(value))} />Concessão sem data de término</label>}
           <div><Label>Justificativa obrigatória</Label><Textarea value={reason} onChange={event => setReason(event.target.value)} placeholder="Ex: parceria de lançamento, abono comercial..." /></div>
           <Button onClick={submit} disabled={saving || !companyId} className="w-full">{saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : action === 'extend_trial' ? <CalendarPlus className="mr-2 h-4 w-4" /> : <ShieldCheck className="mr-2 h-4 w-4" />}Aplicar e registrar</Button>
+          {!companyId && <p className="text-xs font-medium text-warning">Selecione uma empresa na lista ao lado para habilitar o botão.</p>}
           <p className="text-xs leading-5 text-muted-foreground">Todo ajuste é gravado com empresa, período, motivo e origem administrativa.</p>
         </CardContent>
       </Card>

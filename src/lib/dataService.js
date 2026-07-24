@@ -287,18 +287,26 @@ export const dataService = {
     }
     return null;
   },
-  async getUsers() {
-    const { data, error } = await requireSupabase().from('user_directory').select('id,name');
+  async getUsers(ids) {
+    if (ids && ids.length === 0) return [];
+    let query = requireSupabase().from('user_directory').select('id,name');
+    if (ids) query = query.in('id', ids);
+    const { data, error } = await query;
     throwIfError(error);
     return (data || []).map(toCamel);
   },
-  async getCompanies() {
-    const { data, error } = await requireSupabase().from('company_directory').select('*');
+  async getCompanies(ids) {
+    if (ids && ids.length === 0) return [];
+    let query = requireSupabase().from('company_directory').select('*');
+    if (ids) query = query.in('id', ids);
+    const { data, error } = await query;
     throwIfError(error);
     return (data || []).map(toCamel);
   },
   async getProcuras() {
-    const { data, error } = await requireSupabase().from('procuras').select('*, responses(*)').order('created_at', { ascending: false });
+    // Limitado às procuras mais recentes visíveis para a conta (RLS já restringe
+    // a quem é relevante). Evita baixar anos de histórico a cada carregamento/poll.
+    const { data, error } = await requireSupabase().from('procuras').select('*, responses(*)').order('created_at', { ascending: false }).limit(1000);
     throwIfError(error);
     return (data || []).map(toCamel);
   },
@@ -317,7 +325,9 @@ export const dataService = {
   async getMessages() {
     const { error: deliveryError } = await requireSupabase().rpc('mark_messages_delivered');
     throwIfError(deliveryError);
-    const { data, error } = await requireSupabase().from('messages').select('*').order('timestamp', { ascending: true });
+    // Só as últimas ~150 mensagens de cada conversa, não o histórico completo
+    // de todas as conversas desde sempre (ver recent_messages no banco).
+    const { data, error } = await requireSupabase().rpc('recent_messages', { p_limit_per_chat: 150 });
     throwIfError(error);
     return normalizeMessages(await attachChatImageUrls(data || []));
   },

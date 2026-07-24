@@ -201,10 +201,36 @@ function App() {
     }
   }, [userType, setUserType, setCurrentUser, setShowLanding]);
 
-  const loadAuthenticatedData = useCallback(async () => {
-    const [remoteUsers, remoteCompanies, remoteProcuras, remoteChats, remoteRatings] = await Promise.all([
-      dataService.getUsers(), dataService.getCompanies(), dataService.getProcuras(), dataService.getMessages(),
+  const loadAuthenticatedData = useCallback(async (selfId) => {
+    const [remoteProcuras, remoteChats, remoteRatings] = await Promise.all([
+      dataService.getProcuras(), dataService.getMessages(),
       dataService.getMyCompanyRatings().catch(() => []),
+    ]);
+
+    // Só resolvemos nome/perfil de quem realmente aparece nos dados desta sessão
+    // (autor das procuras, empresas que responderam, participantes dos chats).
+    // Evita baixar o diretório inteiro de usuários/empresas a cada carregamento.
+    const neededUserIds = new Set();
+    const neededCompanyIds = new Set();
+    const effectiveSelfId = selfId || currentUser?.id;
+    if (effectiveSelfId) {
+      neededUserIds.add(effectiveSelfId);
+      neededCompanyIds.add(effectiveSelfId);
+    }
+    remoteProcuras.forEach(procura => {
+      if (procura.userId) neededUserIds.add(procura.userId);
+      (procura.responses || []).forEach(response => {
+        if (response.companyId) neededCompanyIds.add(response.companyId);
+      });
+    });
+    Object.values(remoteChats || {}).flat().forEach(message => {
+      if (message.senderId) { neededUserIds.add(message.senderId); neededCompanyIds.add(message.senderId); }
+      if (message.receiverId) { neededUserIds.add(message.receiverId); neededCompanyIds.add(message.receiverId); }
+    });
+
+    const [remoteUsers, remoteCompanies] = await Promise.all([
+      dataService.getUsers([...neededUserIds]),
+      dataService.getCompanies([...neededCompanyIds]),
     ]);
     setUsers(remoteUsers);
     setCompanies(remoteCompanies);
@@ -213,7 +239,7 @@ function App() {
     setCompanyRatings(Object.fromEntries(remoteRatings.map(item => [item.responseId, item])));
     setIsAuthenticatedDataLoaded(true);
     return remoteProcuras;
-  }, []);
+  }, [currentUser?.id]);
 
   const hydrateSession = useCallback(async (session) => {
     if (!session?.user) {
@@ -284,7 +310,7 @@ function App() {
     if (account.type === 'company' && accessContext?.authorized) {
       void syncExistingPushSubscription(account.profile.id, 'company').catch(() => {});
     }
-    const loadedProcuras = await loadAuthenticatedData();
+    const loadedProcuras = await loadAuthenticatedData(account.profile.id);
     setUserProcuraCount(account.type === 'user' ? loadedProcuras.filter(item => item.userId === account.profile.id).length : 0);
     setIsAuthLoading(false);
   }, [isCollaboratorEntry, loadAuthenticatedData]);
@@ -608,6 +634,7 @@ function App() {
           procuras: (payload.procuras || []).map(toCamel),
           feedbacks: (payload.feedbacks || []).map(toCamel),
           registrationProgress: (payload.registrationProgress || []).map(toCamel),
+          errorEvents: (payload.errorEvents || []).map(toCamel),
         });
       })
       .catch(error => { if (active) setAdminPreviewError(error.message); });
@@ -1053,6 +1080,7 @@ function App() {
     const previewProcuras = adminPreviewData?.procuras || [];
     const previewFeedbacks = adminPreviewData?.feedbacks || [];
     const previewRegistrationProgress = adminPreviewData?.registrationProgress || [];
+    const previewErrorEvents = adminPreviewData?.errorEvents || [];
     return (
       <div className="min-h-screen bg-background text-foreground">
         <header className="sticky top-0 z-50 border-b border-border bg-card/90 px-4 py-3 backdrop-blur-md">
@@ -1070,7 +1098,7 @@ function App() {
         </header>
         <main className="container mx-auto px-3 py-6 sm:px-4 sm:py-8">
           {!adminPreviewData && !adminPreviewError && <div className="rounded-xl border border-border bg-card p-8 text-center text-muted-foreground">Carregando dados reais do Supabase...</div>}
-          {adminPreviewError && <div className="rounded-xl border border-destructive/50 bg-destructive/10 p-6 text-destructive">Não foi possível carregar o painel: {adminPreviewError}</div>}
+          {adminPreviewError && <div className="rounded-xl border border-destructive/50 bg-destructive/10 p-6 text-danger">Não foi possível carregar o painel: {adminPreviewError}</div>}
           {adminPreviewData && <AdminDashboard
             procuras={previewProcuras}
             users={previewUsers}
@@ -1078,6 +1106,7 @@ function App() {
             setCompanies={(updater) => setAdminPreviewData(current => ({ ...current, companies: typeof updater === 'function' ? updater(current.companies) : updater }))}
             feedbacks={previewFeedbacks}
             registrationProgress={previewRegistrationProgress}
+            errorEvents={previewErrorEvents}
             allStatesAndCities={BRAZILIAN_STATES_AND_CITIES}
             readOnly
           />}

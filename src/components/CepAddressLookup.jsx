@@ -38,6 +38,9 @@ const CepAddressLookup = ({ value, onChange, onAddressFound, required = false, i
           return { street: result.logradouro, neighborhood: result.bairro, city: result.localidade, state: result.uf };
         }),
       ];
+      // Promise.any já resolve com o primeiro provedor bem-sucedido; sem este catch,
+      // o abort() do provedor perdedor vira uma rejeição não tratada no console.
+      providers.forEach(provider => { provider.catch(() => {}); });
       let address = null;
       try {
         address = await Promise.any(providers);

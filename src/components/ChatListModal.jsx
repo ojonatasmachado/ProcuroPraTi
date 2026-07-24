@@ -92,7 +92,7 @@ const ChatListModal = ({ isOpen, onClose, currentUser, chats, users, companies, 
                   transition={{ duration: 0.2, delay: index * 0.05 }}
                 >
                   <Card 
-                    className="cursor-pointer hover:bg-accent/50 transition-colors border-border/50"
+                    className="cursor-pointer hover:bg-primary/10 focus:bg-primary/15 transition-colors border-border/50"
                     onClick={() => onOpenChat(chat.otherUser.id, chat.procuraId)}
                   >
                     <CardContent className="p-3">

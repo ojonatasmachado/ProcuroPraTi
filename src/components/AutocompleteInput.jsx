@@ -105,7 +105,7 @@ const AutocompleteInput = ({ id, placeholder, value, onChange, onSelect, suggest
                     key={`${suggestion.value}-${index}`}
                     value={suggestion.value}
                     onSelect={() => handleSuggestionClick(suggestion)}
-                    className="cursor-pointer hover:!bg-accent/20 aria-selected:!bg-accent/30"
+                    className="cursor-pointer hover:!bg-primary/10 focus:!bg-primary/15 aria-selected:!bg-primary/15"
                   >
                     {suggestion.label}
                   </CommandItem>
