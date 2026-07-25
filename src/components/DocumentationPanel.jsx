@@ -660,6 +660,7 @@ const productComponents = [
   ['AutocompleteInput', 'Campo de texto com sugestões (usado no nome da peça). Mesma busca por palavra do CityCombobox, mais um item "Usar “X”" sempre visível quando o texto digitado não bate exatamente com nenhuma sugestão, para deixar claro que dá para continuar com o nome digitado.'],
   ['BrandLogo / BrandMark', 'Ver seção "Marca e ícone" acima.'],
   ['ThemeToggle', 'Alterna entre modo claro e escuro, persistindo a preferência.'],
+  ['PhoneMockup / BrowserMockup', 'Molduras genéricas (sem marca de fabricante) para encaixar prints reais do produto em card/hero, usadas na seção "Como Funciona" da landing page. Ficam em src/components/landing/DeviceMockup.jsx; as imagens em si vêm de public/images/mockups/ e são sempre capturadas com dado fictício/demo, nunca de usuário real.'],
 ];
 
 const sections = [

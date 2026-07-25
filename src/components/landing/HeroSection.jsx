@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Store } from 'lucide-react';
+import { ChevronDown, Store } from 'lucide-react';
 import { motion } from 'framer-motion';
 import BrandLogo from '@/components/BrandLogo';
 import BrandMark from '@/components/BrandMark';
@@ -34,6 +34,17 @@ const HeroSection = ({ onGetStarted, scrollToSection }) => {
             </Button>
           </div>
 
+          <motion.button
+            type="button"
+            onClick={() => scrollToSection('como-funciona')}
+            className="inline-flex flex-col items-center gap-1 text-muted-foreground transition-colors hover:text-primary"
+            aria-label="Rolar para conhecer como funciona"
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <span className="text-xs font-medium uppercase tracking-wider">Veja como funciona</span>
+            <ChevronDown className="h-6 w-6" />
+          </motion.button>
         </motion.div>
       </div>
     </section>

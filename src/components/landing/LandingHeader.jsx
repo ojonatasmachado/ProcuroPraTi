@@ -5,6 +5,11 @@ import { Store } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import BrandLogo from '@/components/BrandLogo';
 
+const navLink = (id, scrollToSection) => (event) => {
+  event.preventDefault();
+  scrollToSection(id);
+};
+
 const LandingHeader = ({ onGetStarted, scrollToSection }) => {
   return (
     <header className="safe-header py-3 sm:py-4 px-3 sm:px-4 shadow-md bg-card/90 backdrop-blur-md sticky top-0 z-50 border-b border-border">
@@ -13,9 +18,9 @@ const LandingHeader = ({ onGetStarted, scrollToSection }) => {
           <BrandLogo as="h1" iconClassName="h-9 w-9 sm:h-10 sm:w-10" textClassName="text-xl sm:text-2xl" />
         </div>
         <nav className="hidden md:flex items-center gap-6">
-          <button onClick={() => scrollToSection('como-funciona')} className="text-muted-foreground hover:text-primary transition-colors">Como Funciona</button>
-          <button onClick={() => scrollToSection('a-marca')} className="text-muted-foreground hover:text-primary transition-colors">A Marca</button>
-          <button onClick={() => scrollToSection('faq')} className="text-muted-foreground hover:text-primary transition-colors">FAQ</button>
+          <a href="#como-funciona" onClick={navLink('como-funciona', scrollToSection)} className="text-muted-foreground hover:text-primary transition-colors">Como Funciona</a>
+          <a href="#a-marca" onClick={navLink('a-marca', scrollToSection)} className="text-muted-foreground hover:text-primary transition-colors">A Marca</a>
+          <a href="#faq" onClick={navLink('faq', scrollToSection)} className="text-muted-foreground hover:text-primary transition-colors">FAQ</a>
           <Button onClick={() => onGetStarted('user')} className="bg-primary hover:bg-primary/90 text-primary-foreground">
             Vou procurar
           </Button>

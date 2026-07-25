@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import BrandLogo from '@/components/BrandLogo';
 
 const BrandStorySection = () => (
-  <section id="a-marca" className="py-16 sm:py-24 px-4">
+  <section id="a-marca" className="py-10 sm:py-14 px-4 bg-card/20">
     <div className="container mx-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}

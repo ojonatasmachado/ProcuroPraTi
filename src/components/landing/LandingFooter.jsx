@@ -18,7 +18,7 @@ const LandingFooter = ({ scrollToSection }) => {
           <div>
             <span className="font-semibold text-foreground mb-4 block">Links Rápidos</span>
             <div className="space-y-2">
-              <button onClick={() => scrollToSection('a-marca')} className="block text-muted-foreground hover:text-primary transition-colors">Sobre nós</button>
+              <a href="#a-marca" onClick={(event) => { event.preventDefault(); scrollToSection('a-marca'); }} className="block text-muted-foreground hover:text-primary transition-colors">Sobre nós</a>
               <p className="text-sm text-muted-foreground">Termos e privacidade disponíveis no cadastro</p>
             </div>
           </div>

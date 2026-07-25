@@ -1,38 +1,62 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MessagesSquare, Store, Target } from 'lucide-react';
+import { Target, MessagesSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
-import BrandMark from '@/components/BrandMark';
+import { PhoneMockup, BrowserMockup } from '@/components/landing/DeviceMockup';
 
 const journeys = [
   {
-    icon: BrandMark,
     eyebrow: 'Para quem precisa de uma peça',
     title: 'Procure sem perder tempo',
-    accent: 'primary',
     steps: [
       'Informe seu veículo e descreva a peça de que precisa.',
       'Defina por quanto tempo a procura ficará ativa.',
       'Receba respostas de empresas que podem atender.',
       'Compare as opções e inicie a conversa quando quiser.',
     ],
+    mockup: (
+      <div className="mb-6 flex items-end justify-center gap-3 sm:gap-4">
+        <PhoneMockup
+          src="/images/mockups/buyer-create-procura.png"
+          alt="Tela de criação de uma procura, com veículo, peça e prazo preenchidos"
+          className="w-[56%]"
+        />
+        <PhoneMockup
+          src="/images/mockups/buyer-compare-responses.png"
+          alt="Tela comparando respostas de diferentes empresas, com preço, condição e localização"
+          className="w-[40%] translate-y-5 opacity-95"
+        />
+      </div>
+    ),
   },
   {
-    icon: Store,
     eyebrow: 'Para empresas de peças automotivas',
     title: 'Venda para quem já está procurando',
-    accent: 'agile',
     steps: [
       'Cadastre sua empresa e suas informações comerciais.',
       'Visualize procuras relacionadas ao que você vende.',
       'Responda com disponibilidade, preço e condições.',
       'Converse com o comprador depois que ele iniciar o chat.',
     ],
+    mockup: (
+      <div className="mb-6 flex items-end justify-center gap-3 sm:gap-4">
+        <BrowserMockup
+          src="/images/mockups/company-procuras-list.png"
+          alt="Tela com a lista de procuras compatíveis chegando para a empresa"
+          className="w-[62%]"
+        />
+        <BrowserMockup
+          src="/images/mockups/company-response-form.png"
+          alt="Tela de resposta da empresa, com preço, condição e foto da peça"
+          className="hidden w-[46%] translate-y-5 opacity-95 sm:block"
+        />
+      </div>
+    ),
   },
 ];
 
 const HowItWorksSection = () => (
-  <section id="como-funciona" className="py-16 sm:py-24 px-4 bg-card/30">
+  <section id="como-funciona" className="pt-16 sm:pt-24 pb-10 sm:pb-14 px-4 bg-card/30">
     <div className="container mx-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -49,13 +73,11 @@ const HowItWorksSection = () => (
       </motion.div>
 
       <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 max-w-6xl mx-auto">
-        {journeys.map(({ icon: Icon, eyebrow, title, accent, steps }) => (
+        {journeys.map(({ eyebrow, title, steps, mockup }) => (
           <motion.div key={title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-100px' }} transition={{ duration: 0.4 }}>
             <Card className="h-full border-border bg-card overflow-hidden">
               <CardHeader className="p-6 sm:p-8 pb-4">
-                <div className={`h-12 w-12 rounded-2xl flex items-center justify-center mb-5 ${accent === 'primary' ? 'bg-primary text-primary-foreground' : 'bg-accent-agile text-accent-agile-foreground'}`}>
-                  <Icon className="h-6 w-6" />
-                </div>
+                {mockup}
                 <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{eyebrow}</p>
                 <CardTitle className="text-2xl sm:text-3xl text-foreground mt-2">{title}</CardTitle>
               </CardHeader>
@@ -75,9 +97,10 @@ const HowItWorksSection = () => (
       </div>
 
       <div className="mt-8 max-w-6xl mx-auto grid sm:grid-cols-2 gap-4">
-        <div className="rounded-2xl border border-border bg-background p-5 flex gap-4 items-start">
+        <div className="rounded-2xl border border-border bg-background p-5 flex gap-4 items-center">
           <Target className="h-6 w-6 shrink-0 text-primary" />
-          <p className="text-sm text-muted-foreground"><strong className="text-foreground">O comprador mantém o controle.</strong> Ele escolhe a duração da procura e decide quando iniciar uma conversa.</p>
+          <p className="flex-1 text-sm text-muted-foreground"><strong className="text-foreground">O comprador mantém o controle.</strong> Ele escolhe a duração da procura e decide quando iniciar uma conversa.</p>
+          <img src="/images/mockups/buyer-chat.png" alt="" aria-hidden="true" className="hidden h-16 w-12 shrink-0 rounded-lg border border-border object-cover object-top sm:block" />
         </div>
         <div className="rounded-2xl border border-border bg-background p-5 flex gap-4 items-start">
           <MessagesSquare className="h-6 w-6 shrink-0 text-accent-agile-text" />

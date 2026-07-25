@@ -55,7 +55,7 @@ const LandingPage = ({ onGetStarted }) => {
       <BrandStorySection />
 
       {/* Como Começar */}
-      <section className="py-16 sm:py-24 px-4">
+      <section className="pt-10 sm:pt-14 pb-16 sm:pb-24 px-4">
         <div className="container mx-auto text-center">
           <motion.div
             initial="initial"
