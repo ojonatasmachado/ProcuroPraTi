@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Check, ChevronsUpDown } from 'lucide-react';
+import { Check, ChevronsUpDown, PenLine } from 'lucide-react';
 import BrandMark from '@/components/BrandMark';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,9 @@ const CityCombobox = ({ id, value, onChange, options = [], placeholder = 'Seleci
       : options;
     return matches.slice(0, maxResults);
   }, [options, query, maxResults]);
+  const trimmedQuery = query.trim();
+  const hasExactMatch = filteredOptions.some(option => option.label.toLowerCase() === trimmedQuery.toLowerCase());
+  const showCreateOption = Boolean(onCreate) && trimmedQuery.length > 0 && !hasExactMatch;
 
   return (
     <Popover open={open} onOpenChange={(nextOpen) => { setOpen(nextOpen); if (!nextOpen) setQuery(''); }}>
@@ -32,7 +35,14 @@ const CityCombobox = ({ id, value, onChange, options = [], placeholder = 'Seleci
           <Input value={query} onChange={event => setQuery(event.target.value)} placeholder={searchPlaceholder} autoFocus className="h-12 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0" />
         </div>
         <div className="max-h-[min(50dvh,320px)] overflow-y-auto p-1 overscroll-contain">
-          {filteredOptions.length === 0 && !onCreate ? <p className="px-3 py-6 text-center text-sm text-muted-foreground">Nenhuma opção encontrada.</p> : filteredOptions.map(option => (
+          {filteredOptions.length === 0 && !showCreateOption && <p className="px-3 py-6 text-center text-sm text-muted-foreground">Nenhuma opção encontrada.</p>}
+          {showCreateOption && (
+            <button type="button" onClick={() => { onCreate(trimmedQuery); setOpen(false); setQuery(''); }} className="flex min-h-12 w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium text-primary hover:bg-primary/10 focus:bg-primary/15 focus:outline-none">
+              <PenLine className="h-4 w-4 shrink-0" />
+              {typeof createLabel === 'function' ? createLabel(trimmedQuery) : `Usar “${trimmedQuery}”`}
+            </button>
+          )}
+          {filteredOptions.map(option => (
             <button key={option.value} type="button" onClick={() => { onChange(option.value); setOpen(false); setQuery(''); }} className="flex min-h-11 w-full items-center rounded-md px-3 py-2 text-left text-sm text-popover-foreground hover:bg-primary/10 focus:bg-primary/15 focus:outline-none">
               <Check className={cn('mr-2 h-4 w-4 shrink-0 text-primary', value === option.value ? 'opacity-100' : 'opacity-0')} />
               <span className="min-w-0">
@@ -41,12 +51,6 @@ const CityCombobox = ({ id, value, onChange, options = [], placeholder = 'Seleci
               </span>
             </button>
           ))}
-          {filteredOptions.length === 0 && onCreate && query && (
-            <button type="button" onClick={() => { onCreate(query.trim()); setOpen(false); setQuery(''); }} className="flex min-h-12 w-full items-center rounded-md px-3 py-2 text-left text-sm font-medium text-primary hover:bg-primary/10 focus:bg-primary/15 focus:outline-none">
-              <Check className="mr-2 h-4 w-4 shrink-0" />
-              {typeof createLabel === 'function' ? createLabel(query.trim()) : `Usar “${query.trim()}”`}
-            </button>
-          )}
           {!query && options.length > maxResults && <p className="px-3 py-2 text-center text-xs text-muted-foreground">Digite o nome para pesquisar entre todas as opções.</p>}
         </div>
       </PopoverContent>

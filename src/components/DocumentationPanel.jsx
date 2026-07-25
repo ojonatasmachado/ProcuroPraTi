@@ -214,13 +214,13 @@ const dataDictionary = [
     ['wants_photos', 'boolean', 'indica se o usuário deseja receber fotos da peça nas respostas'],
     ['reference_photo_url', 'text', 'URL de uma foto de referência enviada pelo usuário'],
     ['preferred_condition', 'text', 'condição preferida da peça (any, new ou used)'],
-    ['locations', 'jsonb', 'localidades onde o usuário aceita buscar a peça'],
+    ['locations', 'jsonb', 'cidade onde o usuário procura, preenchida automaticamente a partir do endereço do perfil (não é mais escolhida por procura, ver seção Limitações)'],
     ['created_at', 'timestamptz', 'data de criação da procura'],
     ['status', 'text', 'status da procura (ativa, encerrada etc.)'],
     ['duration', 'integer', 'duração/prazo configurado para a procura'],
-    ['search_latitude', 'double precision', 'latitude do ponto de busca usado para o raio de alcance'],
-    ['search_longitude', 'double precision', 'longitude do ponto de busca usado para o raio de alcance'],
-    ['search_location_source', 'text', 'origem do ponto de busca (gps, manual, city_center ou legacy)'],
+    ['search_latitude', 'double precision', 'latitude do ponto de busca usado para o raio de alcance. O formulário não coleta mais isso (ver Limitações); fica null em toda procura nova, o matching cai direto para comparação por cidade'],
+    ['search_longitude', 'double precision', 'longitude do ponto de busca usado para o raio de alcance. Mesma observação de search_latitude'],
+    ['search_location_source', 'text', 'origem do ponto de busca (gps, manual, city_center ou legacy). Sempre city_center em procuras novas, já que gps/manual dependiam do mapa removido do formulário'],
     ['search_radius_km', 'numeric', 'raio de busca em km definido na criação (hoje não usado pelo matching, ver Planos)'],
     ['is_demo', 'boolean', 'marca registros de demonstração/teste, não procuras reais'],
     ['is_rare_part', 'boolean', 'marca a peça como rara, o que amplia o alcance de visibilidade nacional'],
@@ -539,8 +539,8 @@ const frontendRoutes = [
   ['/painel-interno-preview', 'Painel administrativo. Só existe em modo de desenvolvimento local (import.meta.env.DEV), não é servido em produção.'],
 ];
 
-const devOnlyApiRoutes = [
-  { route: '/api/admin-preview-data', method: 'GET', what: 'Lê usuários, empresas, procuras, feedbacks e progresso de cadastro direto do Postgres via REST, usando a service role.' },
+const adminApiRoutes = [
+  { route: '/api/admin-preview-data', method: 'GET', what: 'Lê usuários, empresas, procuras, feedbacks e progresso de cadastro direto do Postgres via REST, usando a service role. Só é chamada pela tela /painel-interno-preview, que continua restrita a modo de desenvolvimento local.' },
   { route: '/api/admin-catalog', method: 'GET/POST', what: 'Lista e edita o catálogo de peças e a fila de submissões pendentes.' },
   { route: '/api/admin-entitlements', method: 'POST', what: 'Aplica ajuste manual de plano, trial ou pausa de cobrança numa empresa e registra o motivo.' },
 ];
@@ -768,11 +768,11 @@ export default function DocumentationPanel() {
             ))}
             <Card className="border-border bg-card">
               <CardHeader>
-                <CardTitle className="text-base">Rotas escritas à mão (só em desenvolvimento local)</CardTitle>
-                <CardDescription>Implementadas como middleware do próprio Vite (vite.config.js), estas sim são um servidor Node clássico. Não existem no build de produção.</CardDescription>
+                <CardTitle className="text-base">Rotas escritas à mão (funções serverless da Vercel)</CardTitle>
+                <CardDescription>Vivem em api/*.js na raiz do projeto e a Vercel publica cada arquivo como uma função, rodando em produção junto com o resto do build. Usam a service role key lida de process.env dentro da função, nunca exposta ao navegador. Em desenvolvimento local (npm run dev), as mesmas rotas continuam também disponíveis via middleware do Vite (vite.config.js), só por conveniência de não precisar do vercel dev.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
-                {devOnlyApiRoutes.map(item => (
+                {adminApiRoutes.map(item => (
                   <div key={item.route} className="rounded-xl border border-border bg-input/30 p-3.5">
                     <div className="flex flex-wrap items-center gap-2">
                       <Chip>{item.route}</Chip>
@@ -797,7 +797,7 @@ export default function DocumentationPanel() {
               <EntryCard title="Empresa (companies)"><p className="text-sm text-foreground/90">Também conta do Supabase Auth. O cadastro guarda CNPJ, endereço e plano vinculados a essa mesma conta.</p></EntryCard>
               <EntryCard title="Colaborador (company_operators)"><p className="text-sm text-foreground/90">Não tem conta própria no Supabase Auth. Entra com CNPJ, usuário e PIN numa Edge Function que verifica as credenciais e emite um magic link para a conta da empresa. O acesso dele dentro do app é limitado por regras de RLS/role, por exemplo não pode editar perfil nem excluir a conta.</p></EntryCard>
               <EntryCard title="Admin" badge={<span className="rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-semibold text-warning">sem autenticação real</span>}>
-                <p className="text-sm text-foreground/90">Não existe um perfil de admin autenticado hoje. O painel administrativo roda só localmente em modo dev e usa a service role key diretamente do navegador local; ver seção Limitações.</p>
+                <p className="text-sm text-foreground/90">Não existe um perfil de admin autenticado hoje. A tela /painel-interno-preview só carrega em modo de desenvolvimento local (import.meta.env.DEV); as funções serverless que ela e o painel de catálogo/planos chamam (api/admin-*.js) existem em produção, mas sem nenhum login ou verificação de permissão na frente. Ver seção Limitações.</p>
               </EntryCard>
             </CardContent>
           </Card>
@@ -924,7 +924,7 @@ export default function DocumentationPanel() {
             </CardHeader>
             <CardContent className="space-y-3">
               <EntryCard title="Sem ambiente de staging"><p className="text-sm text-foreground/90">Hoje só existe o banco de produção. Mudança de schema e testes de fluxo completo acontecem direto contra dados reais. Plano de criar um segundo projeto Supabase gratuito está definido mas ainda não executado, esbarrou no limite de 2 projetos ativos por conta gratuita.</p></EntryCard>
-              <EntryCard title="Painel admin sem autenticação real"><p className="text-sm text-foreground/90">Só funciona em <Chip>npm run dev</Chip> local e usa a service role key diretamente do navegador local. Não pode ser publicado como está, precisaria de login/autorização antes de virar algo acessível remotamente.</p></EntryCard>
+              <EntryCard title="Painel admin sem autenticação real" badge={<span className="rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-semibold text-warning">endpoints em produção, sem tela de login</span>}><p className="text-sm text-foreground/90">A tela /painel-interno-preview (catálogo, planos, prévia de dados) só carrega em <Chip>npm run dev</Chip> local. Mas desde que as rotas api/admin-catalog.js, api/admin-entitlements.js e api/admin-preview-data.js viraram funções serverless da Vercel, elas respondem em produção para quem souber a URL, sem login, role ou verificação de permissão nenhuma na frente. Antes de expor qualquer tela admin publicamente, essas rotas precisam de autenticação própria.</p></EntryCard>
               <EntryCard title="Sem paginação de UI"><p className="text-sm text-foreground/90">Procuras e mensagens já são limitadas por consulta (índices e <Chip>recent_messages()</Chip> por conversa), mas não há "carregar mais" nas telas. Contas muito antigas ou muito ativas eventualmente deixam de ver o histórico mais antigo.</p></EntryCard>
               <EntryCard title="Uma única região/projeto Supabase"><p className="text-sm text-foreground/90">Região sa-east-1, sem réplica ou plano de disaster recovery formal.</p></EntryCard>
               <EntryCard title="Catálogo depende de fontes públicas de terceiros"><p className="text-sm text-foreground/90">Mercado Livre e Hugging Face, sem contrato firmado. Mudança ou queda dessas fontes só afeta a sincronização manual, não o funcionamento do produto no dia a dia.</p></EntryCard>
@@ -933,6 +933,7 @@ export default function DocumentationPanel() {
                 <p className="text-sm text-foreground/90">A tabela companies já tem colunas para Stripe (stripe_customer_id, stripe_subscription_id, stripe_price_id), mas não existe nenhuma integração com o Stripe no código hoje. Toda concessão de plano é manual, feita pelo admin na aba Planos. Ou seja, não há cobrança automatizada de assinatura funcionando no produto.</p>
               </EntryCard>
               <EntryCard title="Colunas de PIN do responsável sem uso"><p className="text-sm text-foreground/90">owner_pin_hash, owner_pin_failed_attempts e owner_pin_locked_until em companies são de um modelo anterior, em que o responsável também precisava de PIN. Hoje o responsável entra sem PIN (só o colaborador usa), então essas três colunas estão sem uso ativo.</p></EntryCard>
+              <EntryCard title="Procura não coleta mais localização própria"><p className="text-sm text-foreground/90">O formulário de nova procura (SearchForm) removeu o seletor de cidade e o mapa: a decisão foi que o alcance geográfico é definido do lado da empresa (cidades atendidas ou raio a partir do endereço dela), não pela pessoa que procura. Consequência no banco: search_latitude, search_longitude e search_radius_km ficam sempre vazios/no valor padrão em procuras novas, e locations é preenchido automaticamente com a cidade do perfil do usuário. O matching por raio (company_can_view_procura) continua existindo no banco para procuras antigas, mas na prática toda procura nova cai no fallback por nome de cidade.</p></EntryCard>
             </CardContent>
           </Card>
         )}

@@ -91,7 +91,7 @@ const LandingPage = ({ onGetStarted }) => {
               Um lugar para procurar. Um lugar para vender.
             </h2>
             <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-              Publique sua procura ou cadastre sua empresa — os dois lados começam em poucos minutos.
+              Publique sua procura ou cadastre sua empresa: os dois lados começam em poucos minutos.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
               <Button onClick={() => onGetStarted('user')} size="lg" className="w-full min-h-12 h-auto whitespace-normal bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-5 sm:px-8 py-3 text-base sm:text-lg">

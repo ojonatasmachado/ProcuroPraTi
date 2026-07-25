@@ -12,6 +12,7 @@ export const EMPTY_VEHICLE = {
 
 const FIRST_YEAR = 1900;
 const modelManualValue = (name) => `manual-model:${name}`;
+const brandManualValue = (name) => `manual-brand:${name}`;
 
 const VehicleSelector = ({ value = EMPTY_VEHICLE, onChange, idPrefix = 'vehicle', yearRequired = false }) => {
   const [brands, setBrands] = useState([]);
@@ -81,7 +82,12 @@ const VehicleSelector = ({ value = EMPTY_VEHICLE, onChange, idPrefix = 'vehicle'
 
   const changeType = type => onChange({ ...EMPTY_VEHICLE, type });
   const changeYear = (yearValue) => onChange({ ...value, yearId: '', year: yearValue.replace('manual:', ''), fuel: '' });
+  const useManualBrand = (brandName) => onChange({ ...EMPTY_VEHICLE, type: value.type, year: value.year, brandId: '', brandName });
   const changeBrand = (brandId) => {
+    if (brandId.startsWith('manual-brand:')) {
+      useManualBrand(brandId.replace('manual-brand:', ''));
+      return;
+    }
     const brand = brands.find(item => item.id === brandId);
     onChange({ ...EMPTY_VEHICLE, type: value.type, year: value.year, brandId, brandName: brand?.name || '' });
   };
@@ -95,7 +101,10 @@ const VehicleSelector = ({ value = EMPTY_VEHICLE, onChange, idPrefix = 'vehicle'
   };
   const useManualModel = (modelName) => onChange({ ...value, modelId: '', modelName, fipeCode: '', yearId: '', fuel: '' });
 
-  const brandOptions = brands.map(brand => ({ value: brand.id, label: brand.name }));
+  const brandOptions = [
+    ...brands.map(brand => ({ value: brand.id, label: brand.name })),
+    ...(value.brandName && !value.brandId ? [{ value: brandManualValue(value.brandName), label: value.brandName, description: 'Marca informada manualmente.' }] : []),
+  ];
   const compatibleModels = modelIdsForYear instanceof Set && modelIdsForYear.size > 0
     ? models.filter(model => modelIdsForYear.has(model.id))
     : models;
@@ -136,11 +145,11 @@ const VehicleSelector = ({ value = EMPTY_VEHICLE, onChange, idPrefix = 'vehicle'
         </div>
         <div>
           <Label htmlFor={`${idPrefix}-brand`} className="mb-1 block text-xs font-medium text-muted-foreground sm:text-sm">Marca *</Label>
-          <CityCombobox id={`${idPrefix}-brand`} value={value.brandId} onChange={changeBrand} options={brandOptions} disabled={!value.type || loading === 'brands'} placeholder={loading === 'brands' ? 'Carregando...' : 'Selecione ou pesquise'} searchPlaceholder="Digite a marca" maxResults={500} />
+          <CityCombobox id={`${idPrefix}-brand`} value={value.brandId || (value.brandName ? brandManualValue(value.brandName) : '')} onChange={changeBrand} options={brandOptions} disabled={!value.type || loading === 'brands'} placeholder={loading === 'brands' ? 'Carregando...' : 'Selecione ou pesquise'} searchPlaceholder="Digite a marca" maxResults={500} onCreate={useManualBrand} createLabel={name => `Usar “${name}” como marca manual`} />
         </div>
         <div>
           <Label htmlFor={`${idPrefix}-model`} className="mb-1 block text-xs font-medium text-muted-foreground sm:text-sm">Modelo *</Label>
-          <CityCombobox id={`${idPrefix}-model`} value={value.modelId || (value.modelName ? modelManualValue(value.modelName) : '')} onChange={changeModel} options={modelOptions} disabled={!value.brandId || loading === 'models'} placeholder={loading === 'models' ? 'Carregando...' : 'Selecione ou pesquise'} searchPlaceholder="Digite modelo ou versão" maxResults={500} onCreate={useManualModel} createLabel={name => `Usar “${name}” como modelo manual`} />
+          <CityCombobox id={`${idPrefix}-model`} value={value.modelId || (value.modelName ? modelManualValue(value.modelName) : '')} onChange={changeModel} options={modelOptions} disabled={(!value.brandId && !value.brandName) || loading === 'models'} placeholder={loading === 'models' ? 'Carregando...' : 'Selecione ou pesquise'} searchPlaceholder="Digite modelo ou versão" maxResults={500} onCreate={useManualModel} createLabel={name => `Usar “${name}” como modelo manual`} />
         </div>
       </div>
 

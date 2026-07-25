@@ -98,7 +98,7 @@ const AutocompleteInput = ({ id, placeholder, value, onChange, onSelect, suggest
                     className="cursor-pointer gap-2 hover:!bg-primary/10 focus:!bg-primary/15 aria-selected:!bg-primary/15"
                   >
                     <PenLine className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    Usar "{inputValue.trim()}"
+                    Usar “{inputValue.trim()}”
                   </CommandItem>
                 </CommandGroup>
               )}
