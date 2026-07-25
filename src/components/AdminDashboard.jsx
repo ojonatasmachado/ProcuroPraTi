@@ -626,7 +626,7 @@ const AdminDashboard = ({ procuras = [], users = [], companies = [], setCompanie
                         <p className="text-xs text-muted-foreground">{formatDateTime(fb.createdAt)}</p>
                       </CardHeader>
                       <CardContent className="text-sm p-3">
-                        <p className="text-foreground whitespace-pre-wrap">{fb.text}</p>
+                        <p className="text-foreground whitespace-pre-wrap">{fb.textContent}</p>
                         {fb.contact && <p className="text-xs text-muted-foreground mt-1">Contato: {fb.contact}</p>}
                       </CardContent>
                     </Card>

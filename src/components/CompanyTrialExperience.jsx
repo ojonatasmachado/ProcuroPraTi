@@ -63,7 +63,7 @@ export const TrialProgressCard = ({ context, onShowPlans }) => {
           </div>
         </div>
         <div className="mt-4 flex flex-col items-start justify-between gap-3 border-t border-border pt-3 sm:flex-row sm:items-center">
-          <p className="text-xs leading-5 text-muted-foreground">O trial encerra quando os dois critérios forem concluídos, limitado a 90 dias, salvo prorrogação do administrador.</p>
+          <p className="text-xs leading-5 text-muted-foreground">O trial encerra quando os dois critérios forem concluídos, com um limite de 90 dias.</p>
           <Button type="button" variant="outline" size="sm" onClick={onShowPlans} className="w-full shrink-0 border-primary text-primary sm:w-auto">Ver planos</Button>
         </div>
       </CardContent>
@@ -84,7 +84,7 @@ export const TrialWelcomeModal = ({ open, onContinue, onShowPlans }) => (
         <div className="rounded-xl border border-border bg-secondary/60 p-4"><CalendarDays className="mb-2 h-5 w-5 text-primary" /><strong className="block">Mínimo de 30 dias</strong><span className="text-xs text-muted-foreground">Tempo para conhecer a plataforma.</span></div>
         <div className="rounded-xl border border-border bg-secondary/60 p-4"><Target className="mb-2 h-5 w-5 text-accent-agile" /><strong className="block">Mínimo de 30 respostas</strong><span className="text-xs text-muted-foreground">Tenho e Não tenho contam.</span></div>
       </div>
-      <p className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-xs leading-5 text-foreground">O que demorar mais define o encerramento. O limite é de 90 dias, salvo prorrogação do administrador.</p>
+      <p className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-xs leading-5 text-foreground">O que demorar mais define o encerramento, com um limite de 90 dias.</p>
       <DialogFooter className="gap-2 sm:grid sm:grid-cols-2">
         <Button type="button" variant="outline" onClick={onShowPlans}>Conhecer planos</Button>
         <Button type="button" onClick={onContinue}>Começar a responder</Button>

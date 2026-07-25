@@ -145,11 +145,11 @@ const VehicleSelector = ({ value = EMPTY_VEHICLE, onChange, idPrefix = 'vehicle'
         </div>
         <div>
           <Label htmlFor={`${idPrefix}-brand`} className="mb-1 block text-xs font-medium text-muted-foreground sm:text-sm">Marca *</Label>
-          <CityCombobox id={`${idPrefix}-brand`} value={value.brandId || (value.brandName ? brandManualValue(value.brandName) : '')} onChange={changeBrand} options={brandOptions} disabled={!value.type || loading === 'brands'} placeholder={loading === 'brands' ? 'Carregando...' : 'Selecione ou pesquise'} searchPlaceholder="Digite a marca" maxResults={500} onCreate={useManualBrand} createLabel={name => `Usar “${name}” como marca manual`} />
+          <CityCombobox id={`${idPrefix}-brand`} value={value.brandId || (value.brandName ? brandManualValue(value.brandName) : '')} onChange={changeBrand} options={brandOptions} disabled={!value.type || loading === 'brands'} placeholder={loading === 'brands' ? 'Carregando...' : 'Selecione ou pesquise'} searchPlaceholder="Digite a marca" maxResults={500} onCreate={useManualBrand} />
         </div>
         <div>
           <Label htmlFor={`${idPrefix}-model`} className="mb-1 block text-xs font-medium text-muted-foreground sm:text-sm">Modelo *</Label>
-          <CityCombobox id={`${idPrefix}-model`} value={value.modelId || (value.modelName ? modelManualValue(value.modelName) : '')} onChange={changeModel} options={modelOptions} disabled={(!value.brandId && !value.brandName) || loading === 'models'} placeholder={loading === 'models' ? 'Carregando...' : 'Selecione ou pesquise'} searchPlaceholder="Digite modelo ou versão" maxResults={500} onCreate={useManualModel} createLabel={name => `Usar “${name}” como modelo manual`} />
+          <CityCombobox id={`${idPrefix}-model`} value={value.modelId || (value.modelName ? modelManualValue(value.modelName) : '')} onChange={changeModel} options={modelOptions} disabled={(!value.brandId && !value.brandName) || loading === 'models'} placeholder={loading === 'models' ? 'Carregando...' : 'Selecione ou pesquise'} searchPlaceholder="Digite modelo ou versão" maxResults={500} onCreate={useManualModel} />
         </div>
       </div>
 

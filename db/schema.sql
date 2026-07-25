@@ -42,9 +42,6 @@ CREATE TABLE companies (
   deleted_at timestamptz,
   access_history jsonb NOT NULL DEFAULT '[]'::jsonb,
   access_control_enabled boolean NOT NULL DEFAULT false,
-  owner_pin_hash text,
-  owner_pin_failed_attempts integer NOT NULL DEFAULT 0,
-  owner_pin_locked_until timestamptz,
   max_concurrent_accesses integer NOT NULL DEFAULT 1 CHECK (max_concurrent_accesses BETWEEN 1 AND 100),
   is_demo boolean NOT NULL DEFAULT false
 );
