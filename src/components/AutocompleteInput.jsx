@@ -4,7 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, PenLine } from 'lucide-react';
+import { matchesSearch } from '@/lib/textSearch';
 
 const normalizeSuggestion = (suggestion) => typeof suggestion === 'string'
   ? { label: suggestion, value: suggestion, keywords: suggestion }
@@ -13,11 +14,6 @@ const normalizeSuggestion = (suggestion) => typeof suggestion === 'string'
       value: suggestion?.value || suggestion?.label || '',
       keywords: suggestion?.keywords || [suggestion?.label, ...(suggestion?.aliases || [])].filter(Boolean).join(' '),
     };
-
-const normalizeSearch = (text) => String(text || '')
-  .normalize('NFD')
-  .replace(/[\u0300-\u036f]/g, '')
-  .toLowerCase();
 
 const AutocompleteInput = ({ id, placeholder, value, onChange, onSelect, suggestions = [], className, disabled }) => {
   const [inputValue, setInputValue] = useState(value || '');
@@ -31,12 +27,8 @@ const AutocompleteInput = ({ id, placeholder, value, onChange, onSelect, suggest
   const handleInputChange = (event) => {
     const newValue = event.target.value;
     setInputValue(newValue);
-    onChange(newValue); 
-    if (newValue.length > 0 && suggestions.length > 0) {
-      setIsOpen(true);
-    } else {
-      setIsOpen(false);
-    }
+    onChange(newValue);
+    setIsOpen(newValue.length > 0);
   };
   
   const handleSuggestionClick = (suggestion) => {
@@ -55,11 +47,12 @@ const AutocompleteInput = ({ id, placeholder, value, onChange, onSelect, suggest
       .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
   }, [suggestions]);
 
-  const normalizedInput = normalizeSearch(inputValue);
   const filteredSuggestions = sortedSuggestions
-    .filter(suggestion => normalizeSearch(suggestion.keywords).includes(normalizedInput))
-    .slice(0, normalizedInput ? 100 : 50);
-  
+    .filter(suggestion => matchesSearch(suggestion.keywords, inputValue))
+    .slice(0, inputValue.trim() ? 100 : 50);
+
+  const hasExactSuggestion = filteredSuggestions.some(suggestion => suggestion.value.toLowerCase() === inputValue.trim().toLowerCase());
+
   const shouldShowPopover = isOpen && (sortedSuggestions.length > 0 || inputValue.length > 0);
 
   return (
@@ -73,9 +66,7 @@ const AutocompleteInput = ({ id, placeholder, value, onChange, onSelect, suggest
             placeholder={placeholder}
             value={inputValue}
             onChange={handleInputChange}
-            onFocus={() => {
-              if (inputValue.length === 0 || filteredSuggestions.length > 0) setIsOpen(true);
-            }}
+            onFocus={() => setIsOpen(true)}
             className={cn("w-full pr-10", className)}
             disabled={disabled}
             autoComplete="off"
@@ -96,8 +87,20 @@ const AutocompleteInput = ({ id, placeholder, value, onChange, onSelect, suggest
           <Command>
             {!inputValue && <CommandInput placeholder="Digite para pesquisar..." className="border-border focus:border-primary"/>}
             <CommandList className="max-h-[200px] overflow-y-auto">
-              {filteredSuggestions.length === 0 && inputValue.length > 0 && (
-                <CommandEmpty>Nenhuma sugestão encontrada. Você pode continuar com o nome digitado.</CommandEmpty>
+              {filteredSuggestions.length === 0 && inputValue.trim().length > 0 && (
+                <CommandEmpty>Nenhuma sugestão encontrada.</CommandEmpty>
+              )}
+              {inputValue.trim().length > 0 && !hasExactSuggestion && (
+                <CommandGroup>
+                  <CommandItem
+                    value={`__use-typed__${inputValue}`}
+                    onSelect={() => handleSuggestionClick({ label: inputValue.trim(), value: inputValue.trim() })}
+                    className="cursor-pointer gap-2 hover:!bg-primary/10 focus:!bg-primary/15 aria-selected:!bg-primary/15"
+                  >
+                    <PenLine className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    Usar "{inputValue.trim()}"
+                  </CommandItem>
+                </CommandGroup>
               )}
               <CommandGroup>
                 {filteredSuggestions.map((suggestion, index) => (

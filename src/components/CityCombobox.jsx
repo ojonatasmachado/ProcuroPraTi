@@ -5,21 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-
-const normalize = (value) => String(value || '')
-  .normalize('NFD')
-  .replace(/[\u0300-\u036f]/g, '')
-  .toLowerCase()
-  .trim();
+import { matchesSearch } from '@/lib/textSearch';
 
 const CityCombobox = ({ id, value, onChange, options = [], placeholder = 'Selecione uma cidade', searchPlaceholder = 'Digite o nome da cidade', disabled = false, className, maxResults = 100, onCreate, createLabel }) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const selected = options.find(option => option.value === value);
   const filteredOptions = useMemo(() => {
-    const normalizedQuery = normalize(query);
-    const matches = normalizedQuery
-      ? options.filter(option => normalize(`${option.label} ${option.value} ${option.searchText || ''}`).includes(normalizedQuery))
+    const matches = query.trim()
+      ? options.filter(option => matchesSearch(`${option.label} ${option.value} ${option.searchText || ''}`, query))
       : options;
     return matches.slice(0, maxResults);
   }, [options, query, maxResults]);

@@ -5,14 +5,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { MapPin, Camera, PackagePlus, CalendarDays, ArrowLeft, Upload, X, Loader2, Car } from 'lucide-react';
+import { Camera, PackagePlus, CalendarDays, ArrowLeft, Upload, X, Loader2, Car } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from '@/components/ui/use-toast';
-import AutocompleteInput from '@/components/AutocompleteInput'; 
+import AutocompleteInput from '@/components/AutocompleteInput';
 import { Slider } from "@/components/ui/slider";
 import VehicleSelector, { EMPTY_VEHICLE } from '@/components/VehicleSelector';
-import LocationMapPicker from '@/components/LocationMapPicker';
-import CityCombobox from '@/components/CityCombobox';
 import { getPartCatalogSuggestions } from '@/lib/partCatalogService';
 
 const normalizeSavedVehicle = (vehicle) => vehicle?.modelName ? {
@@ -113,7 +111,6 @@ const SearchForm = ({ onProcuraCreate, onPhotoUpload, currentUser, allStatesAndC
     const errors = {
       ...(!formData.vehicleType || !formData.vehicleBrand || !formData.vehicleModel ? { vehicle: 'Selecione o tipo, a marca e o modelo do veículo.' } : {}),
       ...(!formData.partName?.trim() ? { partName: 'Informe o nome da peça que você procura.' } : {}),
-      ...(formData.locations.length === 0 ? { searchCity: 'Selecione a cidade onde deseja procurar.' } : {}),
     };
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
@@ -277,40 +274,6 @@ const SearchForm = ({ onProcuraCreate, onPhotoUpload, currentUser, allStatesAndC
                 </button>
               )}
             </div>
-            
-            <div>
-              <Label htmlFor="searchCity" className="block text-xs sm:text-sm font-medium mb-1 text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3 sm:h-4 sm:w-4" />Cidade onde deseja procurar *</Label>
-              <CityCombobox
-                id="searchCity"
-                value={formData.locations[0]?.value || ''}
-                onChange={(value) => {
-                  const city = locationOptions.find(option => option.value === value);
-                  setFieldErrors(previous => ({ ...previous, searchCity: '' }));
-                  setFormData(prev => ({ ...prev, locations: city ? [city] : [], searchLatitude: null, searchLongitude: null, searchLocationSource: 'city_center' }));
-                }}
-                options={locationOptions}
-                placeholder="Selecione uma cidade"
-                searchPlaceholder="Digite a cidade ou o estado"
-                className={fieldErrors.searchCity ? 'border-danger ring-1 ring-danger' : ''}
-              />
-              {fieldErrors.searchCity && <p className="mt-1 text-xs font-medium text-danger" role="alert">{fieldErrors.searchCity}</p>}
-              <p className="text-xs text-muted-foreground mt-1">Esta localização será usada para encontrar empresas cujo plano alcança a sua região.</p>
-            </div>
-
-            {formData.locations[0] && (
-              <LocationMapPicker
-                value={{ latitude: formData.searchLatitude, longitude: formData.searchLongitude, source: formData.searchLocationSource }}
-                lookupQuery={formData.locations[0].value}
-                municipalityId={formData.locations[0].municipalityId}
-                city={formData.locations[0].city}
-                state={formData.locations[0].state}
-                onChange={({ latitude, longitude, source = 'manual', municipality: locatedMunicipality }) => setFormData(prev => {
-                  const gpsCity = locatedMunicipality ? locationOptions.find(option => String(option.municipalityId) === String(locatedMunicipality.id)) : null;
-                  return { ...prev, locations: gpsCity ? [gpsCity] : prev.locations, searchLatitude: latitude, searchLongitude: longitude, searchLocationSource: source };
-                })}
-                allowGps
-              />
-            )}
             
             <div className="space-y-2 sm:space-y-3">
               <Label htmlFor="duration" className="block text-xs sm:text-sm font-medium flex items-center gap-1 text-muted-foreground">
