@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
   Layers, Server, Database, KeyRound, Globe, Zap, Route, Bell, DollarSign,
-  Terminal, AlertTriangle, ShieldCheck, ArrowDown, ArrowRight, Network, Webhook, Table2,
+  Terminal, AlertTriangle, ShieldCheck, ArrowDown, ArrowRight, Network, Webhook, Palette,
 } from 'lucide-react';
 import { SUBSCRIPTION_PLANS } from '@/lib/subscriptionPlans';
 
@@ -140,9 +140,6 @@ const dataDictionary = [
     ['deleted_at', 'timestamptz', 'data de exclusão lógica da conta (soft delete)'],
     ['access_history', 'jsonb', 'histórico de acessos registrados da empresa'],
     ['access_control_enabled', 'boolean', 'indica se a empresa ativou o controle de acesso por equipe/PIN'],
-    ['owner_pin_hash', 'text', 'hash do PIN do responsável (legado, hoje o responsável acessa sem PIN)'],
-    ['owner_pin_failed_attempts', 'integer', 'contador de tentativas erradas de PIN do responsável (legado)'],
-    ['owner_pin_locked_until', 'timestamptz', 'bloqueio por tentativas erradas de PIN do responsável (legado)'],
     ['max_concurrent_accesses', 'integer', 'número máximo de acessos simultâneos permitidos, conforme o plano'],
     ['is_demo', 'boolean', 'marca registros de demonstração/teste, não contas reais'],
     ['can_respond_anywhere', 'boolean', 'permite responder procuras de qualquer localidade, ignorando raio/estado'],
@@ -453,6 +450,47 @@ const dataDictionary = [
     ['value', 'jsonb', 'valor da configuração, em formato livre conforme a chave'],
     ['updated_at', 'timestamptz', 'data da última atualização do registro'],
   ]],
+  ['user_directory', [
+    ['id', 'text', 'mesmo id do usuário em users'],
+    ['name', 'text', 'nome do usuário; é o único dado exposto além do id, usado para resolver nomes em chats e notificações sem dar acesso a email, telefone ou veículos'],
+  ], true],
+  ['company_directory', [
+    ['id', 'text', 'mesmo id da empresa em companies'],
+    ['name', 'text', 'razão social ou nome fantasia, igual a companies.name'],
+    ['phone', 'text', 'telefone de contato, igual a companies.phone'],
+    ['cnpj', 'text', 'CNPJ da empresa, igual a companies.cnpj'],
+    ['address', 'text', 'endereço textual, igual a companies.address'],
+    ['latitude', 'double precision', 'latitude da empresa, igual a companies.latitude'],
+    ['longitude', 'double precision', 'longitude da empresa, igual a companies.longitude'],
+    ['serves_locations', 'jsonb', 'localidades/regiões atendidas, igual a companies.serves_locations'],
+    ['validation_status', 'text', 'status de validação/aprovação, igual a companies.validation_status'],
+    ['vehicle_types', 'jsonb', 'tipos de veículo atendidos, igual a companies.vehicle_types'],
+    ['created_at', 'timestamptz', 'data de criação da empresa, igual a companies.created_at'],
+    ['location_source', 'text', 'origem da localização, igual a companies.location_source'],
+    ['postal_code', 'text', 'CEP da empresa, igual a companies.postal_code'],
+    ['whatsapp', 'text', 'WhatsApp de contato, igual a companies.whatsapp'],
+    ['address_number', 'text', 'número do endereço, igual a companies.address_number'],
+    ['plan_code', 'text', 'plano de assinatura contratado, igual a companies.plan_code'],
+    ['subscription_state', 'text', 'estado da assinatura, igual a companies.subscription_state'],
+    ['avg_rating', 'numeric', 'nota média da empresa, trazida de company_reputation_stats (null quando ainda não há avaliação)'],
+    ['rating_count', 'bigint', 'quantidade de avaliações recebidas, trazida de company_reputation_stats'],
+    ['avg_response_hours', 'numeric', 'tempo médio de resposta em horas, trazido de company_reputation_stats'],
+    ['available_rate', 'numeric', 'percentual de respostas "Tenho" sobre o total, trazido de company_reputation_stats'],
+    ['badge_well_rated', 'boolean', 'selo de bem avaliada; false (nunca null) quando a empresa ainda não tem estatística de reputação'],
+    ['badge_fast_responder', 'boolean', 'selo de resposta rápida; false (nunca null) quando a empresa ainda não tem estatística de reputação'],
+    ['logo_url', 'text', 'URL do logo/foto de perfil, igual a companies.logo_url'],
+    ['bio', 'text', 'descrição curta do perfil público, igual a companies.bio'],
+  ], true],
+  ['company_reputation_stats', [
+    ['company_id', 'text', 'empresa a que as métricas se referem'],
+    ['avg_rating', 'numeric', 'média das notas (1 a 5) recebidas em company_ratings, arredondada a 1 casa decimal'],
+    ['rating_count', 'bigint', 'quantidade de avaliações distintas recebidas em company_ratings'],
+    ['avg_response_hours', 'numeric', 'tempo médio, em horas, entre a criação da procura e o envio da resposta; para empresas assinantes, descontado o atraso de visibilidade do plano (visibility_delay_minutes), para não penalizar quem só viu a procura depois desse atraso'],
+    ['response_count', 'bigint', 'quantidade total de respostas dadas pela empresa'],
+    ['available_rate', 'numeric', 'percentual de respostas com status available ("Tenho") sobre o total de respostas; null quando a empresa nunca respondeu'],
+    ['badge_well_rated', 'boolean', 'true quando rating_count >= 3 e a nota média bruta é >= 4.5'],
+    ['badge_fast_responder', 'boolean', 'true quando response_count >= 5 e o tempo médio de resposta é <= 6 horas'],
+  ], true],
 ];
 
 const views = [
@@ -575,12 +613,61 @@ const apiLayers = [
   },
 ];
 
+const brandColors = [
+  { name: 'primary', token: '--primary', hex: '#2e6ff3', hsl: '220.12 89.36% 56.67%', usage: 'Cor principal da marca. Botão "Vou procurar", links, foco de campos, header do app logado. Mesmo tom em claro e escuro.' },
+  { name: 'accent-agile', token: '--accent-agile', hex: '#21c7b0', hsl: '171.69 71.55% 45.49%', usage: 'Verde-menta secundário, ligado ao lado "empresa/venda". Usado como preenchimento (badges, ícones de destaque) sobre fundo escuro ou como accent-agile-foreground por cima.' },
+  { name: 'accent-agile-text', token: '--accent-agile-text', hex: '#147a6c (claro) / #21c7b0 (escuro)', hsl: '171.69 71.55% 28% no claro, mesmo valor de accent-agile no escuro', usage: 'Versão escurecida do verde-menta só para texto/borda/ícone sobre fundo claro, criada para o botão "Vou vender" e rótulos "Para quem vende" atingirem contraste AA (5.2:1). Em fundo escuro o tom original já tem contraste alto, então não muda.' },
+  { name: 'success', token: '--success', hex: '#1a9e8c (claro) / mesmo tom de accent-agile no escuro', hsl: '172 72% 36% no claro', usage: 'Estados de sucesso e confirmação.' },
+  { name: 'warning', token: '--warning', hex: '#e8a111 (claro) / #f2b84b (escuro)', hsl: '40 86% 49% no claro, 39.16 86.53% 62.16% no escuro', usage: 'Avisos, reta final do trial, limites se aproximando.' },
+  { name: 'destructive / danger', token: '--destructive / --danger', hex: '#c11f1f (claro) / #f87171 (escuro)', hsl: '0 60-72% no claro, 0 90.6% 70.78% no escuro', usage: 'Erros, ações destrutivas (excluir, cancelar), mensagens de campo obrigatório.' },
+  { name: 'background / foreground', token: '--background / --foreground', hex: '#f8f9fc / #0f1729 (claro), #070d1a / #eaf0fb (escuro)', hsl: '', usage: 'Fundo e texto base da aplicação. O modo escuro não é um simples inverte de cor: os tons de card, popover e border têm valores próprios (ver src/index.css) para manter contraste e profundidade.' },
+  { name: 'border / input', token: '--border / --input', hex: '#c6d0dd (claro)', hsl: '214 25% 82-88% no claro', usage: 'Bordas de card, input, divisores.' },
+];
+
+const typography = [
+  ['Plus Jakarta Sans (font-heading)', 'Pesos 500/700/800, carregada via Google Fonts em index.html. Usada em títulos, números de destaque e no logotipo (BrandLogo). Aplicada com a classe utilitária font-heading do Tailwind.'],
+  ['Inter (font-sans)', 'Pesos 400/500/600/700, é a fonte padrão (sans) do Tailwind neste projeto: todo texto de corpo, rótulo e botão usa Inter por padrão, sem precisar de classe extra.'],
+];
+
+const brandAssets = [
+  ['BrandLogo.jsx', 'Logotipo completo: ícone (public/favicon.svg) + nome, sempre em minúsculas ("procuro" em foreground, "pra ti" em primary). Usado no header, telas de login/cadastro e rodapé. Aceita as props as, iconClassName, textClassName e compactOnMobile (esconde o texto "pra ti" abaixo de 350px de largura).'],
+  ['BrandMark.jsx', 'Só o ícone (favicon.svg) em tamanho pequeno, sem o texto. Usado dentro de botões e listas como marcador visual, por exemplo no botão "Vou procurar" e nos comboboxes de busca.'],
+  ['public/favicon.svg', 'Arquivo fonte do ícone da marca, reaproveitado por BrandLogo e BrandMark em vez de duas imagens separadas.'],
+];
+
+const uiComponents = [
+  ['Button', 'button.jsx', '7 variantes (default, positive, destructive, outline, secondary, ghost, link) e 4 tamanhos (default, sm, lg, icon), construído com class-variance-authority. positive usa accent-agile; outline é o padrão dos botões secundários em formulários.'],
+  ['Badge', 'badge.jsx', '4 variantes (default, secondary, destructive, outline), pílula pequena usada para status, contadores e selos (ex.: "Prorrogado", selos de reputação da empresa).'],
+  ['Card / CardHeader / CardTitle / CardDescription / CardContent / CardFooter', 'card.jsx', 'Contêiner padrão de conteúdo em todo o app: painel admin, formulários, listas de procuras e respostas.'],
+  ['Checkbox', 'checkbox.jsx', 'Baseado em @radix-ui/react-checkbox. Usado em "Desejo receber fotos", termos de uso, seleção de tipos de veículo.'],
+  ['Command / CommandInput / CommandList / CommandItem / CommandGroup / CommandEmpty', 'command.jsx', 'Paleta de busca construída sobre a lib cmdk, é a base do dropdown de sugestões do AutocompleteInput (nome da peça).'],
+  ['Dialog / DialogContent / DialogHeader / DialogTitle / DialogFooter', 'dialog.jsx', 'Modal baseado em @radix-ui/react-dialog. Usado em confirmações, edição de item do catálogo, telas de trial (TrialWelcomeModal, TrialEndModal).'],
+  ['DropdownMenu e subcomponentes', 'dropdown-menu.jsx', 'Menu suspenso baseado em @radix-ui/react-dropdown-menu.'],
+  ['Input', 'input.jsx', 'Campo de texto padrão, estilo consistente para todos os forms.'],
+  ['Label', 'label.jsx', 'Rótulo de campo de formulário, com variantes via class-variance-authority.'],
+  ['Popover / PopoverContent / PopoverTrigger', 'popover.jsx', 'Baseado em @radix-ui/react-popover. É a base do CityCombobox (marca, modelo, ano, cidade de endereço) e do AutocompleteInput.'],
+  ['ScrollArea / ScrollBar', 'scroll-area.jsx', 'Área com scroll customizado (usada, por exemplo, na lista de feedbacks do admin).'],
+  ['Select / SelectTrigger / SelectContent / SelectItem / SelectValue', 'select.jsx', 'Baseado em @radix-ui/react-select. Usado em campos de escolha fechada, como tipo de veículo e filtros do admin.'],
+  ['Slider', 'slider.jsx', 'Baseado em @radix-ui/react-slider. Usado para a duração da procura (1 a 15 dias).'],
+  ['Tabs / TabsList / TabsTrigger / TabsContent', 'tabs.jsx', 'Baseado em @radix-ui/react-tabs. Estrutura as abas do painel admin e do CompanyDashboard.'],
+  ['Textarea', 'textarea.jsx', 'Campo de texto multi-linha, usado em descrições e mensagens.'],
+  ['Toast / Toaster / use-toast', 'toast.jsx, toaster.jsx, use-toast.js', 'Sistema de notificação temporária no canto da tela, usado em toda a aplicação para confirmar ações e mostrar erros. Toasts com variant destructive também disparam o registro em ui_error_events (ver seção API).'],
+];
+
+const productComponents = [
+  ['VehicleSelector', 'Tipo + ano + marca + modelo do veículo, consumindo o catálogo FIPE (vehicleCatalogService). Permite marca e modelo manuais quando não existem no catálogo, usando o mesmo padrão "Usar ..." do AutocompleteInput.'],
+  ['CityCombobox', 'Combobox de busca genérico (não é só para cidade, apesar do nome: também é usado para marca, modelo e ano do veículo). Busca por palavra, sem acento e sem diferenciar maiúscula/minúscula (matchesSearch, em textSearch.js), e pode receber onCreate para permitir valor digitado quando não há opção correspondente.'],
+  ['AutocompleteInput', 'Campo de texto com sugestões (usado no nome da peça). Mesma busca por palavra do CityCombobox, mais um item "Usar “X”" sempre visível quando o texto digitado não bate exatamente com nenhuma sugestão, para deixar claro que dá para continuar com o nome digitado.'],
+  ['BrandLogo / BrandMark', 'Ver seção "Marca e ícone" acima.'],
+  ['ThemeToggle', 'Alterna entre modo claro e escuro, persistindo a preferência.'],
+];
+
 const sections = [
   { id: 'stack', icon: Layers, label: 'Stack' },
   { id: 'hosting', icon: Server, label: 'Hospedagem' },
   { id: 'database', icon: Database, label: 'Banco de dados' },
-  { id: 'dictionary', icon: Table2, label: 'Dicionário de dados' },
   { id: 'diagram', icon: Network, label: 'Relacionamentos' },
+  { id: 'design', icon: Palette, label: 'Identidade visual' },
   { id: 'auth', icon: KeyRound, label: 'Contas' },
   { id: 'api', icon: Webhook, label: 'API' },
   { id: 'edge', icon: Zap, label: 'Edge Functions' },
@@ -678,19 +765,21 @@ export default function DocumentationPanel() {
                 <p className="text-sm text-foreground/90">Todas as tabelas com dado de usuário têm RLS habilitada. O caso mais importante é <Chip>procuras_read_relevant</Chip>, que decide se uma empresa enxerga uma procura chamando <Chip>company_can_view_procura()</Chip>: essa função é a implementação real do modelo de matching (ver seção Planos). Funções que precisam ignorar RLS, como cadastro e ajustes de admin, são <Chip>SECURITY DEFINER</Chip> e revalidam <Chip>auth.uid()</Chip> manualmente por dentro.</p>
               </CardContent>
             </Card>
-          </div>
-        )}
 
-        {active === 'dictionary' && (
-          <div className="space-y-4">
             <Card className="border-border bg-card">
-              <CardContent className="pt-4">
-                <p className="text-sm text-foreground/90">Coluna a coluna do que existe hoje em cada tabela, juntando a definição original com todas as alterações feitas depois por migration. Tabelas de apoio simples (catálogo de veículos, municípios) ficam resumidas; o detalhe fica nas tabelas centrais do negócio.</p>
-              </CardContent>
+              <CardHeader>
+                <CardTitle className="text-lg">Dicionário de dados: coluna a coluna</CardTitle>
+                <CardDescription>Junta a definição original de cada tabela e view com todas as alterações feitas depois por migration, sempre batendo com o schema real do banco.</CardDescription>
+              </CardHeader>
             </Card>
-            {dataDictionary.map(([tableName, columns]) => (
+            {dataDictionary.map(([tableName, columns, isView]) => (
               <Card key={tableName} className="border-border bg-card">
-                <CardHeader><CardTitle className="text-base"><Chip>{tableName}</Chip></CardTitle></CardHeader>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Chip>{tableName}</Chip>
+                    {isView && <span className="rounded-full bg-accent-agile/15 px-2 py-0.5 text-[10px] font-semibold text-accent-agile">view</span>}
+                  </CardTitle>
+                </CardHeader>
                 <CardContent>
                   <div className="grid gap-2 sm:grid-cols-2">
                     {columns.map(([column, type, description]) => (
@@ -739,6 +828,70 @@ export default function DocumentationPanel() {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {active === 'design' && (
+          <div className="space-y-4">
+            <Card className="border-border bg-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg"><Palette className="h-5 w-5 text-primary" />Cores da marca</CardTitle>
+                <CardDescription>Tokens semânticos definidos em src/index.css (:root para claro, .dark para escuro) e mapeados para classes Tailwind em tailwind.config.js. O código nunca usa hexadecimal direto, sempre a classe (ex.: bg-primary, text-accent-agile-text).</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {brandColors.map(color => (
+                  <div key={color.name} className="flex flex-col gap-2 rounded-xl border border-border bg-input/30 p-3.5 sm:flex-row sm:items-start">
+                    <div className="flex shrink-0 items-center gap-2 sm:w-40">
+                      <span className="h-8 w-8 shrink-0 rounded-lg border border-border" style={{ background: color.hex.split(' ')[0] }} aria-hidden="true" />
+                      <div>
+                        <p className="font-mono text-xs font-semibold text-foreground">{color.name}</p>
+                        <p className="font-mono text-[10px] text-muted-foreground">{color.token}</p>
+                      </div>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-mono text-[11px] text-foreground/80">{color.hex}{color.hsl ? ` · HSL ${color.hsl}` : ''}</p>
+                      <p className="mt-1 text-xs text-foreground/80">{color.usage}</p>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card className="border-border bg-card">
+              <CardHeader><CardTitle className="text-base">Tipografia</CardTitle></CardHeader>
+              <CardContent><SimpleList items={typography} /></CardContent>
+            </Card>
+
+            <Card className="border-border bg-card">
+              <CardHeader><CardTitle className="text-base">Marca e ícone</CardTitle></CardHeader>
+              <CardContent><SimpleList items={brandAssets} /></CardContent>
+            </Card>
+
+            <Card className="border-border bg-card">
+              <CardHeader>
+                <CardTitle className="text-base">Biblioteca de componentes de UI ({uiComponents.length})</CardTitle>
+                <CardDescription>src/components/ui/, padrão shadcn/ui: primitivas Radix UI sem estado próprio de estilo, com variantes via class-variance-authority e classes Tailwind usando os tokens de cor acima.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {uiComponents.map(([name, file, description]) => (
+                  <div key={name} className="rounded-xl border border-border bg-input/30 p-3.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm font-semibold text-foreground">{name}</span>
+                      <Chip>{file}</Chip>
+                    </div>
+                    <p className="mt-1.5 text-sm text-foreground/90">{description}</p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card className="border-border bg-card">
+              <CardHeader>
+                <CardTitle className="text-base">Componentes de produto reutilizáveis</CardTitle>
+                <CardDescription>Compostos a partir das primitivas de UI acima, usados em várias telas do produto.</CardDescription>
+              </CardHeader>
+              <CardContent><SimpleList items={productComponents} /></CardContent>
+            </Card>
+          </div>
         )}
 
         {active === 'api' && (
