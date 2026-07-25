@@ -15,16 +15,16 @@ const journeys = [
       'Compare as opções e inicie a conversa quando quiser.',
     ],
     mockup: (
-      <div className="mb-6 flex items-end justify-center gap-3 sm:gap-4">
+      <div className="mb-6 flex items-center justify-center gap-3 sm:gap-4">
         <PhoneMockup
           src="/images/mockups/buyer-create-procura.png"
           alt="Tela de criação de uma procura, com veículo, peça e prazo preenchidos"
-          className="w-[56%]"
+          className="w-[46%]"
         />
         <PhoneMockup
           src="/images/mockups/buyer-compare-responses.png"
           alt="Tela comparando respostas de diferentes empresas, com preço, condição e localização"
-          className="w-[40%] translate-y-5 opacity-95"
+          className="w-[46%]"
         />
       </div>
     ),
@@ -39,16 +39,16 @@ const journeys = [
       'Converse com o comprador depois que ele iniciar o chat.',
     ],
     mockup: (
-      <div className="mb-6 flex items-end justify-center gap-3 sm:gap-4">
+      <div className="mb-6 flex items-center justify-center gap-3 sm:gap-4">
         <BrowserMockup
           src="/images/mockups/company-procuras-list.png"
           alt="Tela com a lista de procuras compatíveis chegando para a empresa"
-          className="w-[62%]"
+          className="w-[46%]"
         />
         <BrowserMockup
           src="/images/mockups/company-response-form.png"
           alt="Tela de resposta da empresa, com preço, condição e foto da peça"
-          className="hidden w-[46%] translate-y-5 opacity-95 sm:block"
+          className="w-[46%]"
         />
       </div>
     ),
