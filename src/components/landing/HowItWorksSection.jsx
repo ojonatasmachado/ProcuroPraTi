@@ -96,22 +96,20 @@ const HowItWorksSection = () => (
         ))}
       </div>
 
-      <div className="mt-8 max-w-6xl mx-auto grid gap-4 sm:grid-cols-[1fr_1.4fr]">
-        <div className="rounded-2xl border border-border bg-background p-5 flex gap-4 items-center">
+      <div className="mt-8 max-w-3xl mx-auto rounded-2xl border border-border bg-background p-5 sm:p-8 flex flex-col items-center gap-5 text-center">
+        <div className="flex flex-col items-center gap-2 sm:max-w-md">
           <Target className="h-6 w-6 shrink-0 text-primary" />
           <p className="text-sm text-muted-foreground"><strong className="text-foreground">O comprador mantém o controle.</strong> Ele escolhe a duração da procura e decide quando iniciar uma conversa.</p>
         </div>
-        <div className="rounded-2xl border border-border bg-background p-5 sm:p-6 flex flex-col-reverse sm:flex-row gap-5 items-center">
-          <div className="flex-1">
-            <MessagesSquare className="h-6 w-6 shrink-0 text-accent-agile-text mb-2" />
-            <p className="text-sm text-muted-foreground"><strong className="text-foreground">A empresa responde com contexto.</strong> Comprador e empresa trocam fotos e gifs da peça pelo chat, tanto no celular quanto no computador, com notificação push a cada nova mensagem.</p>
-          </div>
-          <PhoneMockup
-            src="/images/mockups/buyer-chat.gif"
-            alt="Demonstração animada de uma conversa entre comprador e empresa pelo chat"
-            size="sm"
-            className="max-w-[150px] shrink-0"
-          />
+        <PhoneMockup
+          src="/images/mockups/buyer-chat.gif"
+          alt="Demonstração animada de uma conversa entre comprador e empresa pelo chat"
+          size="sm"
+          className="max-w-[170px]"
+        />
+        <div className="flex flex-col items-center gap-2 sm:max-w-md">
+          <MessagesSquare className="h-6 w-6 shrink-0 text-accent-agile-text" />
+          <p className="text-sm text-muted-foreground"><strong className="text-foreground">A empresa responde com contexto.</strong> Comprador e empresa trocam fotos da peça pelo chat, tanto no celular quanto no computador, com notificação push a cada nova mensagem.</p>
         </div>
       </div>
     </div>
