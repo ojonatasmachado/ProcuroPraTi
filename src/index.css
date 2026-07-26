@@ -92,7 +92,6 @@
     font-family: 'Inter', sans-serif;
     -webkit-text-size-adjust: 100%; /* Previne zoom em inputs no iOS */
     text-size-adjust: 100%;
-    overflow-x: hidden;
   }
   html {
     -moz-text-size-adjust: 100%; /* Firefox */

@@ -20,14 +20,15 @@ const BackToTopButton = () => {
         <motion.button
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 0.45, y: 0 }}
+          exit={{ opacity: 0, y: 8 }}
+          whileHover={{ opacity: 1 }}
           transition={{ duration: 0.2 }}
-          className="fixed bottom-6 right-4 sm:bottom-8 sm:right-8 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-lg hover:bg-secondary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-40 flex h-9 w-9 items-center justify-center rounded-full bg-foreground/70 text-background backdrop-blur-sm transition-colors focus:outline-none focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-primary"
           aria-label="Voltar ao topo"
         >
-          <ArrowUp className="h-5 w-5" />
+          <ArrowUp className="h-4 w-4" />
         </motion.button>
       )}
     </AnimatePresence>
