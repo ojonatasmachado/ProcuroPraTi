@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Car, Bike, Truck, Bus, Loader2, Search, SlidersHorizontal } from 'lucide-react';
+import { Car, Bike, Truck, Bus, Loader2 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { vehicleCatalogService } from '@/lib/vehicleCatalogService';
@@ -153,13 +153,9 @@ const VehicleSelector = ({ value = EMPTY_VEHICLE, onChange, idPrefix = 'vehicle'
         </div>
       </div>
 
-      <details open className="rounded-xl border border-border bg-input/30 p-3">
-        <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-semibold text-foreground"><SlidersHorizontal className="h-4 w-4 text-primary" />Busca avançada</summary>
-        <div className="mt-2 flex items-start gap-2 text-xs leading-relaxed text-muted-foreground"><Search className="mt-0.5 h-4 w-4 shrink-0 text-primary" />Escolha primeiro o ano. Em seguida, pesquise marca e modelo ou versão. Se o modelo não existir no catálogo, escreva o nome completo e escolha a opção para salvá-lo manualmente.</div>
-        {isFilteringModels && <p className="mt-2 flex items-center gap-2 text-xs text-muted-foreground"><Loader2 className="h-3.5 w-3.5 animate-spin" />Filtrando versões compatíveis com {value.year}...</p>}
-        {value.year && !isFilteringModels && modelIdsForYear?.size > 0 && <p className="mt-2 text-xs text-accent-agile">{modelIdsForYear.size} versão(ões) compatível(is) encontradas para {value.year}.</p>}
-        {value.year && !isFilteringModels && modelIdsForYear?.size === 0 && <p className="mt-2 text-xs text-warning">Não encontramos uma versão FIPE para {value.year}. Você ainda pode informar o modelo manualmente.</p>}
-      </details>
+      {isFilteringModels && <p className="flex items-center gap-2 text-xs text-muted-foreground"><Loader2 className="h-3.5 w-3.5 animate-spin" />Filtrando versões compatíveis com {value.year}...</p>}
+      {value.year && !isFilteringModels && modelIdsForYear?.size > 0 && <p className="text-xs text-accent-agile">{modelIdsForYear.size} versão(ões) compatível(is) encontradas para {value.year}.</p>}
+      {value.year && !isFilteringModels && modelIdsForYear?.size === 0 && <p className="text-xs text-warning">Não encontramos uma versão FIPE para {value.year}. Você ainda pode informar o modelo manualmente.</p>}
       {(loading || error) && <p className={`flex items-center gap-1 text-xs ${error ? 'text-danger' : 'text-muted-foreground'}`}>{loading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}{error || 'Consultando catálogo FIPE...'}</p>}
     </div>
   );

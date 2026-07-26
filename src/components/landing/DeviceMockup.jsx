@@ -5,21 +5,18 @@ export const PhoneMockup = ({ src, alt, size = 'lg', className }) => (
   <div className={cn('relative mx-auto w-full max-w-[220px] sm:max-w-[240px]', className)}>
     <div
       className={cn(
-        'relative bg-foreground/90',
-        size === 'lg'
-          ? 'rounded-[2rem] border-[6px] p-1.5'
-          : 'rounded-[1.4rem] border-[4px] p-1',
-        'border-foreground/90 shadow-xl',
+        'relative rounded-[1.8rem] border border-border bg-card shadow-xl',
+        size === 'lg' ? 'p-[3px]' : 'p-[2px]',
       )}
     >
       <div
         className={cn(
-          'absolute left-1/2 top-2 z-10 -translate-x-1/2 rounded-full bg-foreground/60',
-          size === 'lg' ? 'h-1.5 w-12' : 'h-1 w-8',
+          'absolute left-1/2 top-1.5 z-10 -translate-x-1/2 rounded-full bg-foreground/50',
+          size === 'lg' ? 'h-1 w-10' : 'h-[3px] w-7',
         )}
         aria-hidden="true"
       />
-      <div className={cn('aspect-[9/19.3] w-full overflow-hidden bg-background', size === 'lg' ? 'rounded-[1.5rem]' : 'rounded-[1rem]')}>
+      <div className={cn('aspect-[9/19.3] w-full overflow-hidden bg-background', size === 'lg' ? 'rounded-[1.6rem]' : 'rounded-[1.1rem]')}>
         <img src={src} alt={alt} className="h-full w-full object-cover object-top" loading="lazy" />
       </div>
     </div>

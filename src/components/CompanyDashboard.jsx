@@ -295,7 +295,7 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
             }} className="space-y-3 sm:space-y-4" noValidate>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <Label htmlFor="partCondition" className="block text-sm font-medium mb-2 text-muted-foreground">Condição da Peça *</Label>
+                  <Label htmlFor="response-partCondition" className="block text-sm font-medium mb-2 text-muted-foreground">Condição da Peça *</Label>
                   <Select value={responseForm.partCondition} onValueChange={(value) => { setResponseForm({...responseForm, partCondition: value}); setResponseErrors(current => ({ ...current, partCondition: '' })); }}>
                     <SelectTrigger id="response-partCondition" aria-invalid={Boolean(responseErrors.partCondition)} className={`bg-input ${responseErrors.partCondition ? 'border-danger ring-1 ring-danger' : 'border-border'}`}><SelectValue placeholder="Selecione a condição" /></SelectTrigger>
                     <SelectContent className="bg-popover border-border text-popover-foreground">
@@ -309,7 +309,7 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
                   {responseErrors.partCondition && <p className="mt-1.5 text-xs font-medium text-danger" role="alert">{responseErrors.partCondition}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="partType" className="block text-sm font-medium mb-2 text-muted-foreground">Tipo da Peça *</Label>
+                  <Label htmlFor="response-partType" className="block text-sm font-medium mb-2 text-muted-foreground">Tipo da Peça *</Label>
                   <Select value={responseForm.partType} onValueChange={(value) => { setResponseForm({...responseForm, partType: value}); setResponseErrors(current => ({ ...current, partType: '' })); }}>
                     <SelectTrigger id="response-partType" aria-invalid={Boolean(responseErrors.partType)} className={`bg-input ${responseErrors.partType ? 'border-danger ring-1 ring-danger' : 'border-border'}`}><SelectValue placeholder="Original ou Paralela" /></SelectTrigger>
                     <SelectContent className="bg-popover border-border text-popover-foreground">

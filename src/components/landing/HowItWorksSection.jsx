@@ -17,13 +17,13 @@ const journeys = [
     mockup: (
       <div className="mb-6 flex items-center justify-center gap-3 sm:gap-4">
         <PhoneMockup
-          src="/images/mockups/buyer-create-procura.png"
-          alt="Tela de criação de uma procura, com veículo, peça e prazo preenchidos"
+          src="/images/mockups/buyer-create-procura.gif"
+          alt="Demonstração animada de criação de uma procura, com veículo, peça e prazo preenchidos"
           className="w-[46%]"
         />
         <PhoneMockup
-          src="/images/mockups/buyer-compare-responses.png"
-          alt="Tela comparando respostas de diferentes empresas, com preço, condição e localização"
+          src="/images/mockups/buyer-compare-responses.gif"
+          alt="Demonstração animada comparando respostas de diferentes empresas, com preço, condição, localização e fotos"
           className="w-[46%]"
         />
       </div>
@@ -41,13 +41,13 @@ const journeys = [
     mockup: (
       <div className="mb-6 flex items-center justify-center gap-3 sm:gap-4">
         <BrowserMockup
-          src="/images/mockups/company-procuras-list.png"
-          alt="Tela com a lista de procuras compatíveis chegando para a empresa"
+          src="/images/mockups/company-procuras-list.gif"
+          alt="Demonstração animada da lista de procuras compatíveis chegando para a empresa"
           className="w-[46%]"
         />
         <BrowserMockup
-          src="/images/mockups/company-response-form.png"
-          alt="Tela de resposta da empresa, com preço, condição e foto da peça"
+          src="/images/mockups/company-response-form.gif"
+          alt="Demonstração animada da empresa respondendo, com condição, preço e mensagem"
           className="w-[46%]"
         />
       </div>
@@ -96,15 +96,22 @@ const HowItWorksSection = () => (
         ))}
       </div>
 
-      <div className="mt-8 max-w-6xl mx-auto grid sm:grid-cols-2 gap-4">
+      <div className="mt-8 max-w-6xl mx-auto grid gap-4 sm:grid-cols-[1fr_1.4fr]">
         <div className="rounded-2xl border border-border bg-background p-5 flex gap-4 items-center">
           <Target className="h-6 w-6 shrink-0 text-primary" />
-          <p className="flex-1 text-sm text-muted-foreground"><strong className="text-foreground">O comprador mantém o controle.</strong> Ele escolhe a duração da procura e decide quando iniciar uma conversa.</p>
-          <img src="/images/mockups/buyer-chat.png" alt="" aria-hidden="true" className="hidden h-16 w-12 shrink-0 rounded-lg border border-border object-cover object-top sm:block" />
+          <p className="text-sm text-muted-foreground"><strong className="text-foreground">O comprador mantém o controle.</strong> Ele escolhe a duração da procura e decide quando iniciar uma conversa.</p>
         </div>
-        <div className="rounded-2xl border border-border bg-background p-5 flex gap-4 items-start">
-          <MessagesSquare className="h-6 w-6 shrink-0 text-accent-agile-text" />
-          <p className="text-sm text-muted-foreground"><strong className="text-foreground">A empresa responde com contexto.</strong> Ela fala com pessoas que já demonstraram uma necessidade real.</p>
+        <div className="rounded-2xl border border-border bg-background p-5 sm:p-6 flex flex-col-reverse sm:flex-row gap-5 items-center">
+          <div className="flex-1">
+            <MessagesSquare className="h-6 w-6 shrink-0 text-accent-agile-text mb-2" />
+            <p className="text-sm text-muted-foreground"><strong className="text-foreground">A empresa responde com contexto.</strong> Comprador e empresa trocam fotos e gifs da peça pelo chat, tanto no celular quanto no computador, com notificação push a cada nova mensagem.</p>
+          </div>
+          <PhoneMockup
+            src="/images/mockups/buyer-chat.gif"
+            alt="Demonstração animada de uma conversa entre comprador e empresa pelo chat"
+            size="sm"
+            className="max-w-[150px] shrink-0"
+          />
         </div>
       </div>
     </div>
