@@ -9,6 +9,7 @@ import BrandStorySection from '@/components/landing/BrandStorySection.jsx';
 import HowItWorksSection from '@/components/landing/HowItWorksSection.jsx';
 import FAQSection from '@/components/landing/FAQSection.jsx';
 import LandingFooter from '@/components/landing/LandingFooter.jsx';
+import BackToTopButton from '@/components/landing/BackToTopButton.jsx';
 import BrandMark from '@/components/BrandMark';
 
 const LandingPage = ({ onGetStarted }) => {
@@ -108,6 +109,7 @@ const LandingPage = ({ onGetStarted }) => {
       </section>
 
       <LandingFooter scrollToSection={scrollToSection} />
+      <BackToTopButton />
     </div>
   );
 };
