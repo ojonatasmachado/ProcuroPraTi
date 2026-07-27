@@ -15,6 +15,7 @@ import FeedbackModal from '@/components/FeedbackModal.jsx';
 import SuggestionPopup from '@/components/SuggestionPopup.jsx';
 import AppHeader from '@/components/AppHeader.jsx';
 import FirstProcuraInfoModal from '@/components/FirstProcuraInfoModal.jsx';
+import OnboardingTourModal from '@/components/OnboardingTourModal.jsx';
 import InstallOnboarding from '@/components/InstallOnboarding.jsx';
 import ChatListModal from '@/components/ChatListModal.jsx';
 import AdminDashboard from '@/components/AdminDashboard.jsx';
@@ -42,6 +43,7 @@ import { getCompanyDeviceId, getCompanyDeviceName } from '@/lib/companyAccess';
 import { Settings, Building2, MessageSquare as ChatIconFab, Loader2 } from 'lucide-react';
 
 const pushOnboardingKey = (userId) => `procuroPraTi_pushOnboarding_${userId}`;
+const onboardingTourKey = (userType, userId) => `procuroPraTi_onboardingTourSeen_${userType}_${userId}`;
 
 function App() {
   const isAdminPreview = import.meta.env.DEV && window.location.pathname === '/painel-interno-preview';
@@ -78,6 +80,7 @@ function App() {
   const [suggestionSchedule, setSuggestionSchedule] = useState({ userId: null, firstAccessAt: null, lastShownAt: null });
   const [userProcuraCount, setUserProcuraCount] = useState(0);
   const [showFirstProcuraInfo, setShowFirstProcuraInfo] = useState(false);
+  const [showOnboardingTour, setShowOnboardingTour] = useState(false);
   const [adminPreviewData, setAdminPreviewData] = useState(null);
   const [adminPreviewError, setAdminPreviewError] = useState('');
 
@@ -167,7 +170,20 @@ function App() {
   }, [updateUnreadNotifications]);
 
   useEffect(() => {
-    if (!currentUser?.id) return undefined;
+    if (!currentUser?.id || (userType !== 'user' && userType !== 'company')) return;
+    if (window.localStorage.getItem(onboardingTourKey(userType, currentUser.id))) return;
+    setShowOnboardingTour(true);
+  }, [currentUser?.id, userType]);
+
+  const closeOnboardingTour = () => {
+    if (currentUser?.id && (userType === 'user' || userType === 'company')) {
+      window.localStorage.setItem(onboardingTourKey(userType, currentUser.id), 'seen');
+    }
+    setShowOnboardingTour(false);
+  };
+
+  useEffect(() => {
+    if (!currentUser?.id || showOnboardingTour) return undefined;
     const onboardingState = window.localStorage.getItem(pushOnboardingKey(currentUser.id));
     const shouldPrompt = isStandalonePwa() || (userType === 'user' && onboardingState === 'pending');
     if (!shouldPrompt || onboardingState === 'completed') return undefined;
@@ -184,7 +200,7 @@ function App() {
       })
       .catch(() => { if (active) setShowFirstProcuraInfo(true); });
     return () => { active = false; };
-  }, [currentUser?.id, userType]);
+  }, [currentUser?.id, userType, showOnboardingTour]);
 
   useEffect(() => {
     const normalized = normalizeChats(chats);
@@ -1185,6 +1201,7 @@ function App() {
         onShowTerms={() => setShowTerms(true)}
         onOpenFeedbackModal={openFeedbackModal}
         onOpenChatList={handleOpenChatList}
+        onShowOnboardingTour={() => setShowOnboardingTour(true)}
         onLogout={handleLogout}
       />
 
@@ -1377,6 +1394,12 @@ function App() {
           setShowFirstProcuraInfo(false);
         }}
         onKeepPending={() => setShowFirstProcuraInfo(false)}
+      />
+
+      <OnboardingTourModal
+        isOpen={showOnboardingTour}
+        userType={userType}
+        onClose={closeOnboardingTour}
       />
 
       <InstallOnboarding isAuthenticated={Boolean(currentUser)} />

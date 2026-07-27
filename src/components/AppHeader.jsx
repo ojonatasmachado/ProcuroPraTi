@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from '@/components/ui/button';
 import NotificationDropdown from '@/components/NotificationDropdown.jsx';
-import { UserCircle, ChevronDown, BarChartHorizontalBig, FileText, Star, AlertOctagon, LogIn, BellRing, BellOff, Users, CreditCard, Home } from 'lucide-react';
+import { UserCircle, ChevronDown, BarChartHorizontalBig, FileText, Star, AlertOctagon, LogIn, BellRing, BellOff, Users, CreditCard, Home, Lightbulb } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import BrandLogo from '@/components/BrandLogo';
 import { disablePush, enablePush, getPushState, getPushSupport, PUSH_STATE_CHANGE_EVENT } from '@/lib/pushNotifications';
@@ -29,6 +29,7 @@ const AppHeader = ({
   companyAccess,
   onShowTerms,
   onOpenFeedbackModal,
+  onShowOnboardingTour,
   onLogout
 }) => {
   const displayName = companyAccess?.operatorName || currentUser?.name?.split(' ')[0] || currentUser?.email?.split('@')[0] || 'Usuário';
@@ -85,6 +86,12 @@ const AppHeader = ({
                 <Home className="mr-2 h-4 w-4 text-primary" />
                 <span>Home</span>
               </DropdownMenuItem>
+              {userType !== 'admin' && (
+                <DropdownMenuItem onClick={onShowOnboardingTour} className="cursor-pointer focus:!bg-primary/15 focus:!text-foreground">
+                  <Lightbulb className="mr-2 h-4 w-4 text-primary" />
+                  <span>Como funciona</span>
+                </DropdownMenuItem>
+              )}
               {userType !== 'admin' && !isCompanyOperator && (
                 <DropdownMenuItem onClick={onShowProfile} className="cursor-pointer focus:!bg-primary/15 focus:!text-foreground">
                   <UserCircle className="mr-2 h-4 w-4 text-primary" />
