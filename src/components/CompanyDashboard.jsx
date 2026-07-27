@@ -19,6 +19,7 @@ import useScrollToTop from '@/hooks/useScrollToTop';
 import { formatCurrency, formatCurrencyInput, normalizeCurrencyValue, sanitizeCurrencyInput } from '@/lib/currency';
 import DashboardSectionTabs from '@/components/DashboardSectionTabs';
 import { SubscriptionBlockedDialog, TrialProgressCard } from '@/components/CompanyTrialExperience';
+import ScrollShadowList from '@/components/ScrollShadowList';
 
 const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseSubmit, onPhotoUpload, currentUser, vehicleData, users = [], openProcuraId = null, onPushDestinationHandled, isDataLoaded = false, subscriptionContext = null, onShowPlans }) => {
   const [selectedProcura, setSelectedProcura] = useState(null);
@@ -268,7 +269,37 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
     const response = procura.myResponse;
     const distance = distanceInKm({ latitude: currentUser.latitude, longitude: currentUser.longitude }, { latitude: procura.searchLatitude, longitude: procura.searchLongitude });
     const isAvailable = response?.status === 'available';
-    return <Card key={procura.id} id={`procura-${procura.id}`} className={`overflow-hidden border-border border-l-[3px] bg-card shadow-sm ${hasResponded ? isAvailable ? 'border-l-accent-agile' : 'border-l-muted-foreground' : 'border-l-primary'}`}><CardContent className="p-3.5"><div className="flex items-start justify-between gap-3"><div className="min-w-0 flex-1"><p className="line-clamp-2 min-h-10 text-lg font-extrabold leading-5 tracking-tight text-foreground">{procura.partName}</p><p className="mt-1 flex min-h-8 flex-wrap items-start gap-1 text-xs leading-4 text-muted-foreground">{getVehicleIcon(procura.vehicleType)} <span>{procura.vehicleBrand} {procura.vehicleModel} {procura.vehicleYear ? `(${procura.vehicleYear})` : ''}</span></p></div>{hasResponded ? <Badge className={`shrink-0 font-extrabold ${isAvailable ? 'border-transparent bg-accent-agile text-accent-agile-foreground' : 'bg-secondary text-muted-foreground'}`}>{isAvailable ? 'Tenho' : 'Não tenho'}</Badge> : <Badge variant="outline" className="shrink-0 border-warning text-warning"><Timer className="mr-1 h-3 w-3" />{getCompactTimeRemaining(procura)}</Badge>}</div><div className="flex min-h-5 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">{distance !== null && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{distance < 1 ? `${Math.round(distance * 1000)} m` : `${distance.toFixed(0)} km`} de você</span>}{hasResponded && isAvailable && response?.price != null && <span className="font-bold text-foreground">{formatCurrency(response.price)}</span>}{hasResponded && <span className={response?.isReadByUser ? 'text-accent-agile' : 'text-warning'}>{response?.isReadByUser ? 'Visualizada' : 'Aguardando visualização'}</span>}</div><div className="mt-2 grid grid-cols-2 gap-2">{hasResponded ? <Button onClick={() => handleSelectProcura(procura, true)} className="col-span-2 min-h-11 bg-primary text-xs font-bold text-primary-foreground"><Edit3 className="mr-1.5 h-4 w-4" />Editar resposta</Button> : <><Button onClick={() => handleQuickResponse(procura, true)} disabled={isSubmittingResponse} className="min-h-11 bg-accent-agile px-2 text-xs font-bold text-accent-agile-foreground hover:bg-accent-agile/90"><CheckCircle2 className="mr-1.5 h-4 w-4 shrink-0" />Tenho</Button><Button onClick={() => handleQuickResponse(procura, false)} disabled={isSubmittingResponse} variant="outline" className="min-h-11 border-danger/60 px-2 text-xs font-bold text-danger hover:bg-destructive hover:text-destructive-foreground"><XCircle className="mr-1.5 h-4 w-4 shrink-0" />Não tenho</Button></>}</div></CardContent></Card>;
+    return (
+      <Card key={procura.id} id={`procura-${procura.id}`} className={`overflow-hidden border-border border-l-[3px] bg-card shadow-sm ${hasResponded ? isAvailable ? 'border-l-accent-agile' : 'border-l-muted-foreground' : 'border-l-primary'}`}>
+        <CardContent className="p-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="truncate text-sm font-bold text-foreground">{procura.partName}</p>
+            {hasResponded ? (
+              <Badge className={`shrink-0 text-[10px] font-extrabold ${isAvailable ? 'border-transparent bg-accent-agile text-accent-agile-foreground' : 'bg-secondary text-muted-foreground'}`}>{isAvailable ? 'Tenho' : 'Não tenho'}</Badge>
+            ) : (
+              <Badge variant="outline" className="shrink-0 border-warning text-[10px] text-warning"><Timer className="mr-1 h-3 w-3" />{getCompactTimeRemaining(procura)}</Badge>
+            )}
+          </div>
+          <div className="mt-0.5 flex flex-wrap items-center gap-x-1 gap-y-0.5 truncate text-xs text-muted-foreground">
+            {getVehicleIcon(procura.vehicleType)}
+            <span className="truncate">{procura.vehicleBrand} {procura.vehicleModel} {procura.vehicleYear ? `(${procura.vehicleYear})` : ''}</span>
+            {distance !== null && <span className="shrink-0">· {distance < 1 ? `${Math.round(distance * 1000)} m` : `${distance.toFixed(0)} km`}</span>}
+            {hasResponded && isAvailable && response?.price != null && <span className="shrink-0 font-bold text-foreground">· {formatCurrency(response.price)}</span>}
+            {hasResponded && <span className={`shrink-0 ${response?.isReadByUser ? 'text-accent-agile' : 'text-warning'}`}>· {response?.isReadByUser ? 'Visualizada' : 'Aguardando visualização'}</span>}
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-1.5">
+            {hasResponded ? (
+              <Button onClick={() => handleSelectProcura(procura, true)} className="col-span-2 h-9 bg-primary text-xs font-bold text-primary-foreground"><Edit3 className="mr-1.5 h-3.5 w-3.5" />Editar resposta</Button>
+            ) : (
+              <>
+                <Button onClick={() => handleQuickResponse(procura, true)} disabled={isSubmittingResponse} className="h-9 bg-accent-agile px-2 text-xs font-bold text-accent-agile-foreground hover:bg-accent-agile/90"><CheckCircle2 className="mr-1.5 h-3.5 w-3.5 shrink-0" />Tenho</Button>
+                <Button onClick={() => handleQuickResponse(procura, false)} disabled={isSubmittingResponse} variant="outline" className="h-9 border-danger/60 px-2 text-xs font-bold text-danger hover:bg-destructive hover:text-destructive-foreground"><XCircle className="mr-1.5 h-3.5 w-3.5 shrink-0" />Não tenho</Button>
+              </>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
   };
 
   if (currentView === 'response_form' && selectedProcura) {
@@ -395,11 +426,17 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
             {showFilters && <Card id="company-search-filters" className="mb-4 mt-3 border-border bg-card shadow-sm"><CardContent className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2"><div><Label htmlFor="filterPartName" className="mb-1.5 block text-xs text-muted-foreground">Nome da peça</Label><div className="relative"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input id="filterPartName" placeholder="Ex: Farol, motor..." value={filterPartName} onChange={(e) => setFilterPartName(e.target.value)} className="min-h-11 bg-input pl-9 text-sm" /></div></div><div><Label htmlFor="filterVehicle" className="mb-1.5 block text-xs text-muted-foreground">Marca, modelo ou ano</Label><div className="relative"><Car className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input id="filterVehicle" placeholder="Ex: Fiat Palio 2010..." value={filterVehicle} onChange={(e) => setFilterVehicle(e.target.value)} className="min-h-11 bg-input pl-9 text-sm" /></div></div>{hasActiveFilters && <Button type="button" variant="ghost" size="sm" onClick={clearFilters} className="justify-self-start text-muted-foreground sm:col-span-2"><RotateCcw className="mr-2 h-4 w-4" />Limpar filtros</Button>}</CardContent></Card>}
             <TabsContent value="to-respond">
               {filteredProcurasToRespond.length === 0 ? (<Card className="border-border bg-card"><CardContent className="py-10 text-center"><BrandMark className="mx-auto mb-3 h-12 w-12 rounded-xl" /><p className="font-semibold text-foreground">{hasActiveFilters ? 'Nenhuma procura encontrada.' : 'Nenhuma procura aguardando resposta.'}</p><p className="mt-1 text-sm text-muted-foreground">{hasActiveFilters ? 'Limpe ou altere os filtros para ver outras procuras.' : 'Quando houver oportunidades na sua região, elas aparecerão aqui.'}</p></CardContent></Card>)
-              : (<div className="mx-auto grid max-w-3xl grid-cols-1 gap-3">{filteredProcurasToRespond.map(procura => renderCompactProcuraCard(procura, 'to-respond'))}</div>)}
+              : (<div className="mx-auto max-w-3xl">
+                  <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground"><span>{filteredProcurasToRespond.length} aguardando resposta</span></div>
+                  <ScrollShadowList>{filteredProcurasToRespond.map(procura => renderCompactProcuraCard(procura, 'to-respond'))}</ScrollShadowList>
+                </div>)}
             </TabsContent>
             <TabsContent value="responded">
                {filteredCompanyResponses.length === 0 ? (<Card className="border-border bg-card"><CardContent className="py-10 text-center"><BrandMark className="mx-auto mb-3 h-12 w-12 rounded-xl" /><p className="font-semibold text-foreground">{hasActiveFilters ? 'Nenhuma resposta encontrada.' : 'Você ainda não respondeu nenhuma procura.'}</p><p className="mt-1 text-sm text-muted-foreground">{hasActiveFilters ? 'Limpe ou altere os filtros para ver outras respostas.' : 'Suas respostas aparecerão aqui.'}</p></CardContent></Card>)
-               : (<div className="mx-auto grid max-w-3xl grid-cols-1 gap-3">{filteredCompanyResponses.map(procura => renderCompactProcuraCard(procura, 'responded'))}</div>)}
+               : (<div className="mx-auto max-w-3xl">
+                   <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground"><span>{filteredCompanyResponses.length} respondida{filteredCompanyResponses.length === 1 ? '' : 's'}</span></div>
+                   <ScrollShadowList>{filteredCompanyResponses.map(procura => renderCompactProcuraCard(procura, 'responded'))}</ScrollShadowList>
+                 </div>)}
             </TabsContent>
           </Tabs>
           <SubscriptionBlockedDialog

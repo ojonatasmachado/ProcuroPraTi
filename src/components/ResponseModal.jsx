@@ -3,16 +3,22 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Building2, MapPin, Clock, Image as ImageIcon, MessageSquare, Wrench, BadgeCheck, SlidersHorizontal, Edit3, Eye, Phone, Navigation, MapPinned, Smartphone, ExternalLink, Star, Zap, Loader2, UserSquare2 } from 'lucide-react';
+import { Building2, MapPin, Clock, Image as ImageIcon, MessageSquare, Wrench, BadgeCheck, SlidersHorizontal, Edit3, Eye, Phone, Navigation, MapPinned, Smartphone, Star, Zap, Loader2, ChevronDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import CompanyProfileModal from '@/components/CompanyProfileModal';
+import ScrollShadowList from '@/components/ScrollShadowList';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { formatCurrency } from '@/lib/currency';
 import { distanceInKm, geocodeText } from '@/lib/geocoding';
 import { isAndroidDevice, isIosDevice } from '@/lib/pwa';
+import { findSubscriptionPlan } from '@/lib/subscriptionPlans';
+
+const PART_CONDITION_LABELS = { new: 'Nova', excellent: 'Excelente', good: 'Boa', fair: 'Regular', poor: 'Com avarias' };
+const getConditionText = (condition) => PART_CONDITION_LABELS[condition] || condition;
+const formatDistance = (distance) => distance == null ? null : distance < 1 ? `${Math.round(distance * 1000)} m` : `${distance.toFixed(1)} km`;
 
 const hasCoordinates = (latitude, longitude) => Number.isFinite(latitude) && Number.isFinite(longitude);
 
@@ -59,6 +65,7 @@ const ResponseModal = ({ procura, isOpen, onClose, onMarkAsRead, onOpenChat, onE
   const [ratingForm, setRatingForm] = useState(null);
   const [submittingRating, setSubmittingRating] = useState(false);
   const [viewingCompanyProfile, setViewingCompanyProfile] = useState(null);
+  const [showCompanyDetails, setShowCompanyDetails] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -131,6 +138,10 @@ const ResponseModal = ({ procura, isOpen, onClose, onMarkAsRead, onOpenChat, onE
       setRatingForm(null);
     }
   }, [isOpen, procura?.id]);
+
+  useEffect(() => {
+    setShowCompanyDetails(false);
+  }, [selectedResponse?.id]);
 
   const handleRatingSubmit = async () => {
     if (!ratingForm?.rating || !selectedResponse || !onSubmitRating) return;
@@ -247,7 +258,36 @@ const ResponseModal = ({ procura, isOpen, onClose, onMarkAsRead, onOpenChat, onE
               <p className="text-muted-foreground text-sm">Tente ajustar os filtros ou aguarde mais respostas.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+            <>
+            <div className="md:hidden">
+              <ScrollShadowList className="flex flex-col gap-2" maxHeightClass="max-h-[52dvh]">
+                {positiveResponses.map((response, index) => (
+                  <button
+                    key={response.id || index}
+                    type="button"
+                    onClick={() => setSelectedResponse(response)}
+                    className="flex w-full items-center gap-2.5 rounded-lg border border-border bg-card p-2.5 text-left transition-colors hover:border-primary/50"
+                  >
+                    <span className="h-11 w-11 shrink-0 overflow-hidden rounded-lg border border-border bg-popover">
+                      {response.photoUrl ? <img src={response.photoUrl} alt="" className="h-full w-full object-cover" /> : <span className="flex h-full w-full items-center justify-center text-muted-foreground"><ImageIcon className="h-4 w-4" /></span>}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="truncate text-sm font-bold text-foreground">{response.companyName}</span>
+                        {response.price != null && <span className="shrink-0 font-heading text-sm font-extrabold text-accent-agile">{formatCurrency(response.price)}</span>}
+                      </div>
+                      <div className="mt-0.5 flex flex-wrap items-center gap-x-1 gap-y-0.5 text-[11px] text-muted-foreground">
+                        {response.company?.validationStatus === 'validated' && <BadgeCheck className="h-3 w-3 shrink-0 text-accent-agile" />}
+                        {response.partCondition && <span>{getConditionText(response.partCondition)}</span>}
+                        {response.distance !== null && <span>· {formatDistance(response.distance)}</span>}
+                        {response.company?.ratingCount > 0 && <span className="flex items-center gap-0.5 text-warning">· <Star className="h-3 w-3 fill-current" />{response.company.avgRating}</span>}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </ScrollShadowList>
+            </div>
+            <div className="hidden md:grid md:grid-cols-2 gap-3 sm:gap-4">
               {positiveResponses.map((response, index) => (
                 <motion.div
                   key={response.id || index}
@@ -280,7 +320,7 @@ const ResponseModal = ({ procura, isOpen, onClose, onMarkAsRead, onOpenChat, onE
                           {response.company?.badgeWellRated && <span className="flex items-center gap-0.5 text-accent-agile"><Star className="h-3 w-3 fill-current" />Bem avaliada</span>}
                           {response.company?.planCode === 'nacional' && <span className="rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary">Alcance nacional</span>}
                           {response.partType && (<span className="flex items-center gap-0.5"><Wrench className="h-3 w-3" />{getPartTypeText(response.partType)}</span>)}
-                          {response.partCondition && <span>· {({ new: 'Nova', excellent: 'Excelente', good: 'Boa', fair: 'Regular', poor: 'Com avarias' }[response.partCondition] || response.partCondition)}</span>}
+                          {response.partCondition && <span>· {getConditionText(response.partCondition)}</span>}
                           {response.location && (<span className="flex items-center gap-0.5"><MapPin className="h-3 w-3" />{response.location}</span>)}
                           {response.distance !== null && <span className="flex items-center gap-0.5 font-medium text-primary"><Navigation className="h-3 w-3" />{response.distance < 1 ? `${Math.round(response.distance * 1000)} m` : `${response.distance.toFixed(1)} km`}</span>}
                         </div>
@@ -295,6 +335,7 @@ const ResponseModal = ({ procura, isOpen, onClose, onMarkAsRead, onOpenChat, onE
                 </motion.div>
               ))}
             </div>
+            </>
           )}
         </div>
         <DialogFooter className="px-4 pb-4 sm:px-6 sm:pb-6 border-t border-border pt-3 sm:pt-4">
@@ -316,40 +357,87 @@ const ResponseModal = ({ procura, isOpen, onClose, onMarkAsRead, onOpenChat, onE
         <DialogContent className="max-h-[calc(100dvh-1rem)] max-w-lg overflow-y-auto border-border bg-card p-0 text-foreground">
           {selectedResponse && <>
             <DialogHeader className="border-b border-border px-4 pb-4 pt-5 text-left sm:px-6">
-              <div className="flex items-start gap-3 pr-8"><span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-primary/10">{selectedResponse.company?.logoUrl ? <img src={selectedResponse.company.logoUrl} alt="" className="h-full w-full object-cover" /> : <Building2 className="h-6 w-6 text-primary" />}</span><div className="min-w-0"><DialogTitle className="text-left text-lg leading-tight">{selectedResponse.companyName}</DialogTitle><DialogDescription className="mt-1 text-left">Resposta para {procura.partName}</DialogDescription><button type="button" onClick={() => setViewingCompanyProfile(selectedResponse.company)} className="mt-1 flex items-center gap-1 text-xs font-semibold text-primary underline-offset-2 hover:underline"><UserSquare2 className="h-3.5 w-3.5" />Ver perfil da empresa</button></div></div>
+              <div className="flex items-start gap-3 pr-8"><span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-primary/10">{selectedResponse.company?.logoUrl ? <img src={selectedResponse.company.logoUrl} alt="" className="h-full w-full object-cover" /> : <Building2 className="h-6 w-6 text-primary" />}</span><div className="min-w-0"><DialogTitle className="text-left text-lg leading-tight">{selectedResponse.companyName}</DialogTitle><DialogDescription className="mt-1 text-left">Resposta para {procura.partName}</DialogDescription></div></div>
             </DialogHeader>
             <div className="space-y-4 px-4 py-4 sm:px-6">
-              <div className="flex items-center justify-between gap-3 rounded-xl border border-accent-agile/30 bg-accent-agile/10 p-3"><div><p className="text-xs text-muted-foreground">Preço informado</p><p className="text-xl font-extrabold text-foreground">{selectedResponse.price ? formatCurrency(selectedResponse.price) : 'A combinar'}</p></div>{selectedResponse.company?.validationStatus === 'validated' && <span className="flex items-center gap-1 text-xs font-semibold text-accent-agile"><BadgeCheck className="h-4 w-4" />Verificada</span>}</div>
-              {(selectedResponse.company?.ratingCount > 0 || selectedResponse.company?.badgeFastResponder || selectedResponse.company?.badgeWellRated) && (
+              <div className="flex gap-3">
+                {selectedResponse.photoUrl ? (
+                  <button type="button" onClick={() => setSelectedPhotoUrl(selectedResponse.photoUrl)} className="relative h-[88px] w-[88px] shrink-0 overflow-hidden rounded-xl border border-border bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label="Ampliar foto da peça">
+                    <img src={selectedResponse.photoUrl} alt={`Foto da peça ${procura.partName}`} className="h-full w-full object-contain" />
+                  </button>
+                ) : (
+                  <div className="flex h-[88px] w-[88px] shrink-0 items-center justify-center rounded-xl border border-border bg-popover text-muted-foreground"><ImageIcon className="h-6 w-6" /></div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                    {selectedResponse.company?.validationStatus === 'validated' && <span className="flex items-center gap-1 font-semibold text-accent-agile"><BadgeCheck className="h-3.5 w-3.5" />Verificada</span>}
+                    {selectedResponse.company?.ratingCount > 0 && <span className="flex items-center gap-1 font-semibold text-warning"><Star className="h-3.5 w-3.5 fill-current" />{selectedResponse.company.avgRating} ({selectedResponse.company.ratingCount})</span>}
+                    {selectedResponse.company?.badgeFastResponder && <span className="flex items-center gap-1 font-semibold text-accent-agile"><Zap className="h-3.5 w-3.5" />Responde rápido</span>}
+                    {selectedResponse.company?.badgeWellRated && <span className="flex items-center gap-1 font-semibold text-accent-agile"><Star className="h-3.5 w-3.5 fill-current" />Bem avaliada</span>}
+                  </div>
+                  <p className="mt-2 font-heading text-2xl font-extrabold text-accent-agile">{selectedResponse.price ? formatCurrency(selectedResponse.price) : 'A combinar'}</p>
+                </div>
+              </div>
+
+              {(selectedResponse.partType || selectedResponse.partCondition) && (
                 <div className="flex flex-wrap gap-2 text-xs">
-                  {selectedResponse.company?.ratingCount > 0 && <span className="flex items-center gap-1 rounded-full bg-warning/10 px-2 py-1 font-semibold text-warning"><Star className="h-3.5 w-3.5 fill-current" />{selectedResponse.company.avgRating} ({selectedResponse.company.ratingCount})</span>}
-                  {selectedResponse.company?.badgeFastResponder && <span className="flex items-center gap-1 rounded-full bg-accent-agile/10 px-2 py-1 font-semibold text-accent-agile"><Zap className="h-3.5 w-3.5" />Responde rápido</span>}
-                  {selectedResponse.company?.badgeWellRated && <span className="flex items-center gap-1 rounded-full bg-accent-agile/10 px-2 py-1 font-semibold text-accent-agile"><Star className="h-3.5 w-3.5 fill-current" />Bem avaliada</span>}
+                  {selectedResponse.partType && <span className="rounded-full bg-secondary px-2.5 py-1 font-medium text-secondary-foreground">{getPartTypeText(selectedResponse.partType)}</span>}
+                  {selectedResponse.partCondition && <span className="rounded-full bg-secondary px-2.5 py-1 font-medium text-secondary-foreground">{getConditionText(selectedResponse.partCondition)}</span>}
                 </div>
               )}
-              <div className="grid gap-3 rounded-xl border border-border bg-popover p-4 text-sm">
-                <div className="flex items-start gap-3">
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs text-muted-foreground">Endereço</p>
+
+              {selectedResponse.message && <p className="rounded-md bg-popover p-3 text-sm italic leading-relaxed text-foreground/90">“{selectedResponse.message}”</p>}
+
+              <div className="rounded-xl border border-border p-4 text-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-start gap-2">
+                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                     {(selectedResponse.company?.address || selectedResponse.address) ? (
                       <button
                         type="button"
                         onClick={() => setShowMapOptions(true)}
-                        className="group mt-0.5 flex w-full items-start gap-1.5 rounded-md text-left font-semibold text-primary underline decoration-primary/40 underline-offset-4 transition-colors hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        className="min-w-0 text-left font-semibold text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         aria-label="Abrir endereço nos aplicativos de mapas"
                       >
-                        <span>{selectedResponse.company?.address || selectedResponse.address}</span>
-                        <ExternalLink className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                        {selectedResponse.company?.address || selectedResponse.address}
                       </button>
                     ) : <p className="font-medium text-foreground">Endereço não informado</p>}
-                    {selectedResponse.distance !== null && <p className="mt-1 text-xs text-primary">A aproximadamente {selectedResponse.distance < 1 ? `${Math.round(selectedResponse.distance * 1000)} m` : `${selectedResponse.distance.toFixed(1)} km`} de você</p>}
                   </div>
+                  {selectedResponse.distance !== null && <span className="shrink-0 text-xs font-medium text-primary">{formatDistance(selectedResponse.distance)}</span>}
                 </div>
-                <div className="flex items-start gap-3"><Phone className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><div><p className="text-xs text-muted-foreground">Telefone</p>{selectedResponse.company?.phone ? <a href={`tel:${selectedResponse.company.phone}`} className="font-semibold text-primary underline-offset-2 hover:underline">{selectedResponse.company.phone}</a> : <p className="font-medium text-foreground">Não informado</p>}</div></div>
-                {selectedResponse.company?.whatsapp && <div className="flex items-start gap-3"><Smartphone className="mt-0.5 h-4 w-4 shrink-0 text-accent-agile" /><div><p className="text-xs text-muted-foreground">WhatsApp</p><a href={`https://wa.me/55${selectedResponse.company.whatsapp.replace(/\D/g, '').replace(/^55/, '')}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-accent-agile underline-offset-2 hover:underline">{selectedResponse.company.whatsapp}</a></div></div>}
+                <div className="my-3 h-px bg-border" />
+                <div className="flex gap-2">
+                  {selectedResponse.company?.phone ? (
+                    <a href={`tel:${selectedResponse.company.phone}`} className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border bg-input px-3 py-2 text-xs font-semibold text-foreground hover:bg-secondary"><Phone className="h-3.5 w-3.5" />Ligar</a>
+                  ) : (
+                    <span className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border bg-input px-3 py-2 text-xs font-semibold text-muted-foreground"><Phone className="h-3.5 w-3.5" />Sem telefone</span>
+                  )}
+                  {selectedResponse.company?.whatsapp && (
+                    <a href={`https://wa.me/55${selectedResponse.company.whatsapp.replace(/\D/g, '').replace(/^55/, '')}`} target="_blank" rel="noopener noreferrer" className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-accent-agile bg-accent-agile/10 px-3 py-2 text-xs font-semibold text-accent-agile hover:bg-accent-agile/15"><Smartphone className="h-3.5 w-3.5" />WhatsApp</a>
+                  )}
+                </div>
               </div>
-              <div className="rounded-xl border border-border p-4"><div className="flex flex-wrap gap-2 text-xs text-muted-foreground">{selectedResponse.partType && <span className="rounded-full bg-secondary px-2 py-1">{getPartTypeText(selectedResponse.partType)}</span>}{selectedResponse.partCondition && <span className="rounded-full bg-secondary px-2 py-1">{({ new: 'Nova', excellent: 'Excelente', good: 'Boa', fair: 'Regular', poor: 'Com avarias' }[selectedResponse.partCondition] || selectedResponse.partCondition)}</span>}</div>{selectedResponse.message && <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-foreground">{selectedResponse.message}</p>}{selectedResponse.photoUrl && <button type="button" onClick={() => setSelectedPhotoUrl(selectedResponse.photoUrl)} className="mt-3 w-full overflow-hidden rounded-xl border border-border bg-muted"><img src={selectedResponse.photoUrl} alt={`Foto da peça ${procura.partName}`} className="max-h-56 w-full object-contain" /><span className="block py-2 text-xs font-semibold text-primary">Ampliar foto</span></button>}</div>
+
+              <div>
+                <button type="button" onClick={() => setShowCompanyDetails(value => !value)} className="flex w-full items-center justify-between rounded-lg border border-dashed border-border px-3 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground" aria-expanded={showCompanyDetails}>
+                  <span>Mais sobre a empresa</span>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${showCompanyDetails ? 'rotate-180' : ''}`} />
+                </button>
+                {showCompanyDetails && (
+                  <div className="mt-2 space-y-1 rounded-lg bg-popover p-3 text-xs leading-relaxed text-muted-foreground">
+                    {selectedResponse.company?.cnpj && <p>CNPJ {selectedResponse.company.cnpj}</p>}
+                    {findSubscriptionPlan(selectedResponse.company?.planCode) && <p>Plano {findSubscriptionPlan(selectedResponse.company.planCode).name}</p>}
+                    {selectedResponse.company?.ratingCount > 0 && <p>{selectedResponse.company.ratingCount} avaliações</p>}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => { const company = selectedResponse.company; setSelectedResponse(null); setViewingCompanyProfile(company); }}
+                  className="mt-2 text-xs font-semibold text-primary underline-offset-2 hover:underline"
+                >
+                  Ver perfil completo ↗
+                </button>
+              </div>
               {onSubmitRating && (
                 <div className="rounded-xl border border-border p-4">
                   <p className="mb-2 text-sm font-semibold text-foreground">Avalie esta empresa</p>
