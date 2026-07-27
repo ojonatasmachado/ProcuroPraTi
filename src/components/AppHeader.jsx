@@ -70,7 +70,7 @@ const AppHeader = ({
             notifications={unreadNotifications} 
             onNotificationClick={onNotificationClick}
           />
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center gap-1 sm:gap-2 text-foreground hover:text-primary">
                 <UserCircle className="h-5 w-5" />

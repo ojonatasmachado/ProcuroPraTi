@@ -37,7 +37,7 @@ const NotificationDropdown = ({ notifications, onNotificationClick }) => {
   };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <motion.div
           animate={unreadCount > 0 ? { scale: [1, 1.1, 1], rotate: [0, -5, 5, -5, 0] } : {}}
