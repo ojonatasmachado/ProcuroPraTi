@@ -14,14 +14,22 @@ const ProgressBar = ({ value, tone = 'primary' }) => (
   </div>
 );
 
-export const TrialProgressCard = ({ context, onShowPlans }) => {
-  if (!context || context.state !== 'trial_active') return null;
+const computeTrialStats = (context) => {
   const days = Number(context.daysElapsed || 0);
   const responses = Number(context.responded || 0);
-  const dayProgress = clamp((days / Number(context.daysTarget || 30)) * 100);
-  const responseProgress = clamp((responses / Number(context.responsesTarget || 30)) * 100);
-  const isFinalStretch = (days >= 25 && responses >= 25) || days >= 80;
-  const isExtended = context.trialExtendedUntil && new Date(context.trialExtendedUntil) > new Date(context.trialHardEndsAt || 0);
+  return {
+    days,
+    responses,
+    dayProgress: clamp((days / Number(context.daysTarget || 30)) * 100),
+    responseProgress: clamp((responses / Number(context.responsesTarget || 30)) * 100),
+    isFinalStretch: (days >= 25 && responses >= 25) || days >= 80,
+    isExtended: context.trialExtendedUntil && new Date(context.trialExtendedUntil) > new Date(context.trialHardEndsAt || 0),
+  };
+};
+
+export const TrialProgressCard = ({ context, onShowPlans }) => {
+  if (!context || context.state !== 'trial_active') return null;
+  const { days, responses, dayProgress, responseProgress, isFinalStretch, isExtended } = computeTrialStats(context);
 
   return (
     <Card className={`overflow-hidden border ${isFinalStretch ? 'border-warning/50 bg-warning/5' : 'border-primary/25 bg-card'} shadow-sm`}>
@@ -68,6 +76,56 @@ export const TrialProgressCard = ({ context, onShowPlans }) => {
         </div>
       </CardContent>
     </Card>
+  );
+};
+
+// Mesmo conteúdo do TrialProgressCard, mas em um modal aberto pelo menu do
+// usuário em vez de fixo no topo da home (evita ocupar espaço permanente).
+export const TrialProgressModal = ({ open, onClose, context, onShowPlans }) => {
+  if (!context || context.state !== 'trial_active') return null;
+  const { days, responses, dayProgress, responseProgress, isFinalStretch, isExtended } = computeTrialStats(context);
+
+  return (
+    <Dialog open={open} onOpenChange={(value) => { if (!value) onClose(); }}>
+      <DialogContent className="max-w-md border-border bg-card text-foreground">
+        <DialogHeader>
+          <DialogTitle className="flex flex-wrap items-center gap-2 text-xl font-extrabold">
+            <Target className={`h-5 w-5 ${isFinalStretch ? 'text-warning' : 'text-primary'}`} />
+            Período de experiência
+            <Badge className="border-transparent bg-accent-agile text-accent-agile-foreground">Alcance estadual</Badge>
+            {isExtended && <Badge variant="outline" className="border-primary text-primary">Prorrogado</Badge>}
+          </DialogTitle>
+        </DialogHeader>
+        <p className="text-sm leading-5 text-muted-foreground">Você responde normalmente enquanto acompanha os dois critérios.</p>
+
+        {isFinalStretch && (
+          <div className="rounded-lg border border-warning/35 bg-warning/10 px-3 py-2 text-sm font-semibold text-foreground">
+            Reta final do seu período de experiência. Conheça os planos para continuar respondendo sem interrupção.
+          </div>
+        )}
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <div className="mb-2 flex items-center justify-between gap-2 text-sm">
+              <span className="flex items-center gap-2 font-semibold"><CalendarDays className="h-4 w-4 text-primary" />Tempo</span>
+              <strong>{days} de 30 dias</strong>
+            </div>
+            <ProgressBar value={dayProgress} />
+          </div>
+          <div>
+            <div className="mb-2 flex items-center justify-between gap-2 text-sm">
+              <span className="flex items-center gap-2 font-semibold"><BarChart3 className="h-4 w-4 text-accent-agile" />Procuras respondidas</span>
+              <strong>{responses} de 30</strong>
+            </div>
+            <ProgressBar value={responseProgress} tone="accent" />
+          </div>
+        </div>
+        <div className="flex flex-col items-start justify-between gap-3 border-t border-border pt-3 sm:flex-row sm:items-center">
+          <p className="text-xs leading-5 text-muted-foreground">O trial encerra quando os dois critérios forem concluídos, com um limite de 90 dias.</p>
+          <Button type="button" variant="outline" size="sm" onClick={onShowPlans} className="w-full shrink-0 border-primary text-primary sm:w-auto">Ver planos</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

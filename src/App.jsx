@@ -25,7 +25,7 @@ import { Button } from '@/components/ui/button';
 import CompanyAccessGate from '@/components/CompanyAccessGate.jsx';
 import CompanyTeamManagement from '@/components/CompanyTeamManagement.jsx';
 import CompanyPlans from '@/components/CompanyPlans.jsx';
-import { TrialEndModal, TrialWelcomeModal } from '@/components/CompanyTrialExperience.jsx';
+import { TrialEndModal, TrialProgressModal, TrialWelcomeModal } from '@/components/CompanyTrialExperience.jsx';
 
 import { 
   BRAZILIAN_STATES_AND_CITIES, 
@@ -66,6 +66,7 @@ function App() {
   const [showCompanyMiniDashboard, setShowCompanyMiniDashboard] = useState(false);
   const [showCompanyTeam, setShowCompanyTeam] = useState(false);
   const [showCompanyPlans, setShowCompanyPlans] = useState(false);
+  const [showTrialDetails, setShowTrialDetails] = useState(false);
   const [companyAccess, setCompanyAccess] = useState(null);
   const [subscriptionContext, setSubscriptionContext] = useState(null);
   const [showTerms, setShowTerms] = useState(false);
@@ -1210,6 +1211,8 @@ function App() {
         onOpenChatList={handleOpenChatList}
         onShowOnboardingTour={() => setShowOnboardingTour(true)}
         onNeedsPushInstall={() => setShowFirstProcuraInfo(true)}
+        onShowTrialDetails={() => setShowTrialDetails(true)}
+        subscriptionContext={subscriptionContext}
         onLogout={handleLogout}
       />
 
@@ -1335,6 +1338,12 @@ function App() {
               setSubscriptionContext(current => current ? { ...current, endSummarySeen: true } : current);
               setShowCompanyPlans(true);
             }}
+          />
+          <TrialProgressModal
+            open={showTrialDetails}
+            onClose={() => setShowTrialDetails(false)}
+            context={subscriptionContext}
+            onShowPlans={() => { setShowTrialDetails(false); setShowCompanyPlans(true); }}
           />
         </>
       )}

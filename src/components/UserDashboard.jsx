@@ -1,8 +1,9 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import SearchForm from '@/components/SearchForm';
 import ResponseModal from '@/components/ResponseModal';
-import { History, Bell, Clock, PackagePlus, CheckCircle, RotateCcw, Eye } from 'lucide-react';
+import { History, Bell, Clock, PackagePlus, CheckCircle, CheckCircle2, RotateCcw, Eye } from 'lucide-react';
 import BrandMark from '@/components/BrandMark';
 import { toast } from '@/components/ui/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,11 +15,18 @@ import DashboardSectionTabs from '@/components/DashboardSectionTabs';
 const UserDashboard = ({ userProcuras, onProcuraCreate, onProcuraUpdate, onPhotoUpload, onProcuraStatusChange, onMarkResponseAsRead, currentUser, allStatesAndCities, vehicleData, onOpenChat, unreadNotifications, companies = [], openResponsesForProcuraId = null, onPushDestinationHandled, myRatings = {}, onSubmitRating }) => {
   const [selectedProcura, setSelectedProcura] = useState(null);
   const [isResponseModalOpen, setIsResponseModalOpen] = useState(false);
-  const [currentView, setCurrentView] = useState('home'); // 'home', 'new_search_form', 'active_searches', 'finished_searches'
+  const [currentView, setCurrentView] = useState('home'); // 'home', 'new_search_form', 'creation_success', 'active_searches', 'finished_searches'
   const [procuraBeingEdited, setProcuraBeingEdited] = useState(null);
   const [reopenAsNew, setReopenAsNew] = useState(false);
   const [finishingProcuraId, setFinishingProcuraId] = useState(null);
+  const [lastCreatedProcura, setLastCreatedProcura] = useState(null);
   useScrollToTop(currentView);
+
+  useEffect(() => {
+    if (currentView !== 'creation_success') return undefined;
+    const timer = window.setTimeout(() => setCurrentView('home'), 5000);
+    return () => window.clearTimeout(timer);
+  }, [currentView]);
 
   const handleViewResponses = (procura) => {
     setSelectedProcura(procura);
@@ -52,12 +60,20 @@ const UserDashboard = ({ userProcuras, onProcuraCreate, onProcuraUpdate, onPhoto
   };
   
   const handleCreateNewProcura = async (newProcuraData) => {
-    const created = procuraBeingEdited && !reopenAsNew
+    const isPureEdit = Boolean(procuraBeingEdited) && !reopenAsNew;
+    const created = isPureEdit
       ? await onProcuraUpdate(procuraBeingEdited.id, newProcuraData)
       : await onProcuraCreate(newProcuraData);
-    if (created) setCurrentView('home');
-    if (created) setProcuraBeingEdited(null);
-    if (created) setReopenAsNew(false);
+    if (created) {
+      setProcuraBeingEdited(null);
+      setReopenAsNew(false);
+      if (isPureEdit) {
+        setCurrentView('home');
+      } else {
+        setLastCreatedProcura(newProcuraData);
+        setCurrentView('creation_success');
+      }
+    }
     return created;
   };
 
@@ -94,10 +110,10 @@ const UserDashboard = ({ userProcuras, onProcuraCreate, onProcuraUpdate, onPhoto
   };
 
   const renderSearchFormView = () => (
-     <SearchForm 
-        onProcuraCreate={handleCreateNewProcura} 
+     <SearchForm
+        onProcuraCreate={handleCreateNewProcura}
         onPhotoUpload={onPhotoUpload}
-        currentUser={currentUser} 
+        currentUser={currentUser}
         allStatesAndCities={allStatesAndCities}
         vehicleData={vehicleData}
         onGoBack={() => { setProcuraBeingEdited(null); setReopenAsNew(false); setCurrentView('home'); }}
@@ -106,12 +122,35 @@ const UserDashboard = ({ userProcuras, onProcuraCreate, onProcuraUpdate, onPhoto
       />
   );
 
+  const renderCreationSuccessView = () => (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="mx-auto max-w-md">
+      <Card className="glass-effect border-accent-agile/40">
+        <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
+          <motion.span
+            initial={{ scale: 0.4 }}
+            animate={{ scale: [0.4, 1.08, 1] }}
+            transition={{ duration: 0.4 }}
+            className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-accent-agile text-accent-agile"
+          >
+            <CheckCircle2 className="h-8 w-8" />
+          </motion.span>
+          <div>
+            <h2 className="text-lg font-bold text-foreground">Procura publicada!</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Empresas da sua região já podem responder. {lastCreatedProcura?.partName}</p>
+          </div>
+          <Button onClick={() => setCurrentView('home')} className="mt-2 w-full gradient-bg text-primary-foreground hover:opacity-90">Ver minhas procuras</Button>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+
   return (
     <div className="space-y-6 sm:space-y-10" id="user-dashboard-tabs">
       {(currentView === 'home' || currentView === 'active_searches') && renderOverviewView(false)}
       {currentView === 'finished_searches' && renderOverviewView(true)}
       {currentView === 'new_search_form' && renderSearchFormView()}
-      {currentView !== 'new_search_form' && <Button type="button" onClick={() => setCurrentView('new_search_form')} className="safe-floating-bottom fixed bottom-6 left-4 z-40 min-h-12 rounded-full px-5 text-sm font-bold text-primary-foreground ring-4 ring-background shadow-[0_8px_24px_rgba(0,0,0,0.35)] sm:left-1/2 sm:-translate-x-1/2"><PackagePlus className="mr-2 h-5 w-5" />Criar nova procura</Button>}
+      {currentView === 'creation_success' && renderCreationSuccessView()}
+      {currentView !== 'new_search_form' && currentView !== 'creation_success' && <Button type="button" onClick={() => setCurrentView('new_search_form')} className="safe-floating-bottom fixed bottom-6 left-4 z-40 min-h-12 rounded-full px-5 text-sm font-bold text-primary-foreground ring-4 ring-background shadow-[0_8px_24px_rgba(0,0,0,0.35)] sm:left-1/2 sm:-translate-x-1/2"><PackagePlus className="mr-2 h-5 w-5" />Criar nova procura</Button>}
 
       <ResponseModal
         procura={selectedProcura}

@@ -18,16 +18,29 @@ import { distanceInKm } from '@/lib/geocoding';
 import useScrollToTop from '@/hooks/useScrollToTop';
 import { formatCurrency, formatCurrencyInput, normalizeCurrencyValue, sanitizeCurrencyInput } from '@/lib/currency';
 import DashboardSectionTabs from '@/components/DashboardSectionTabs';
-import { SubscriptionBlockedDialog, TrialProgressCard } from '@/components/CompanyTrialExperience';
-import ScrollShadowList from '@/components/ScrollShadowList';
+import { SubscriptionBlockedDialog } from '@/components/CompanyTrialExperience';
+
+const PART_CONDITION_LABELS = {
+  new: '🆕 Nova (sem uso)',
+  excellent: '⭐ Excelente (quase nova)',
+  good: '👍 Boa (pequenos desgastes)',
+  fair: '⚠️ Regular (desgastes visíveis)',
+  poor: '🔧 Ruim (precisa reparo)',
+};
+const PART_TYPE_LABELS = {
+  original: '🔩 Original',
+  parallel: '⚙️ Paralela',
+};
+const RESPONSE_STEP_NAMES = { 1: 'Preço', 2: 'Condição, tipo e foto', 3: 'Revisão' };
 
 const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseSubmit, onPhotoUpload, currentUser, vehicleData, users = [], openProcuraId = null, onPushDestinationHandled, isDataLoaded = false, subscriptionContext = null, onShowPlans }) => {
   const [selectedProcura, setSelectedProcura] = useState(null);
   const [isEditingResponse, setIsEditingResponse] = useState(false);
+  const [responseStep, setResponseStep] = useState(1);
   const [responseForm, setResponseForm] = useState({
     status: '',
     partCondition: '',
-    partType: '', 
+    partType: '',
     price: '',
     message: '',
     photoUrl: ''
@@ -87,32 +100,47 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
     }
   };
 
-  const handleResponseFormSubmit = (e) => {
-    e.preventDefault();
+  const focusFirstError = (errors) => {
+    const firstError = Object.keys(errors)[0];
+    if (!firstError) return;
+    window.requestAnimationFrame(() => {
+      const field = document.getElementById(`response-${firstError}`) || document.getElementById(firstError);
+      field?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      window.setTimeout(() => field?.focus?.(), 250);
+    });
+    toast({ title: 'Revise a resposta', description: errors[firstError], variant: 'destructive' });
+  };
+
+  const validateStep1 = () => {
     const errors = {};
-    if (!responseForm.status) errors.status = 'Informe se a peça está disponível.';
-    if (responseForm.status === 'available' && !responseForm.partCondition) errors.partCondition = 'Selecione a condição da peça.';
-    if (responseForm.status === 'available' && !responseForm.partType) errors.partType = 'Selecione se a peça é original ou paralela.';
     const normalizedPrice = Number(normalizeCurrencyValue(responseForm.price));
     if (responseForm.status === 'available' && (!Number.isFinite(normalizedPrice) || normalizedPrice <= 0)) errors.price = 'Informe um preço válido, incluindo os centavos.';
-    setResponseErrors(errors);
-    const firstError = Object.keys(errors)[0];
-    if (firstError) {
-      window.requestAnimationFrame(() => {
-        const field = document.getElementById(`response-${firstError}`) || document.getElementById(firstError);
-        field?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        window.setTimeout(() => field?.focus?.(), 250);
-      });
-      toast({ title: 'Revise a resposta', description: errors[firstError], variant: 'destructive' });
-      return;
-    }
+    return errors;
+  };
 
+  const validateStep2 = () => {
+    const errors = {};
+    if (responseForm.status === 'available' && !responseForm.partCondition) errors.partCondition = 'Selecione a condição da peça.';
+    if (responseForm.status === 'available' && !responseForm.partType) errors.partType = 'Selecione se a peça é original ou paralela.';
+    return errors;
+  };
+
+  const handleStep1Continue = () => {
+    const errors = validateStep1();
+    setResponseErrors(errors);
+    if (Object.keys(errors).length) { focusFirstError(errors); return; }
+    setResponseStep(2);
+  };
+
+  const handleStep2Continue = () => {
+    const errors = validateStep2();
+    setResponseErrors(errors);
+    if (Object.keys(errors).length) { focusFirstError(errors); return; }
     if (selectedProcura.wantsPhotos && responseForm.status === 'available' && !responseForm.photoUrl) {
       setShowPhotoConfirmDialog(true);
       return;
     }
-
-    void submitResponse();
+    setResponseStep(3);
   };
 
   const submitResponse = async () => {
@@ -122,14 +150,14 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
       id: isEditingResponse ? selectedProcura.myResponse.id : Date.now().toString(),
       searchId: selectedProcura.id,
       companyId: currentUser.id,
-      companyName: currentUser.name, 
+      companyName: currentUser.name,
       responseDate: new Date().toISOString(),
       ...responseForm,
       price: responseForm.status === 'available' && responseForm.price !== '' ? normalizeCurrencyValue(responseForm.price) : null,
       message: responseForm.status === 'unavailable' ? 'Peça indisponível no momento.' : responseForm.message,
       cnpj: currentUser.cnpj,
-      address: currentUser.address, 
-      location: currentUser.address.split(',').slice(-2).join(',').trim(), 
+      address: currentUser.address,
+      location: currentUser.address.split(',').slice(-2).join(',').trim(),
       isReadByUser: false,
       isReadByCompany: true,
     };
@@ -137,21 +165,30 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
     try {
       const saved = await onResponseSubmit(selectedProcura.id, response);
       if (!saved) return;
-
-      const wasEditing = isEditingResponse;
-      setResponseForm({ status: '', partCondition: '', partType: '', price: '', message: '', photoUrl: '' });
-      setResponseErrors({});
-      setPhotoPreview(null);
-      setSelectedProcura(null);
-      setIsEditingResponse(false);
       setShowPhotoConfirmDialog(false);
-      setCurrentView(wasEditing ? 'responded' : 'to-respond');
-
-      toast({ title: `Resposta ${wasEditing ? 'atualizada' : 'enviada'} com sucesso! 🎉`, description: "Continue respondendo às procuras abertas." });
+      setCurrentView('response_success');
     } finally {
       setIsSubmittingResponse(false);
     }
   };
+
+  const finishResponseFlow = () => {
+    const wasEditing = isEditingResponse;
+    setResponseForm({ status: '', partCondition: '', partType: '', price: '', message: '', photoUrl: '' });
+    setResponseErrors({});
+    setPhotoPreview(null);
+    setSelectedProcura(null);
+    setIsEditingResponse(false);
+    setResponseStep(1);
+    setCurrentView(wasEditing ? 'responded' : 'to-respond');
+  };
+
+  useEffect(() => {
+    if (currentView !== 'response_success') return undefined;
+    const timer = window.setTimeout(() => finishResponseFlow(), 5000);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentView]);
 
   const handleQuickResponse = async (procura, hasItem) => {
     if (subscriptionContext && !subscriptionContext.canRespond) {
@@ -201,6 +238,7 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
     }
     setReturnView(isEdit ? 'responded' : 'to-respond');
     setResponseErrors({});
+    setResponseStep(1);
     setSelectedProcura(procura);
     setIsEditingResponse(isEdit);
     if (isEdit && procura.myResponse) {
@@ -302,85 +340,140 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
     );
   };
 
+  if (currentView === 'response_success' && selectedProcura) {
+    const successPrice = responseForm.status === 'available' && responseForm.price ? `R$ ${responseForm.price}` : null;
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="mx-auto max-w-md">
+        <Card className="glass-effect border-accent-agile/40">
+          <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
+            <motion.span
+              initial={{ scale: 0.4 }}
+              animate={{ scale: [0.4, 1.08, 1] }}
+              transition={{ duration: 0.4 }}
+              className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-accent-agile text-accent-agile"
+            >
+              <CheckCircle2 className="h-8 w-8" />
+            </motion.span>
+            <div>
+              <h2 className="text-lg font-bold text-foreground">Resposta enviada!</h2>
+              <p className="mt-1 text-sm text-muted-foreground">O comprador foi avisado. {selectedProcura.partName}{successPrice ? ` · ${successPrice}` : ''}</p>
+            </div>
+            <Button onClick={finishResponseFlow} className="mt-2 w-full gradient-bg text-primary-foreground hover:opacity-90">Continuar respondendo</Button>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
+
   if (currentView === 'response_form' && selectedProcura) {
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
         <Card className="glass-effect border-primary/30 max-w-2xl mx-auto">
           <CardHeader>
-            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-start gap-3">
-              <CardTitle className="text-foreground text-lg sm:text-xl">{isEditingResponse ? 'Editar Resposta para:' : 'Responder Procura:'} {selectedProcura.partName}</CardTitle>
-              <Button variant="outline" size="sm" onClick={() => { setSelectedProcura(null); setIsEditingResponse(false); setCurrentView(returnView); }} className="w-full sm:w-auto border-muted-foreground/50 text-muted-foreground hover:border-primary hover:text-primary"><ArrowLeft className="h-4 w-4 mr-1"/>Voltar</Button>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-1.5">
+                {responseStep > 1 && (
+                  <Button type="button" variant="ghost" size="icon" onClick={() => setResponseStep(step => step - 1)} aria-label="Etapa anterior" className="h-8 w-8 shrink-0 text-muted-foreground hover:text-primary">
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                )}
+                <CardTitle className="truncate text-foreground text-lg sm:text-xl">Responder procura</CardTitle>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => { setSelectedProcura(null); setIsEditingResponse(false); setResponseStep(1); setCurrentView(returnView); }} className="shrink-0 border-muted-foreground/50 text-muted-foreground hover:border-primary hover:text-primary">Sair</Button>
             </div>
-            <div className="text-muted-foreground text-sm">{selectedProcura.vehicleType} - {selectedProcura.vehicleBrand} {selectedProcura.vehicleModel} ({selectedProcura.vehicleYear || 'N/A'})</div>
+            <div className="text-muted-foreground text-sm">{selectedProcura.partName} · {selectedProcura.vehicleType} {selectedProcura.vehicleBrand} {selectedProcura.vehicleModel} ({selectedProcura.vehicleYear || 'N/A'})</div>
             {selectedProcura.wantsPhotos && <Badge variant="outline" className="border-warning text-warning flex items-center gap-1 w-fit"><Camera className="h-4 w-4" /> Usuário solicitou fotos</Badge>}
+            <div className="mt-2 grid grid-cols-3 gap-1.5" aria-label={`Etapa ${responseStep} de 3`}>
+              {[1, 2, 3].map(step => <span key={step} className={`h-1.5 rounded-full ${step <= responseStep ? 'bg-primary' : 'bg-border'}`} />)}
+            </div>
+            <p className="text-xs font-medium text-muted-foreground">Etapa {responseStep} de 3 · {RESPONSE_STEP_NAMES[responseStep]}</p>
           </CardHeader>
           <CardContent>
-            <div className="mb-4 p-3 bg-input/50 rounded-lg text-sm">
-              <h3 className="font-semibold mb-1 text-foreground">Detalhes da Procura:</h3>
-              {selectedProcura.partDescription && <p className="text-muted-foreground mb-1">{selectedProcura.partDescription}</p>}
-              {selectedProcura.referencePhotoUrl && <a href={selectedProcura.referencePhotoUrl} target="_blank" rel="noreferrer" className="mt-2 block rounded-[10px] border border-border bg-muted p-1" aria-label="Abrir foto de referência em tamanho maior"><img src={selectedProcura.referencePhotoUrl} alt="Foto de referência enviada pelo comprador" className="max-h-72 w-full rounded-lg object-contain" /><span className="block py-1 text-center text-xs font-medium text-primary">Abrir imagem em tamanho maior</span></a>}
-              {(selectedProcura.locations || []).length > 0 && <p className="text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3"/> {(selectedProcura.locations || []).map(l => l.label).join(', ')}</p>}
-            </div>
-            <form onSubmit={handleResponseFormSubmit} onKeyDown={(event) => {
-              if (event.key === 'Enter' && event.target.tagName === 'INPUT') event.preventDefault();
-            }} className="space-y-3 sm:space-y-4" noValidate>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <div>
-                  <Label htmlFor="response-partCondition" className="block text-sm font-medium mb-2 text-muted-foreground">Condição da Peça *</Label>
-                  <Select value={responseForm.partCondition} onValueChange={(value) => { setResponseForm({...responseForm, partCondition: value}); setResponseErrors(current => ({ ...current, partCondition: '' })); }}>
-                    <SelectTrigger id="response-partCondition" aria-invalid={Boolean(responseErrors.partCondition)} className={`bg-input ${responseErrors.partCondition ? 'border-danger ring-1 ring-danger' : 'border-border'}`}><SelectValue placeholder="Selecione a condição" /></SelectTrigger>
-                    <SelectContent className="bg-popover border-border text-popover-foreground">
-                      <SelectItem value="new">🆕 Nova (sem uso)</SelectItem>
-                      <SelectItem value="excellent">⭐ Excelente (quase nova)</SelectItem>
-                      <SelectItem value="good">👍 Boa (pequenos desgastes)</SelectItem>
-                      <SelectItem value="fair">⚠️ Regular (desgastes visíveis)</SelectItem>
-                      <SelectItem value="poor">🔧 Ruim (precisa reparo)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {responseErrors.partCondition && <p className="mt-1.5 text-xs font-medium text-danger" role="alert">{responseErrors.partCondition}</p>}
+            {responseStep === 1 && (
+              <div className="space-y-3 sm:space-y-4">
+                <div className="p-3 bg-input/50 rounded-lg text-sm">
+                  <h3 className="font-semibold mb-1 text-foreground">Detalhes da Procura:</h3>
+                  {selectedProcura.partDescription && <p className="text-muted-foreground mb-1">{selectedProcura.partDescription}</p>}
+                  {selectedProcura.referencePhotoUrl && <a href={selectedProcura.referencePhotoUrl} target="_blank" rel="noreferrer" className="mt-2 block rounded-[10px] border border-border bg-muted p-1" aria-label="Abrir foto de referência em tamanho maior"><img src={selectedProcura.referencePhotoUrl} alt="Foto de referência enviada pelo comprador" className="max-h-72 w-full rounded-lg object-contain" /><span className="block py-1 text-center text-xs font-medium text-primary">Abrir imagem em tamanho maior</span></a>}
+                  {(selectedProcura.locations || []).length > 0 && <p className="text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3"/> {(selectedProcura.locations || []).map(l => l.label).join(', ')}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="response-partType" className="block text-sm font-medium mb-2 text-muted-foreground">Tipo da Peça *</Label>
-                  <Select value={responseForm.partType} onValueChange={(value) => { setResponseForm({...responseForm, partType: value}); setResponseErrors(current => ({ ...current, partType: '' })); }}>
-                    <SelectTrigger id="response-partType" aria-invalid={Boolean(responseErrors.partType)} className={`bg-input ${responseErrors.partType ? 'border-danger ring-1 ring-danger' : 'border-border'}`}><SelectValue placeholder="Original ou Paralela" /></SelectTrigger>
-                    <SelectContent className="bg-popover border-border text-popover-foreground">
-                      <SelectItem value="original">🔩 Original</SelectItem>
-                      <SelectItem value="parallel">⚙️ Paralela</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {responseErrors.partType && <p className="mt-1.5 text-xs font-medium text-danger" role="alert">{responseErrors.partType}</p>}
+                  <Label htmlFor="response-price" className="block text-sm font-medium mb-2 text-muted-foreground">Preço (R$) *</Label>
+                  <Input id="response-price" type="text" inputMode="decimal" placeholder="Ex: 250,00" autoFocus value={responseForm.price} onChange={(e) => { setResponseForm({...responseForm, price: sanitizeCurrencyInput(e.target.value)}); setResponseErrors(current => ({ ...current, price: '' })); }} onBlur={(e) => setResponseForm(current => ({ ...current, price: formatCurrencyInput(e.target.value) }))} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); handleStep1Continue(); } }} aria-invalid={Boolean(responseErrors.price)} className={`bg-input ${responseErrors.price ? 'border-danger ring-1 ring-danger' : 'border-border'}`}/>
+                  {responseErrors.price && <p className="mt-1.5 text-xs font-medium text-danger" role="alert">{responseErrors.price}</p>}
                 </div>
+                <Button type="button" onClick={handleStep1Continue} className="w-full gradient-bg hover:opacity-90 text-primary-foreground font-semibold py-2.5 sm:py-3">Continuar</Button>
               </div>
+            )}
 
-              {selectedProcura.wantsPhotos && (
-                <div>
-                  <Label className="block text-sm font-medium mb-2 text-muted-foreground">Foto da Peça *</Label>
-                  <Button type="button" variant="outline" onClick={handlePhotoUpload} disabled={isUploadingPhoto} className="w-full border-primary text-primary"><Upload className={`mr-2 h-4 w-4 ${isUploadingPhoto ? 'animate-pulse' : ''}`}/> {isUploadingPhoto ? 'Enviando foto...' : 'Adicionar foto'}</Button>
-                  <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
-                  <p className="mt-1 text-xs text-muted-foreground">A imagem será otimizada automaticamente para manter os detalhes sem ocupar espaço desnecessário.</p>
-                  {photoPreview && <div className="mt-2"><img src={photoPreview} alt="Pré-visualização da peça" className="max-h-32 rounded-md border border-border" /></div>}
+            {responseStep === 2 && (
+              <div className="space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div>
+                    <Label htmlFor="response-partCondition" className="block text-sm font-medium mb-2 text-muted-foreground">Condição da Peça *</Label>
+                    <Select value={responseForm.partCondition} onValueChange={(value) => { setResponseForm({...responseForm, partCondition: value}); setResponseErrors(current => ({ ...current, partCondition: '' })); }}>
+                      <SelectTrigger id="response-partCondition" aria-invalid={Boolean(responseErrors.partCondition)} className={`bg-input ${responseErrors.partCondition ? 'border-danger ring-1 ring-danger' : 'border-border'}`}><SelectValue placeholder="Selecione a condição" /></SelectTrigger>
+                      <SelectContent className="bg-popover border-border text-popover-foreground">
+                        {Object.entries(PART_CONDITION_LABELS).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    {responseErrors.partCondition && <p className="mt-1.5 text-xs font-medium text-danger" role="alert">{responseErrors.partCondition}</p>}
+                  </div>
+                  <div>
+                    <Label htmlFor="response-partType" className="block text-sm font-medium mb-2 text-muted-foreground">Tipo da Peça *</Label>
+                    <Select value={responseForm.partType} onValueChange={(value) => { setResponseForm({...responseForm, partType: value}); setResponseErrors(current => ({ ...current, partType: '' })); }}>
+                      <SelectTrigger id="response-partType" aria-invalid={Boolean(responseErrors.partType)} className={`bg-input ${responseErrors.partType ? 'border-danger ring-1 ring-danger' : 'border-border'}`}><SelectValue placeholder="Original ou Paralela" /></SelectTrigger>
+                      <SelectContent className="bg-popover border-border text-popover-foreground">
+                        {Object.entries(PART_TYPE_LABELS).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    {responseErrors.partType && <p className="mt-1.5 text-xs font-medium text-danger" role="alert">{responseErrors.partType}</p>}
+                  </div>
                 </div>
-              )}
-              <div>
-                <Label htmlFor="response-price" className="block text-sm font-medium mb-2 text-muted-foreground">Preço (R$) *</Label>
-                <Input id="response-price" type="text" inputMode="decimal" placeholder="Ex: 250,00" value={responseForm.price} onChange={(e) => { setResponseForm({...responseForm, price: sanitizeCurrencyInput(e.target.value)}); setResponseErrors(current => ({ ...current, price: '' })); }} onBlur={(e) => setResponseForm(current => ({ ...current, price: formatCurrencyInput(e.target.value) }))} aria-invalid={Boolean(responseErrors.price)} className={`bg-input ${responseErrors.price ? 'border-danger ring-1 ring-danger' : 'border-border'}`}/>
-                {responseErrors.price && <p className="mt-1.5 text-xs font-medium text-danger" role="alert">{responseErrors.price}</p>}
+
+                {selectedProcura.wantsPhotos && (
+                  <div>
+                    <Label className="block text-sm font-medium mb-2 text-muted-foreground">Foto da Peça</Label>
+                    <Button type="button" variant="outline" onClick={handlePhotoUpload} disabled={isUploadingPhoto} className="w-full border-primary text-primary"><Upload className={`mr-2 h-4 w-4 ${isUploadingPhoto ? 'animate-pulse' : ''}`}/> {isUploadingPhoto ? 'Enviando foto...' : 'Adicionar foto'}</Button>
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+                    <p className="mt-1 text-xs text-muted-foreground">A imagem será otimizada automaticamente para manter os detalhes sem ocupar espaço desnecessário.</p>
+                    {photoPreview && <div className="mt-2"><img src={photoPreview} alt="Pré-visualização da peça" className="max-h-32 rounded-md border border-border" /></div>}
+                  </div>
+                )}
+                <div>
+                  <Label htmlFor="message" className="block text-sm font-medium mb-2 text-muted-foreground">Mensagem Adicional</Label>
+                  <Textarea
+                    id="message"
+                    placeholder="Informações adicionais (ex: garantia, observações, etc.)"
+                    value={responseForm.message}
+                    onChange={(e) => setResponseForm({...responseForm, message: e.target.value})}
+                    className="bg-input border-border"
+                    rows={2}
+                  />
+                </div>
+                <Button type="button" onClick={handleStep2Continue} disabled={isUploadingPhoto} className="w-full gradient-bg hover:opacity-90 text-primary-foreground font-semibold py-2.5 sm:py-3">Continuar</Button>
               </div>
-              <div>
-                <Label htmlFor="message" className="block text-sm font-medium mb-2 text-muted-foreground">Mensagem Adicional</Label>
-                <Textarea 
-                  id="message" 
-                  placeholder="Informações adicionais (ex: garantia, observações, etc.)" 
-                  value={responseForm.message} 
-                  onChange={(e) => setResponseForm({...responseForm, message: e.target.value})} 
-                  className="bg-input border-border" 
-                  rows={2}
-                />
+            )}
+
+            {responseStep === 3 && (
+              <div className="space-y-3 sm:space-y-4">
+                <div className="space-y-2 rounded-lg border border-border bg-input/30 p-4 text-sm">
+                  <div className="flex items-center justify-between gap-3"><span className="text-muted-foreground">Peça</span><span className="text-right font-semibold text-foreground">{selectedProcura.partName}</span></div>
+                  {responseForm.status === 'available' && (
+                    <>
+                      <div className="flex items-center justify-between gap-3"><span className="text-muted-foreground">Preço</span><span className="text-right font-semibold text-foreground">R$ {responseForm.price || '—'}</span></div>
+                      <div className="flex items-center justify-between gap-3"><span className="text-muted-foreground">Condição</span><span className="text-right font-medium text-foreground">{PART_CONDITION_LABELS[responseForm.partCondition] || '—'}</span></div>
+                      <div className="flex items-center justify-between gap-3"><span className="text-muted-foreground">Tipo</span><span className="text-right font-medium text-foreground">{PART_TYPE_LABELS[responseForm.partType] || '—'}</span></div>
+                      {selectedProcura.wantsPhotos && <div className="flex items-center justify-between gap-3"><span className="text-muted-foreground">Foto</span><span className="text-right font-medium text-foreground">{responseForm.photoUrl ? 'Anexada' : 'Sem foto'}</span></div>}
+                    </>
+                  )}
+                  {responseForm.message && <p className="border-t border-border pt-2 text-muted-foreground">“{responseForm.message}”</p>}
+                </div>
+                <Button type="button" onClick={() => void submitResponse()} disabled={isSubmittingResponse || isUploadingPhoto} className="w-full gradient-bg hover:opacity-90 text-primary-foreground font-semibold py-2.5 sm:py-3" aria-live="polite">
+                  {isSubmittingResponse ? <><span className="mr-2 inline-flex gap-1" aria-hidden="true"><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current" /><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:120ms]" /><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:240ms]" /></span>Enviando resposta</> : <><Send className="h-5 w-5 mr-2" /> {isEditingResponse ? 'Atualizar Resposta' : 'Enviar resposta'}</>}
+                </Button>
               </div>
-              <Button type="submit" disabled={isSubmittingResponse || isUploadingPhoto} className="w-full gradient-bg hover:opacity-90 text-primary-foreground font-semibold py-2.5 sm:py-3" aria-live="polite">
-                {isSubmittingResponse ? <><span className="mr-2 inline-flex gap-1" aria-hidden="true"><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current" /><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:120ms]" /><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:240ms]" /></span>Enviando resposta</> : <><Send className="h-5 w-5 mr-2" /> {isEditingResponse ? 'Atualizar Resposta' : 'Enviar Resposta'}</>}
-              </Button>
-            </form>
+            )}
           </CardContent>
         </Card>
 
@@ -394,15 +487,15 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
             </DialogHeader>
             <div className="py-4">
               <p className="text-muted-foreground">
-                O usuário solicitou fotos da peça, mas você não adicionou nenhuma imagem. Deseja realmente responder sem foto?
+                O usuário solicitou fotos da peça, mas você não adicionou nenhuma imagem. Deseja continuar sem foto?
               </p>
             </div>
             <DialogFooter className="gap-2">
               <Button variant="outline" onClick={() => setShowPhotoConfirmDialog(false)} className="border-muted-foreground/50 text-muted-foreground hover:border-primary hover:text-primary">
                 Cancelar e Adicionar Foto
               </Button>
-              <Button onClick={() => void submitResponse()} disabled={isSubmittingResponse} className="gradient-bg hover:opacity-90 text-primary-foreground" aria-live="polite">
-                {isSubmittingResponse ? 'Enviando resposta...' : 'Sim, Enviar sem Foto'}
+              <Button onClick={() => { setShowPhotoConfirmDialog(false); setResponseStep(3); }} className="gradient-bg hover:opacity-90 text-primary-foreground">
+                Sim, continuar sem foto
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -416,7 +509,6 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
 
   return (
     <div className="mx-auto max-w-3xl space-y-4 pb-20">
-          <TrialProgressCard context={subscriptionContext} onShowPlans={onShowPlans} />
           <Tabs value={currentView} onValueChange={setCurrentView} className="w-full">
             <div className="mb-3 flex items-start justify-between gap-3">
               <div><h2 className="text-xl font-extrabold tracking-tight text-foreground sm:text-2xl">{currentView === 'responded' ? 'Procuras respondidas' : 'Procuras para responder'}</h2><p className="mt-1 text-sm leading-5 text-muted-foreground">{currentView === 'responded' ? 'Revise ou edite as respostas que você enviou.' : 'Responda primeiro às oportunidades que sua empresa pode atender.'}</p></div>
@@ -428,14 +520,14 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
               {filteredProcurasToRespond.length === 0 ? (<Card className="border-border bg-card"><CardContent className="py-10 text-center"><BrandMark className="mx-auto mb-3 h-12 w-12 rounded-xl" /><p className="font-semibold text-foreground">{hasActiveFilters ? 'Nenhuma procura encontrada.' : 'Nenhuma procura aguardando resposta.'}</p><p className="mt-1 text-sm text-muted-foreground">{hasActiveFilters ? 'Limpe ou altere os filtros para ver outras procuras.' : 'Quando houver oportunidades na sua região, elas aparecerão aqui.'}</p></CardContent></Card>)
               : (<div className="mx-auto max-w-3xl">
                   <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground"><span>{filteredProcurasToRespond.length} aguardando resposta</span></div>
-                  <ScrollShadowList>{filteredProcurasToRespond.map(procura => renderCompactProcuraCard(procura, 'to-respond'))}</ScrollShadowList>
+                  <div className="grid grid-cols-1 gap-2">{filteredProcurasToRespond.map(procura => renderCompactProcuraCard(procura, 'to-respond'))}</div>
                 </div>)}
             </TabsContent>
             <TabsContent value="responded">
                {filteredCompanyResponses.length === 0 ? (<Card className="border-border bg-card"><CardContent className="py-10 text-center"><BrandMark className="mx-auto mb-3 h-12 w-12 rounded-xl" /><p className="font-semibold text-foreground">{hasActiveFilters ? 'Nenhuma resposta encontrada.' : 'Você ainda não respondeu nenhuma procura.'}</p><p className="mt-1 text-sm text-muted-foreground">{hasActiveFilters ? 'Limpe ou altere os filtros para ver outras respostas.' : 'Suas respostas aparecerão aqui.'}</p></CardContent></Card>)
                : (<div className="mx-auto max-w-3xl">
                    <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground"><span>{filteredCompanyResponses.length} respondida{filteredCompanyResponses.length === 1 ? '' : 's'}</span></div>
-                   <ScrollShadowList>{filteredCompanyResponses.map(procura => renderCompactProcuraCard(procura, 'responded'))}</ScrollShadowList>
+                   <div className="grid grid-cols-1 gap-2">{filteredCompanyResponses.map(procura => renderCompactProcuraCard(procura, 'responded'))}</div>
                  </div>)}
             </TabsContent>
           </Tabs>

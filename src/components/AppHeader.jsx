@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from '@/components/ui/button';
 import NotificationDropdown from '@/components/NotificationDropdown.jsx';
-import { UserCircle, ChevronDown, BarChartHorizontalBig, FileText, Star, AlertOctagon, LogIn, BellRing, BellOff, Users, CreditCard, Home, Lightbulb } from 'lucide-react';
+import { UserCircle, ChevronDown, BarChartHorizontalBig, FileText, Star, AlertOctagon, LogIn, BellRing, BellOff, Users, CreditCard, Home, Lightbulb, Target } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import BrandLogo from '@/components/BrandLogo';
 import { disablePush, enablePush, getPushState, getPushSupport, PUSH_STATE_CHANGE_EVENT } from '@/lib/pushNotifications';
@@ -31,6 +31,8 @@ const AppHeader = ({
   onOpenFeedbackModal,
   onShowOnboardingTour,
   onNeedsPushInstall,
+  onShowTrialDetails,
+  subscriptionContext,
   onLogout
 }) => {
   const displayName = companyAccess?.operatorName || currentUser?.name?.split(' ')[0] || currentUser?.email?.split('@')[0] || 'Usuário';
@@ -125,6 +127,12 @@ const AppHeader = ({
                  <DropdownMenuItem onClick={onShowCompanyMiniDashboard} className="cursor-pointer focus:!bg-primary/15 focus:!text-foreground">
                   <BarChartHorizontalBig className="mr-2 h-4 w-4 text-primary" />
                   <span>Meu Desempenho</span>
+                </DropdownMenuItem>
+              )}
+              {userType === 'company' && subscriptionContext?.state === 'trial_active' && (
+                <DropdownMenuItem onClick={onShowTrialDetails} className="cursor-pointer text-warning focus:!bg-warning/15 focus:!text-warning">
+                  <Target className="mr-2 h-4 w-4 text-warning" />
+                  <span>Período de experiência</span>
                 </DropdownMenuItem>
               )}
               {userType === 'company' && !isCompanyOperator && (
