@@ -1305,6 +1305,7 @@ function App() {
           currentUser={currentUser}
           procuras={Array.isArray(procuras) ? procuras : []}
           companies={Array.isArray(companies) ? companies : []}
+          myRatings={companyRatings}
           onClose={() => setShowCompanyMiniDashboard(false)}
         />
       )}

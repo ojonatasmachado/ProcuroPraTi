@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Building2, MapPin, Clock, Image as ImageIcon, MessageSquare, Wrench, BadgeCheck, SlidersHorizontal, Edit3, Eye, Phone, Navigation, MapPinned, Smartphone, Star, Zap, Loader2, ChevronDown } from 'lucide-react';
+import WhatsAppIcon from '@/components/WhatsAppIcon';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -52,6 +53,13 @@ const StarRating = ({ value, onChange, size = 'h-5 w-5' }) => (
     ))}
   </div>
 );
+
+const buildWhatsAppLink = (whatsapp, procura) => {
+  const digits = whatsapp.replace(/\D/g, '').replace(/^55/, '');
+  const vehicle = [procura.vehicleBrand, procura.vehicleModel, procura.vehicleYear ? `(${procura.vehicleYear})` : ''].filter(Boolean).join(' ');
+  const message = `Olá! Vi sua resposta na Procuro Pra Ti sobre a procura de ${procura.partName}${vehicle ? ` para ${vehicle}` : ''} e gostaria de falar sobre ela.`;
+  return `https://wa.me/55${digits}?text=${encodeURIComponent(message)}`;
+};
 
 const ResponseModal = ({ procura, isOpen, onClose, onMarkAsRead, onOpenChat, onEditProcura, companies = [], currentUser, myRatings = {}, onSubmitRating }) => {
   const [filterLocation, setFilterLocation] = useState('');
@@ -413,7 +421,7 @@ const ResponseModal = ({ procura, isOpen, onClose, onMarkAsRead, onOpenChat, onE
                     <span className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border bg-input px-3 py-2 text-xs font-semibold text-muted-foreground"><Phone className="h-3.5 w-3.5" />Sem telefone</span>
                   )}
                   {selectedResponse.company?.whatsapp && (
-                    <a href={`https://wa.me/55${selectedResponse.company.whatsapp.replace(/\D/g, '').replace(/^55/, '')}`} target="_blank" rel="noopener noreferrer" className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-accent-agile bg-accent-agile/10 px-3 py-2 text-xs font-semibold text-accent-agile hover:bg-accent-agile/15"><Smartphone className="h-3.5 w-3.5" />WhatsApp</a>
+                    <a href={buildWhatsAppLink(selectedResponse.company.whatsapp, procura)} target="_blank" rel="noopener noreferrer" className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-accent-agile bg-accent-agile/10 px-3 py-2 text-xs font-semibold text-accent-agile hover:bg-accent-agile/15"><WhatsAppIcon className="h-3.5 w-3.5" />WhatsApp</a>
                   )}
                 </div>
               </div>
@@ -425,7 +433,6 @@ const ResponseModal = ({ procura, isOpen, onClose, onMarkAsRead, onOpenChat, onE
                 </button>
                 {showCompanyDetails && (
                   <div className="mt-2 space-y-1 rounded-lg bg-popover p-3 text-xs leading-relaxed text-muted-foreground">
-                    {selectedResponse.company?.cnpj && <p>CNPJ {selectedResponse.company.cnpj}</p>}
                     {findSubscriptionPlan(selectedResponse.company?.planCode) && <p>Plano {findSubscriptionPlan(selectedResponse.company.planCode).name}</p>}
                     {selectedResponse.company?.ratingCount > 0 && <p>{selectedResponse.company.ratingCount} avaliações</p>}
                   </div>

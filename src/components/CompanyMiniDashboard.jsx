@@ -6,7 +6,13 @@ import { BarChart3, MessageSquare, CheckCircle, XCircle, TrendingUp, Percent, St
 import BrandMark from '@/components/BrandMark';
 import { motion } from 'framer-motion';
 
-const CompanyMiniDashboard = ({ currentUser, procuras, companies = [], onClose }) => {
+const formatRatingDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('pt-BR');
+};
+
+const CompanyMiniDashboard = ({ currentUser, procuras, companies = [], myRatings = {}, onClose }) => {
   const companyId = currentUser?.id;
   const myReputation = companies.find(company => company.id === companyId);
   const earnedBadges = [
@@ -34,6 +40,17 @@ const CompanyMiniDashboard = ({ currentUser, procuras, companies = [], onClose }
     });
     return responses;
   }, [companyProcuras, companyId, currentUser]);
+
+  const receivedRatings = useMemo(() => {
+    return myResponses
+      .map(response => {
+        const rating = myRatings?.[response.id];
+        if (!rating) return null;
+        return { id: response.id, rating: rating.rating, comment: rating.comment, partName: response.procuraPartName, respondedAt: response.responseDate };
+      })
+      .filter(Boolean)
+      .sort((a, b) => new Date(b.respondedAt || 0) - new Date(a.respondedAt || 0));
+  }, [myResponses, myRatings]);
 
   const totalProcurasParaMim = companyProcuras.length;
   const totalRespostasEnviadas = myResponses.length;
@@ -101,6 +118,30 @@ const CompanyMiniDashboard = ({ currentUser, procuras, companies = [], onClose }
         <p className="text-xs text-muted-foreground mt-2 text-center">
           Estas são estatísticas baseadas nas suas interações na plataforma.
         </p>
+
+        <div className="mt-6 border-t border-border pt-4">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground"><Star className="h-4 w-4 text-warning" />Avaliações recebidas</h3>
+          {receivedRatings.length === 0 ? (
+            <p className="mt-2 text-xs text-muted-foreground">Você ainda não recebeu nenhuma avaliação de comprador.</p>
+          ) : (
+            <ul className="mt-3 space-y-2">
+              {receivedRatings.map(item => (
+                <li key={item.id} className="rounded-lg border border-border bg-input/30 p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-0.5">
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <Star key={star} className={`h-3.5 w-3.5 ${star <= item.rating ? 'fill-current text-warning' : 'text-muted-foreground/30'}`} />
+                      ))}
+                    </div>
+                    <span className="text-[11px] text-muted-foreground">{formatRatingDate(item.respondedAt)}</span>
+                  </div>
+                  {item.partName && <p className="mt-1 text-xs font-medium text-foreground">{item.partName}</p>}
+                  {item.comment && <p className="mt-1 text-xs italic leading-relaxed text-muted-foreground">“{item.comment}”</p>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

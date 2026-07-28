@@ -11,8 +11,39 @@ export const formatCep = (value) => {
 };
 
 const CepAddressLookup = ({ value, onChange, onAddressFound, required = false, inputClassName = '' }) => {
-  const [isLoading, setIsLoading] = useState(false);
+  // idle | searching | retrying | found | not-found | error
+  const [status, setStatus] = useState('idle');
   const lastSuccessfulCep = useRef('');
+
+  const fetchAddress = async (cep) => {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 10000);
+    const providers = [
+      fetch(`https://brasilapi.com.br/api/cep/v1/${cep}`, { signal: controller.signal }).then(async response => {
+        if (!response.ok) throw new Error('BrasilAPI indisponível');
+        const result = await response.json();
+        return { street: result.street, neighborhood: result.neighborhood, city: result.city, state: result.state };
+      }),
+      fetch(`https://viacep.com.br/ws/${cep}/json/`, { signal: controller.signal }).then(async response => {
+        if (!response.ok) throw new Error('ViaCEP indisponível');
+        const result = await response.json();
+        if (result.erro) throw new Error('CEP não encontrado');
+        return { street: result.logradouro, neighborhood: result.bairro, city: result.localidade, state: result.uf };
+      }),
+    ];
+    // Promise.any já resolve com o primeiro provedor bem-sucedido; sem este catch,
+    // o abort() do provedor perdedor vira uma rejeição não tratada no console.
+    providers.forEach(provider => { provider.catch(() => {}); });
+    let address = null;
+    try {
+      address = await Promise.any(providers);
+    } catch {
+      address = null;
+    }
+    window.clearTimeout(timeout);
+    controller.abort();
+    return address?.city && address?.state ? address : null;
+  };
 
   const lookupCep = async (rawValue = value) => {
     const cep = String(rawValue || '').replace(/\D/g, '');
@@ -21,36 +52,16 @@ const CepAddressLookup = ({ value, onChange, onAddressFound, required = false, i
       return;
     }
 
-    setIsLoading(true);
+    setStatus('searching');
     try {
-      const controller = new AbortController();
-      const timeout = window.setTimeout(() => controller.abort(), 10000);
-      const providers = [
-        fetch(`https://brasilapi.com.br/api/cep/v1/${cep}`, { signal: controller.signal }).then(async response => {
-          if (!response.ok) throw new Error('BrasilAPI indisponível');
-          const result = await response.json();
-          return { street: result.street, neighborhood: result.neighborhood, city: result.city, state: result.state };
-        }),
-        fetch(`https://viacep.com.br/ws/${cep}/json/`, { signal: controller.signal }).then(async response => {
-          if (!response.ok) throw new Error('ViaCEP indisponível');
-          const result = await response.json();
-          if (result.erro) throw new Error('CEP não encontrado');
-          return { street: result.logradouro, neighborhood: result.bairro, city: result.localidade, state: result.uf };
-        }),
-      ];
-      // Promise.any já resolve com o primeiro provedor bem-sucedido; sem este catch,
-      // o abort() do provedor perdedor vira uma rejeição não tratada no console.
-      providers.forEach(provider => { provider.catch(() => {}); });
-      let address = null;
-      try {
-        address = await Promise.any(providers);
-      } catch {
-        address = null;
+      let address = await fetchAddress(cep);
+      if (!address) {
+        setStatus('retrying');
+        address = await fetchAddress(cep);
       }
-      window.clearTimeout(timeout);
-      controller.abort();
-      if (!address?.city || !address?.state) {
-        toast({ title: 'CEP não encontrado', description: 'Confira o número informado e tente novamente.', variant: 'destructive' });
+      if (!address) {
+        setStatus('not-found');
+        toast({ title: 'CEP não encontrado', description: 'Tentamos consultar duas vezes e não localizamos esse CEP. Preencha o endereço manualmente abaixo.', variant: 'destructive' });
         return;
       }
 
@@ -67,11 +78,11 @@ const CepAddressLookup = ({ value, onChange, onAddressFound, required = false, i
       });
       onAddressFound({ ...foundAddress, ...(coordinates || {}) });
       lastSuccessfulCep.current = cep;
+      setStatus('found');
       toast({ title: 'Endereço encontrado', description: `${foundAddress.addressCity}/${foundAddress.addressState} preenchida automaticamente. Complete o número e o complemento.` });
     } catch (error) {
+      setStatus('error');
       toast({ title: 'Não foi possível consultar o CEP', description: 'Preencha o endereço manualmente ou tente novamente.', variant: 'destructive' });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -81,6 +92,16 @@ const CepAddressLookup = ({ value, onChange, onAddressFound, required = false, i
     const timer = window.setTimeout(() => { void lookupCep(cep); }, 600);
     return () => window.clearTimeout(timer);
   }, [value]);
+
+  const isLoading = status === 'searching' || status === 'retrying';
+  const isFailure = status === 'not-found' || status === 'error';
+  const helperText = isLoading
+    ? status === 'retrying' ? 'Não veio na primeira tentativa, buscando de novo...' : 'Buscando endereço pelo CEP...'
+    : status === 'not-found'
+      ? 'Não encontramos esse CEP. Preencha o endereço manualmente.'
+      : status === 'error'
+        ? 'Não foi possível consultar agora. Preencha o endereço manualmente.'
+        : 'O endereço será preenchido automaticamente ao completar o CEP.';
 
   return (
     <div>
@@ -96,14 +117,18 @@ const CepAddressLookup = ({ value, onChange, onAddressFound, required = false, i
           autoComplete="postal-code"
           placeholder="00000-000"
           value={value}
-          onChange={(event) => onChange(formatCep(event.target.value))}
+          onChange={(event) => { setStatus('idle'); onChange(formatCep(event.target.value)); }}
           onKeyDown={(event) => { if (event.key === 'Enter') event.preventDefault(); }}
           required={required}
           className={`${inputClassName} pr-10`}
         />
-        {isLoading && <Loader2 className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-primary" aria-label="Consultando CEP" />}
+        {isLoading && (
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+            <Loader2 className="h-4 w-4 animate-spin text-primary" aria-label="Consultando CEP" />
+          </span>
+        )}
       </div>
-      <p className="mt-1 text-[11px] text-muted-foreground">O endereço será preenchido automaticamente ao completar o CEP.</p>
+      <p className={`mt-1 text-[11px] ${isFailure ? 'font-medium text-danger' : 'text-muted-foreground'}`} aria-live="polite">{helperText}</p>
     </div>
   );
 };

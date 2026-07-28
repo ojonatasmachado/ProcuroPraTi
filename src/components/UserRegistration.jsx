@@ -320,15 +320,16 @@ const UserRegistration = ({ onRegister, onSaveRegistrationProgress, onLogin, onC
       
       let fullAddress = '';
       if (userType === 'company') {
-        if (!formData.cnpj || !formData.addressCep || !formData.addressStreet || !formData.addressNumber || !formData.addressCity || !formData.addressState) {
+        if (!formData.cnpj || !formData.addressCep || !formData.addressStreet || !formData.addressNumber || !formData.addressCity || !formData.addressState || formData.whatsapp.replace(/\D/g, '').length < 10) {
           showValidationErrors({
             ...(formData.cnpj ? {} : { cnpj: 'Informe o CNPJ da empresa.' }),
+            ...(formData.whatsapp.replace(/\D/g, '').length >= 10 ? {} : { whatsapp: 'Informe um WhatsApp válido, com DDD.' }),
             ...(formData.addressCep ? {} : { addressCep: 'Informe o CEP para localizar o endereço.' }),
             ...(formData.addressStreet ? {} : { addressStreet: 'Informe a rua e o bairro.' }),
             ...(formData.addressNumber ? {} : { addressNumber: 'Informe o número da empresa.' }),
             ...(formData.addressState ? {} : { addressState: 'Selecione o estado.' }),
             ...(formData.addressCity ? {} : { addressCity: 'Selecione a cidade.' }),
-          }, 'CNPJ e endereço completo são obrigatórios para empresas vendedoras.');
+          }, 'CNPJ, WhatsApp e endereço completo são obrigatórios para empresas vendedoras.');
           return;
         }
         fullAddress = `${formData.addressStreet}, ${formData.addressNumber}, ${formData.addressCity}, ${formData.addressState}`;
@@ -635,9 +636,10 @@ const UserRegistration = ({ onRegister, onSaveRegistrationProgress, onLogin, onC
               )}
               {isRegistration && userType === 'company' && (
                 <div>
-                  <Label htmlFor="whatsapp" className="text-muted-foreground text-xs font-medium mb-1 block">WhatsApp</Label>
-                  <Input id="whatsapp" name="whatsapp" type="tel" inputMode="tel" autoComplete="tel" placeholder="(XX) XXXXX-XXXX" value={formData.whatsapp} onChange={handleInputChange} className="bg-popover border-border text-sm h-11" />
-                  <p className="mt-1 text-[11px] text-muted-foreground">Este número será identificado como WhatsApp para o comprador.</p>
+                  <Label htmlFor="whatsapp" className="text-muted-foreground text-xs font-medium mb-1 block">WhatsApp *</Label>
+                  <Input id="whatsapp" name="whatsapp" type="tel" inputMode="tel" autoComplete="tel" placeholder="(XX) XXXXX-XXXX" required value={formData.whatsapp} onChange={handleInputChange} aria-invalid={Boolean(fieldErrors.whatsapp)} className={`bg-popover border-border text-sm h-11 ${fieldErrors.whatsapp ? 'border-danger' : ''}`} />
+                  <FieldError>{fieldErrors.whatsapp}</FieldError>
+                  <p className="mt-1 text-[11px] text-muted-foreground">O comprador vai usar este número para falar com você sobre cada procura.</p>
                 </div>
               )}
               {isRegistration && userType === 'company' && (

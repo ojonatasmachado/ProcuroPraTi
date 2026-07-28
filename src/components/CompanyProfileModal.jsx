@@ -1,7 +1,8 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Building2, BadgeCheck, Star, Zap, MapPin, Phone, Smartphone, Car, Bike, Truck, Bus, CalendarDays } from 'lucide-react';
+import { Building2, BadgeCheck, Star, Zap, MapPin, Phone, Car, Bike, Truck, Bus, CalendarDays } from 'lucide-react';
+import WhatsAppIcon from '@/components/WhatsAppIcon';
 
 const VEHICLE_TYPE_LABELS = { car: ['Carros', Car], motorcycle: ['Motos', Bike], truck: ['Caminhões', Truck], bus: ['Ônibus', Bus] };
 
@@ -44,7 +45,7 @@ const CompanyProfileModal = ({ company, onClose }) => {
             <div className="grid gap-3 rounded-xl border border-border bg-popover p-4 text-sm">
               <div className="flex items-start gap-3"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><div><p className="text-xs text-muted-foreground">Endereço</p><p className="font-medium text-foreground">{company.address || 'Não informado'}</p></div></div>
               <div className="flex items-start gap-3"><Phone className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><div><p className="text-xs text-muted-foreground">Telefone</p>{company.phone ? <a href={`tel:${company.phone}`} className="font-semibold text-primary underline-offset-2 hover:underline">{company.phone}</a> : <p className="font-medium text-foreground">Não informado</p>}</div></div>
-              {company.whatsapp && <div className="flex items-start gap-3"><Smartphone className="mt-0.5 h-4 w-4 shrink-0 text-accent-agile" /><div><p className="text-xs text-muted-foreground">WhatsApp</p><a href={`https://wa.me/55${company.whatsapp.replace(/\D/g, '').replace(/^55/, '')}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-accent-agile underline-offset-2 hover:underline">{company.whatsapp}</a></div></div>}
+              {company.whatsapp && <div className="flex items-start gap-3"><WhatsAppIcon className="mt-0.5 h-4 w-4 shrink-0 text-accent-agile" /><div><p className="text-xs text-muted-foreground">WhatsApp</p><a href={`https://wa.me/55${company.whatsapp.replace(/\D/g, '').replace(/^55/, '')}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-accent-agile underline-offset-2 hover:underline">{company.whatsapp}</a></div></div>}
               {memberSince && <div className="flex items-start gap-3"><CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><div><p className="text-xs text-muted-foreground">Na plataforma desde</p><p className="font-medium text-foreground">{memberSince}</p></div></div>}
             </div>
             {Array.isArray(company.vehicleTypes) && company.vehicleTypes.length > 0 && (
