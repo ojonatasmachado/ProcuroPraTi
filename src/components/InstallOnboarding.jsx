@@ -12,7 +12,7 @@ const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 const canShowAgain = () => Number(window.localStorage.getItem(DISMISSED_UNTIL_KEY) || 0) <= Date.now();
 
-const InstallOnboarding = ({ isAuthenticated = false }) => {
+const InstallOnboarding = ({ isAuthenticated = false, milestoneReached = false, blocked = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const isAndroid = isAndroidDevice();
   const isIos = isIosDevice();
@@ -22,6 +22,9 @@ const InstallOnboarding = ({ isAuthenticated = false }) => {
       setIsOpen(false);
       return undefined;
     }
+    // Wait for the buyer's first procura / company's first response, and never
+    // fight the onboarding tour or the push-notification prompt for the screen.
+    if (!milestoneReached || blocked) return undefined;
     if (isStandalonePwa() || (!isAndroid && !isIos)) return undefined;
 
     const showWhenReady = () => {
@@ -35,7 +38,7 @@ const InstallOnboarding = ({ isAuthenticated = false }) => {
       window.clearTimeout(timer);
       window.removeEventListener(INSTALL_PROMPT_AVAILABLE_EVENT, showWhenReady);
     };
-  }, [isAuthenticated, isAndroid, isIos]);
+  }, [isAuthenticated, milestoneReached, blocked, isAndroid, isIos]);
 
   const dismissForNow = () => {
     window.localStorage.setItem(DISMISSED_UNTIL_KEY, String(Date.now() + ONE_DAY_MS));

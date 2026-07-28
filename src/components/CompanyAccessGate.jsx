@@ -6,12 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useSecureFieldRef } from '@/hooks/useSecureFieldRef';
 
 const CompanyAccessGate = ({ company, access, onClaim, onLogout }) => {
   const [mode, setMode] = useState('operator');
   const [username, setUsername] = useState('');
   const [pin, setPin] = useState('');
   const [showPin, setShowPin] = useState(false);
+  const pinRef = useSecureFieldRef(showPin);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -76,7 +78,7 @@ const CompanyAccessGate = ({ company, access, onClaim, onLogout }) => {
                   <div className="space-y-2">
                     <Label htmlFor="team-pin">PIN de acesso</Label>
                     <div className="relative min-w-0 overflow-hidden rounded-[10px]">
-                      <Input id="team-pin" type={showPin ? 'text' : 'password'} style={{ WebkitTextSecurity: showPin ? 'none' : 'disc' }} inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={pin} onChange={(event) => setPin(event.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="6 números" className="pr-12 tracking-[0.3em]" />
+                      <Input key={showPin ? 'pin-visible' : 'pin-hidden'} ref={pinRef} id="team-pin" type={showPin ? 'text' : 'password'} style={{ WebkitTextSecurity: showPin ? 'none' : 'disc' }} inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={pin} onChange={(event) => setPin(event.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="6 números" className="pr-12 tracking-[0.3em]" />
                       <button type="button" onClick={() => setShowPin(value => !value)} className="touch-manipulation absolute right-1 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={showPin ? 'Ocultar PIN' : 'Mostrar PIN'} aria-pressed={showPin}>
                         {showPin ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                       </button>

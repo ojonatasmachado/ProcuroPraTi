@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/use-toast';
 import dataService from '@/lib/dataService';
 import { generateCompanyPin, getCompanyDeviceId, getCompanyDeviceName } from '@/lib/companyAccess';
+import { useSecureFieldRef } from '@/hooks/useSecureFieldRef';
 
 const emptyOperator = () => ({ id: null, name: '', username: '', contactEmail: '', contactPhone: '', pin: generateCompanyPin() });
 const suggestUsername = (name, operators, currentId = null) => {
@@ -27,7 +28,8 @@ const suggestUsername = (name, operators, currentId = null) => {
 
 const PinField = ({ value, onChange }) => {
   const [visible, setVisible] = useState(true);
-  return <div className="relative min-w-0 overflow-hidden rounded-[10px]"><Input type={visible ? 'text' : 'password'} style={{ WebkitTextSecurity: visible ? 'none' : 'disc' }} inputMode="numeric" maxLength={6} value={value} onChange={(event) => onChange(event.target.value.replace(/\D/g, '').slice(0, 6))} className="pr-12 tracking-[0.3em]" /><button type="button" className="touch-manipulation absolute right-1 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" onClick={() => setVisible(current => !current)} aria-label={visible ? 'Ocultar PIN' : 'Mostrar PIN'} aria-pressed={visible}>{visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div>;
+  const pinRef = useSecureFieldRef(visible);
+  return <div className="relative min-w-0 overflow-hidden rounded-[10px]"><Input key={visible ? 'pin-visible' : 'pin-hidden'} ref={pinRef} type={visible ? 'text' : 'password'} style={{ WebkitTextSecurity: visible ? 'none' : 'disc' }} inputMode="numeric" maxLength={6} value={value} onChange={(event) => onChange(event.target.value.replace(/\D/g, '').slice(0, 6))} className="pr-12 tracking-[0.3em]" /><button type="button" className="touch-manipulation absolute right-1 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" onClick={() => setVisible(current => !current)} aria-label={visible ? 'Ocultar PIN' : 'Mostrar PIN'} aria-pressed={visible}>{visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div>;
 };
 
 const CompanyTeamManagement = ({ company, access, onEnabled, onClose }) => {

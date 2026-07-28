@@ -6,12 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useSecureFieldRef } from '@/hooks/useSecureFieldRef';
 
 const PasswordResetForm = ({ onSubmit, onCancel }) => {
   const [password, setPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const passwordRef = useSecureFieldRef(showPassword);
+  const confirmationRef = useSecureFieldRef(showConfirmation);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const rules = useMemo(() => [
@@ -59,7 +62,7 @@ const PasswordResetForm = ({ onSubmit, onCancel }) => {
             <div>
               <Label htmlFor="newPassword" className="mb-1.5 block text-sm text-muted-foreground">Nova senha *</Label>
               <div className="relative min-w-0 overflow-hidden rounded-[10px]">
-                <Input id="newPassword" type={showPassword ? 'text' : 'password'} style={{ WebkitTextSecurity: showPassword ? 'none' : 'disc' }} value={password} onChange={(event) => { setPassword(event.target.value); setError(''); }} autoComplete="new-password" className="h-11 pr-12" autoFocus />
+                <Input key={showPassword ? 'reset-visible' : 'reset-hidden'} ref={passwordRef} id="newPassword" type={showPassword ? 'text' : 'password'} style={{ WebkitTextSecurity: showPassword ? 'none' : 'disc' }} value={password} onChange={(event) => { setPassword(event.target.value); setError(''); }} autoComplete="new-password" className="h-11 pr-12" autoFocus />
                 <button type="button" onClick={() => setShowPassword(value => !value)} className="touch-manipulation absolute right-1 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'} aria-pressed={showPassword}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
               </div>
               <div className="mt-2 grid gap-1.5 rounded-lg border border-border bg-input/40 p-3">
@@ -69,7 +72,7 @@ const PasswordResetForm = ({ onSubmit, onCancel }) => {
             <div>
               <Label htmlFor="newPasswordConfirmation" className="mb-1.5 block text-sm text-muted-foreground">Confirmar nova senha *</Label>
               <div className="relative min-w-0 overflow-hidden rounded-[10px]">
-                <Input id="newPasswordConfirmation" type={showConfirmation ? 'text' : 'password'} style={{ WebkitTextSecurity: showConfirmation ? 'none' : 'disc' }} value={confirmation} onChange={(event) => { setConfirmation(event.target.value); setError(''); }} autoComplete="new-password" className="h-11 pr-12" />
+                <Input key={showConfirmation ? 'reset-confirmation-visible' : 'reset-confirmation-hidden'} ref={confirmationRef} id="newPasswordConfirmation" type={showConfirmation ? 'text' : 'password'} style={{ WebkitTextSecurity: showConfirmation ? 'none' : 'disc' }} value={confirmation} onChange={(event) => { setConfirmation(event.target.value); setError(''); }} autoComplete="new-password" className="h-11 pr-12" />
                 <button type="button" onClick={() => setShowConfirmation(value => !value)} className="touch-manipulation absolute right-1 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={showConfirmation ? 'Ocultar senha' : 'Mostrar senha'} aria-pressed={showConfirmation}>{showConfirmation ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
               </div>
               {confirmation && <p className={`mt-1.5 text-xs font-medium ${passwordsMatch ? 'text-accent-agile' : 'text-danger'}`}>{passwordsMatch ? 'As senhas são iguais.' : 'As senhas não são iguais.'}</p>}

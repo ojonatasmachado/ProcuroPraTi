@@ -30,6 +30,7 @@ const AppHeader = ({
   onShowTerms,
   onOpenFeedbackModal,
   onShowOnboardingTour,
+  onNeedsPushInstall,
   onLogout
 }) => {
   const displayName = companyAccess?.operatorName || currentUser?.name?.split(' ')[0] || currentUser?.email?.split('@')[0] || 'Usuário';
@@ -60,6 +61,28 @@ const AppHeader = ({
       setPushState(await getPushState().catch(() => 'unsupported'));
       toast({ title: 'Não foi possível alterar as notificações', description: error.message, variant: 'destructive' });
     }
+  };
+
+  // On iPhone, "unsupported" covers two very different, actionable situations that
+  // a flat disabled menu item used to hide entirely: not installed to the Home
+  // Screen yet (any iOS version), or installed but on an iOS older than 16.4 (Apple
+  // only allows Home Screen web apps to receive push from that version on).
+  const needsIosInstall = pushState === 'unsupported' && pushSupportReason === 'ios-installation';
+  const needsIosUpdate = pushState === 'unsupported' && pushSupportReason === 'ios-version';
+
+  const handlePushMenuClick = () => {
+    if (needsIosInstall) {
+      onNeedsPushInstall?.();
+      return;
+    }
+    if (needsIosUpdate) {
+      toast({
+        title: 'Atualize o iPhone para ativar',
+        description: 'A Apple libera notificações em apps da Tela de Início somente no iOS 16.4 ou mais recente. Vá em Ajustes › Geral › Atualização de Software, atualize e depois abra o app pelo ícone para ativar.',
+      });
+      return;
+    }
+    togglePush();
   };
   return (
     <header className="safe-header sticky top-0 z-50 min-h-[72px] border-b border-border bg-card/80 px-3 py-3 shadow-md backdrop-blur-md sm:px-4">
@@ -123,9 +146,9 @@ const AppHeader = ({
               <DropdownMenuSeparator className="bg-border"/>
               {userType !== 'admin' && (
                 <>
-                  <DropdownMenuItem onClick={togglePush} disabled={pushState === 'loading' || pushState === 'unsupported' || pushState === 'denied'} className="cursor-pointer focus:!bg-primary/15 focus:!text-foreground">
+                  <DropdownMenuItem onClick={handlePushMenuClick} disabled={pushState === 'loading' || pushState === 'denied' || (pushState === 'unsupported' && !needsIosInstall && !needsIosUpdate)} className="cursor-pointer focus:!bg-primary/15 focus:!text-foreground">
                     {pushState === 'enabled' ? <BellOff className="mr-2 h-4 w-4 text-muted-foreground" /> : <BellRing className="mr-2 h-4 w-4 text-primary" />}
-                    <span>{pushState === 'enabled' ? 'Desativar notificações' : pushState === 'denied' ? 'Notificações bloqueadas' : pushState === 'unsupported' ? pushSupportReason === 'ios-version' ? 'Atualize o iPhone' : 'Push indisponível' : 'Ativar notificações'}</span>
+                    <span>{pushState === 'enabled' ? 'Desativar notificações' : pushState === 'denied' ? 'Notificações bloqueadas' : needsIosInstall ? 'Instalar para ativar' : needsIosUpdate ? 'Atualize o iPhone' : pushState === 'unsupported' ? 'Push indisponível' : 'Ativar notificações'}</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-border"/>
                 </>

@@ -79,6 +79,7 @@ function App() {
   const [showSuggestionPopup, setShowSuggestionPopup] = useState(false);
   const [suggestionSchedule, setSuggestionSchedule] = useState({ userId: null, firstAccessAt: null, lastShownAt: null });
   const [userProcuraCount, setUserProcuraCount] = useState(0);
+  const [companyResponseCount, setCompanyResponseCount] = useState(0);
   const [showFirstProcuraInfo, setShowFirstProcuraInfo] = useState(false);
   const [showOnboardingTour, setShowOnboardingTour] = useState(false);
   const [adminPreviewData, setAdminPreviewData] = useState(null);
@@ -328,6 +329,9 @@ function App() {
     }
     const loadedProcuras = await loadAuthenticatedData(account.profile.id);
     setUserProcuraCount(account.type === 'user' ? loadedProcuras.filter(item => item.userId === account.profile.id).length : 0);
+    setCompanyResponseCount(account.type === 'company'
+      ? loadedProcuras.filter(item => (item.responses || []).some(response => response.companyId === account.profile.id)).length
+      : 0);
     setIsAuthLoading(false);
   }, [isCollaboratorEntry, loadAuthenticatedData]);
 
@@ -548,6 +552,8 @@ function App() {
   };
 
   const handleResponseSubmit = async (procuraId, response) => {
+    const isNewResponseForCompany = !(procuras.find(p => p.id === procuraId)?.responses || [])
+      .some(existingResponse => existingResponse.companyId === currentUser?.id);
     const storedResponse = {
       ...response,
       id: response.id || crypto.randomUUID(),
@@ -579,6 +585,7 @@ function App() {
     );
     toast({ title: "Resposta Enviada!", description: Number(pushResult?.sent || 0) > 0 ? "O comprador recebeu uma notificação." : "A resposta já está disponível para o comprador." });
     updateUnreadNotifications();
+      if (isNewResponseForCompany) setCompanyResponseCount(prev => (prev || 0) + 1);
       const refreshedSubscription = await dataService.getCompanySubscriptionContext().catch(() => null);
       if (refreshedSubscription) setSubscriptionContext(refreshedSubscription);
       return true;
@@ -1202,6 +1209,7 @@ function App() {
         onOpenFeedbackModal={openFeedbackModal}
         onOpenChatList={handleOpenChatList}
         onShowOnboardingTour={() => setShowOnboardingTour(true)}
+        onNeedsPushInstall={() => setShowFirstProcuraInfo(true)}
         onLogout={handleLogout}
       />
 
@@ -1402,7 +1410,11 @@ function App() {
         onClose={closeOnboardingTour}
       />
 
-      <InstallOnboarding isAuthenticated={Boolean(currentUser)} />
+      <InstallOnboarding
+        isAuthenticated={Boolean(currentUser)}
+        milestoneReached={(userType === 'user' && userProcuraCount >= 1) || (userType === 'company' && companyResponseCount >= 1)}
+        blocked={showOnboardingTour || showFirstProcuraInfo}
+      />
       
       <Toaster />
     </div>
