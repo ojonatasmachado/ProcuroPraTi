@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Car, MapPin, Send, Camera, Upload, ListFilter, History, Edit3, CheckCircle2, XCircle, ArrowLeft, Bike, Truck, Bus, Timer, SlidersHorizontal, Search, RotateCcw } from 'lucide-react';
+import { Car, MapPin, Send, Camera, Upload, ListFilter, History, Edit3, CheckCircle2, XCircle, ArrowLeft, Bike, Truck, Bus, SlidersHorizontal, Search, RotateCcw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from '@/components/ui/use-toast';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
@@ -19,6 +19,14 @@ import useScrollToTop from '@/hooks/useScrollToTop';
 import { formatCurrency, formatCurrencyInput, normalizeCurrencyValue, sanitizeCurrencyInput } from '@/lib/currency';
 import DashboardSectionTabs from '@/components/DashboardSectionTabs';
 import { SubscriptionBlockedDialog } from '@/components/CompanyTrialExperience';
+import RemainingTimeBadge from '@/components/RemainingTimeBadge';
+
+const getPartNameSizeClass = (name) => {
+  const length = (name || '').length;
+  if (length <= 14) return 'text-lg';
+  if (length <= 24) return 'text-base';
+  return 'text-sm';
+};
 
 const PART_CONDITION_LABELS = {
   new: '🆕 Nova (sem uso)',
@@ -294,14 +302,6 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
     return <Car className="h-3 w-3" />;
   };
 
-  const getCompactTimeRemaining = (procura) => {
-    const remaining = getSearchRemainingMs(procura);
-    if (remaining <= 0) return 'encerrando';
-    const days = Math.floor(remaining / (24 * 60 * 60 * 1000));
-    const hours = Math.floor((remaining % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
-    return days > 0 ? `${days}d ${hours}h` : `${hours}h`;
-  };
-
   const renderCompactProcuraCard = (procura, type = 'to-respond') => {
     const hasResponded = type === 'responded';
     const response = procura.myResponse;
@@ -311,11 +311,11 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
       <Card key={procura.id} id={`procura-${procura.id}`} className={`overflow-hidden border-border border-l-[3px] bg-card shadow-sm ${hasResponded ? isAvailable ? 'border-l-accent-agile' : 'border-l-muted-foreground' : 'border-l-primary'}`}>
         <CardContent className="p-2.5">
           <div className="flex items-center justify-between gap-2">
-            <p className="truncate text-sm font-bold text-foreground">{procura.partName}</p>
+            <p className={`truncate font-bold text-foreground ${getPartNameSizeClass(procura.partName)}`}>{procura.partName}</p>
             {hasResponded ? (
               <Badge className={`shrink-0 text-[10px] font-extrabold ${isAvailable ? 'border-transparent bg-accent-agile text-accent-agile-foreground' : 'bg-secondary text-muted-foreground'}`}>{isAvailable ? 'Tenho' : 'Não tenho'}</Badge>
             ) : (
-              <Badge variant="outline" className="shrink-0 border-warning text-[10px] text-warning"><Timer className="mr-1 h-3 w-3" />{getCompactTimeRemaining(procura)}</Badge>
+              <RemainingTimeBadge procura={procura} compact />
             )}
           </div>
           <div className="mt-0.5 flex flex-wrap items-center gap-x-1 gap-y-0.5 truncate text-xs text-muted-foreground">

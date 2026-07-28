@@ -30,6 +30,9 @@ const vehicleFormFields = (vehicle) => ({
   vehicleFuel: vehicle.fuel || '',
 });
 
+const PROCURA_STEP_NAMES = { 1: 'Veículo e peça', 2: 'Preferências', 3: 'Revisão' };
+const CONDITION_LABELS = { any: 'Qualquer', new: 'Nova', used: 'Usada' };
+
 const createInitialFormData = (vehicle, savedLocation = null) => ({
   ...vehicleFormFields(vehicle),
   partName: '',
@@ -57,6 +60,7 @@ const SearchForm = ({ onProcuraCreate, onPhotoUpload, currentUser, allStatesAndC
     return locationOptions.find(option => profileLocation.endsWith(option.value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase())) || null;
   }, [currentUser?.location, locationOptions]);
   const [formData, setFormData] = useState(() => createInitialFormData(savedVehicle, savedLocation));
+  const [procuraStep, setProcuraStep] = useState(1);
 
   const [availableParts, setAvailableParts] = useState([]);
   const [vehicle, setVehicle] = useState(savedVehicle);
@@ -64,8 +68,6 @@ const SearchForm = ({ onProcuraCreate, onPhotoUpload, currentUser, allStatesAndC
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [isCreatingProcura, setIsCreatingProcura] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
-  const formRef = useRef(null);
-
   useEffect(() => {
     if (!editingProcura) return;
     const selectedVehicle = normalizeSavedVehicle({
@@ -100,36 +102,43 @@ const SearchForm = ({ onProcuraCreate, onPhotoUpload, currentUser, allStatesAndC
       .then(parts => {
         if (active) setAvailableParts(parts);
       });
-    setFormData(prev => ({ ...prev, partName: '' }));
     return () => { active = false; };
   }, [formData.vehicleType, vehicleData]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (isCreatingProcura) return;
-    
-    const errors = {
-      ...(!formData.vehicleType || !formData.vehicleBrand || !formData.vehicleModel ? { vehicle: 'Selecione o tipo, a marca e o modelo do veículo.' } : {}),
-      ...(!formData.partName?.trim() ? { partName: 'Informe o nome da peça que você procura.' } : {}),
-    };
-    if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors);
-      const firstField = Object.keys(errors)[0];
-      window.requestAnimationFrame(() => {
-        const target = document.getElementById(firstField === 'vehicle' ? 'searchVehicleSection' : firstField);
-        target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        window.setTimeout(() => {
-          const focusTarget = target?.matches?.('input,button,[tabindex]') ? target : target?.querySelector?.('input,button,[tabindex]:not([tabindex="-1"])');
-          focusTarget?.focus({ preventScroll: true });
-        }, 350);
-      });
-      toast({
-        title: 'Falta preencher uma informação',
-        description: errors[Object.keys(errors)[0]],
-        variant: "destructive"
-      });
+  const focusField = (fieldId) => {
+    window.requestAnimationFrame(() => {
+      const target = document.getElementById(fieldId);
+      target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      window.setTimeout(() => {
+        const focusTarget = target?.matches?.('input,button,[tabindex]') ? target : target?.querySelector?.('input,button,[tabindex]:not([tabindex="-1"])');
+        focusTarget?.focus({ preventScroll: true });
+      }, 350);
+    });
+  };
+
+  const validateStep1 = () => ({
+    ...(!formData.vehicleType || !formData.vehicleBrand || !formData.vehicleModel ? { vehicle: 'Selecione o tipo, a marca e o modelo do veículo.' } : {}),
+    ...(!formData.partName?.trim() ? { partName: 'Informe o nome da peça que você procura.' } : {}),
+  });
+
+  const handleStep1Continue = () => {
+    const errors = validateStep1();
+    setFieldErrors(errors);
+    const firstField = Object.keys(errors)[0];
+    if (firstField) {
+      focusField(firstField === 'vehicle' ? 'searchVehicleSection' : 'partName');
+      toast({ title: 'Falta preencher uma informação', description: errors[firstField], variant: 'destructive' });
       return;
     }
+    setProcuraStep(2);
+  };
+
+  const handleStep2Continue = () => {
+    setProcuraStep(3);
+  };
+
+  const submitProcura = async () => {
+    if (isCreatingProcura) return;
 
     const newProcura = {
       userId: currentUser?.id,
@@ -149,6 +158,7 @@ const SearchForm = ({ onProcuraCreate, onPhotoUpload, currentUser, allStatesAndC
       setFormData(createInitialFormData(savedVehicle, savedLocation));
       setVehicle(savedVehicle);
       setUsingSavedVehicle(hasSavedVehicle);
+      setProcuraStep(1);
     } finally {
       setIsCreatingProcura(false);
     }
@@ -160,6 +170,7 @@ const SearchForm = ({ onProcuraCreate, onPhotoUpload, currentUser, allStatesAndC
 
   const handleVehicleChange = (selected) => {
     setFieldErrors(previous => ({ ...previous, vehicle: '' }));
+    const typeChanged = selected.type !== vehicle.type;
     setVehicle(selected);
     setFormData(prev => ({
       ...prev,
@@ -171,13 +182,17 @@ const SearchForm = ({ onProcuraCreate, onPhotoUpload, currentUser, allStatesAndC
       vehicleModelId: selected.modelId || null,
       vehicleYearId: selected.yearId || null,
       vehicleFuel: selected.fuel,
+      // Sugestões de peça dependem da categoria do veículo; só some o nome
+      // digitado quando o tipo (carro/moto/...) muda de fato, não em ajustes
+      // de marca/modelo/ano nem no preenchimento inicial ao editar.
+      ...(typeChanged ? { partName: '' } : {}),
     }));
   };
 
   const handleOtherVehicle = () => {
     setUsingSavedVehicle(false);
     setVehicle(EMPTY_VEHICLE);
-    setFormData(prev => ({ ...prev, ...vehicleFormFields(EMPTY_VEHICLE) }));
+    setFormData(prev => ({ ...prev, ...vehicleFormFields(EMPTY_VEHICLE), partName: '' }));
   };
 
   const handleReferencePhoto = async (event) => {
@@ -196,6 +211,9 @@ const SearchForm = ({ onProcuraCreate, onPhotoUpload, currentUser, allStatesAndC
     }
   };
 
+  const finalActionLabel = reopeningProcura ? 'Criar nova procura com estes dados' : editingProcura ? 'Salvar alterações' : 'Criar procura';
+  const finalLoadingLabel = reopeningProcura ? 'Reabrindo procura' : editingProcura ? 'Salvando procura' : 'Criando procura';
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -203,104 +221,140 @@ const SearchForm = ({ onProcuraCreate, onPhotoUpload, currentUser, allStatesAndC
       transition={{ duration: 0.5 }}
       className="mb-6 sm:mb-8"
     >
-      <Card className="glass-effect border-primary/30">
-        <CardHeader className="pb-4 sm:pb-6 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
-          <CardTitle className="flex items-center gap-2 text-foreground text-lg sm:text-xl">
-            <PackagePlus className="h-5 w-5 sm:h-6 sm:w-6" />
-            {reopeningProcura ? 'Reabrir procura' : editingProcura ? 'Editar procura de peça' : 'Criar nova procura de peça'}
-          </CardTitle>
-          {onGoBack && (
-            <Button variant="outline" size="sm" onClick={onGoBack} className="w-full sm:w-auto border-muted-foreground/50 text-muted-foreground hover:border-primary hover:text-primary">
-              <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
-            </Button>
-          )}
+      <Card className="glass-effect border-primary/30 max-w-2xl mx-auto">
+        <CardHeader className="pb-4 sm:pb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
+            <div className="flex min-w-0 items-center gap-1.5">
+              {procuraStep > 1 && (
+                <Button type="button" variant="ghost" size="icon" onClick={() => setProcuraStep(step => step - 1)} aria-label="Etapa anterior" className="h-8 w-8 shrink-0 text-muted-foreground hover:text-primary">
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              )}
+              <CardTitle className="flex items-center gap-2 text-foreground text-lg sm:text-xl">
+                <PackagePlus className="h-5 w-5 sm:h-6 sm:w-6" />
+                {reopeningProcura ? 'Reabrir procura' : editingProcura ? 'Editar procura' : 'Criar procura'}
+              </CardTitle>
+            </div>
+            {onGoBack && (
+              <Button variant="outline" size="sm" onClick={onGoBack} className="w-full sm:w-auto border-muted-foreground/50 text-muted-foreground hover:border-primary hover:text-primary">
+                Sair
+              </Button>
+            )}
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-1.5" aria-label={`Etapa ${procuraStep} de 3`}>
+            {[1, 2, 3].map(step => <span key={step} className={`h-1.5 rounded-full ${step <= procuraStep ? 'bg-primary' : 'bg-border'}`} />)}
+          </div>
+          <p className="mt-1.5 text-xs font-medium text-muted-foreground">Etapa {procuraStep} de 3 · {PROCURA_STEP_NAMES[procuraStep]}</p>
         </CardHeader>
         <CardContent>
-          <form ref={formRef} onSubmit={handleSubmit} className="space-y-3 sm:space-y-4" noValidate>
-            <div id="searchVehicleSection" tabIndex="-1" className={`rounded-xl ${fieldErrors.vehicle ? 'ring-2 ring-danger ring-offset-2 ring-offset-background' : ''}`}>
-            {usingSavedVehicle ? (
-              <Card className="border-primary/30 bg-primary/10 shadow-none">
-                <CardContent className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground"><Car className="h-5 w-5" /></span>
-                    <div className="min-w-0">
-                      <p className="text-xs font-medium text-muted-foreground">Meu automóvel</p>
-                      <p className="truncate text-sm font-semibold text-foreground">{[savedVehicle.brandName, savedVehicle.modelName, savedVehicle.year].filter(Boolean).join(' • ')}</p>
-                    </div>
-                  </div>
-                  <Button type="button" variant="outline" size="sm" onClick={handleOtherVehicle} className="w-full border-primary/50 text-foreground hover:bg-primary/15 sm:w-auto">
-                    Outro automóvel
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <VehicleSelector value={vehicle} onChange={handleVehicleChange} idPrefix="search-vehicle" />
-            )}
-            </div>
-            {fieldErrors.vehicle && <p className="-mt-1 text-xs font-medium text-danger" role="alert">{fieldErrors.vehicle}</p>}
-
-            <div className="relative">
-              <Label htmlFor="partName" className="block text-xs sm:text-sm font-medium mb-1 text-muted-foreground">Nome da Peça *</Label>
-              <AutocompleteInput id="partName" placeholder="Digite ou selecione o nome da peça" value={formData.partName} onChange={(value) => { setFieldErrors(previous => ({ ...previous, partName: '' })); handleFieldChange('partName', value); }} onSelect={(value) => { setFieldErrors(previous => ({ ...previous, partName: '' })); handleFieldChange('partName', value); }} suggestions={availableParts} className={`bg-input text-sm ${fieldErrors.partName ? 'border-danger ring-1 ring-danger' : 'border-border'}`} disabled={!formData.vehicleType}/>
-              {fieldErrors.partName && <p className="mt-1 text-xs font-medium text-danger" role="alert">{fieldErrors.partName}</p>}
-            </div>
-
-            <div>
-              <Label htmlFor="partDescription" className="block text-xs sm:text-sm font-medium mb-1 text-muted-foreground">Descrição Detalhada</Label>
-              <Textarea id="partDescription" placeholder="Detalhes da peça, cor, condições, código (se souber), etc." value={formData.partDescription} onChange={(e) => handleFieldChange('partDescription', e.target.value)} className="bg-input border-border text-sm" rows={2}/>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="block text-xs sm:text-sm font-medium text-muted-foreground">Condição desejada</Label>
-              <div className="grid grid-cols-3 gap-2" role="group" aria-label="Condição desejada da peça">
-                {[['any', 'Qualquer'], ['new', 'Nova'], ['used', 'Usada']].map(([value, label]) => (
-                  <Button key={value} type="button" variant="outline" size="sm" aria-pressed={formData.preferredCondition === value} onClick={() => handleFieldChange('preferredCondition', value)} className={formData.preferredCondition === value ? 'border-primary bg-primary/15 text-primary' : ''}>{label}</Button>
-                ))}
+          {procuraStep === 1 && (
+            <div className="space-y-3 sm:space-y-4">
+              <div id="searchVehicleSection" tabIndex="-1" className={`rounded-xl ${fieldErrors.vehicle ? 'ring-2 ring-danger ring-offset-2 ring-offset-background' : ''}`}>
+                {usingSavedVehicle ? (
+                  <Card className="border-primary/30 bg-primary/10 shadow-none">
+                    <CardContent className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground"><Car className="h-5 w-5" /></span>
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium text-muted-foreground">Meu automóvel</p>
+                          <p className="truncate text-sm font-semibold text-foreground">{[savedVehicle.brandName, savedVehicle.modelName, savedVehicle.year].filter(Boolean).join(' • ')}</p>
+                        </div>
+                      </div>
+                      <Button type="button" variant="outline" size="sm" onClick={handleOtherVehicle} className="w-full border-primary/50 text-foreground hover:bg-primary/15 sm:w-auto">
+                        Outro automóvel
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <VehicleSelector value={vehicle} onChange={handleVehicleChange} idPrefix="search-vehicle" />
+                )}
               </div>
-            </div>
+              {fieldErrors.vehicle && <p className="-mt-1 text-xs font-medium text-danger" role="alert">{fieldErrors.vehicle}</p>}
 
-            <div className="space-y-2">
-              <Label className="block text-xs sm:text-sm font-medium text-muted-foreground">Foto de referência (opcional)</Label>
-              <input ref={photoInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleReferencePhoto} className="sr-only" />
-              {formData.referencePhotoUrl ? (
-                <div className="relative overflow-hidden rounded-xl border border-border bg-popover">
-                  <img src={formData.referencePhotoUrl} alt="Foto de referência da peça" className="h-40 w-full object-cover" />
-                  <Button type="button" size="icon" variant="outline" onClick={() => handleFieldChange('referencePhotoUrl', '')} className="absolute right-2 top-2 h-11 w-11 bg-card/95" aria-label="Remover foto"><X className="h-5 w-5" /></Button>
+              <div className="relative">
+                <Label htmlFor="partName" className="block text-xs sm:text-sm font-medium mb-1 text-muted-foreground">Nome da Peça *</Label>
+                <AutocompleteInput id="partName" placeholder="Digite ou selecione o nome da peça" value={formData.partName} onChange={(value) => { setFieldErrors(previous => ({ ...previous, partName: '' })); handleFieldChange('partName', value); }} onSelect={(value) => { setFieldErrors(previous => ({ ...previous, partName: '' })); handleFieldChange('partName', value); }} suggestions={availableParts} className={`bg-input text-sm ${fieldErrors.partName ? 'border-danger ring-1 ring-danger' : 'border-border'}`} disabled={!formData.vehicleType}/>
+                {fieldErrors.partName && <p className="mt-1 text-xs font-medium text-danger" role="alert">{fieldErrors.partName}</p>}
+              </div>
+
+              <div>
+                <Label htmlFor="partDescription" className="block text-xs sm:text-sm font-medium mb-1 text-muted-foreground">Descrição Detalhada</Label>
+                <Textarea id="partDescription" placeholder="Detalhes da peça, cor, condições, código (se souber), etc." value={formData.partDescription} onChange={(e) => handleFieldChange('partDescription', e.target.value)} className="bg-input border-border text-sm" rows={2}/>
+              </div>
+
+              <Button type="button" onClick={handleStep1Continue} className="w-full gradient-bg hover:opacity-90 text-primary-foreground font-semibold py-2.5 sm:py-3 text-sm sm:text-base">Continuar</Button>
+            </div>
+          )}
+
+          {procuraStep === 2 && (
+            <div className="space-y-3 sm:space-y-4">
+              <div className="space-y-2">
+                <Label className="block text-xs sm:text-sm font-medium text-muted-foreground">Condição desejada</Label>
+                <div className="grid grid-cols-3 gap-2" role="group" aria-label="Condição desejada da peça">
+                  {[['any', 'Qualquer'], ['new', 'Nova'], ['used', 'Usada']].map(([value, label]) => (
+                    <Button key={value} type="button" variant="outline" size="sm" aria-pressed={formData.preferredCondition === value} onClick={() => handleFieldChange('preferredCondition', value)} className={formData.preferredCondition === value ? 'border-primary bg-primary/15 text-primary' : ''}>{label}</Button>
+                  ))}
                 </div>
-              ) : (
-                <button type="button" onClick={() => photoInputRef.current?.click()} disabled={isUploadingPhoto} className="flex min-h-24 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-popover px-4 py-5 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-60">
-                  {isUploadingPhoto ? <Loader2 className="h-5 w-5 animate-spin" /> : <Upload className="h-5 w-5" />}
-                  {isUploadingPhoto ? 'Enviando foto...' : 'Selecionar foto da peça'}
-                </button>
-              )}
-            </div>
-            
-            <div className="space-y-2 sm:space-y-3">
-              <Label htmlFor="duration" className="block text-xs sm:text-sm font-medium flex items-center gap-1 text-muted-foreground">
-                <CalendarDays className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
-                Duração da Procura: {formData.duration} dia(s)
-              </Label>
-              <Slider
-                id="duration"
-                min={1} max={15} step={1}
-                defaultValue={[15]}
-                value={[formData.duration]}
-                onValueChange={(value) => handleFieldChange('duration', value[0])}
-                className="[&>span:first-child]:h-1 [&>span:first-child]:bg-primary"
-              />
-            </div>
+              </div>
 
-            <div className="flex items-center space-x-2 pt-2">
-              <Checkbox id="wantsPhotos" checked={formData.wantsPhotos} onCheckedChange={(checked) => handleFieldChange('wantsPhotos', Boolean(checked))} className="border-muted-foreground data-[state=checked]:bg-primary data-[state=checked]:border-primary"/>
-              <Label htmlFor="wantsPhotos" className="text-xs sm:text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-1 text-muted-foreground">
-                <Camera className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />Desejo receber fotos da peça
-              </Label>
-            </div>
+              <div className="space-y-2">
+                <Label className="block text-xs sm:text-sm font-medium text-muted-foreground">Foto de referência (opcional)</Label>
+                <input ref={photoInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleReferencePhoto} className="sr-only" />
+                {formData.referencePhotoUrl ? (
+                  <div className="relative overflow-hidden rounded-xl border border-border bg-popover">
+                    <img src={formData.referencePhotoUrl} alt="Foto de referência da peça" className="h-40 w-full object-cover" />
+                    <Button type="button" size="icon" variant="outline" onClick={() => handleFieldChange('referencePhotoUrl', '')} className="absolute right-2 top-2 h-11 w-11 bg-card/95" aria-label="Remover foto"><X className="h-5 w-5" /></Button>
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => photoInputRef.current?.click()} disabled={isUploadingPhoto} className="flex min-h-24 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-popover px-4 py-5 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-60">
+                    {isUploadingPhoto ? <Loader2 className="h-5 w-5 animate-spin" /> : <Upload className="h-5 w-5" />}
+                    {isUploadingPhoto ? 'Enviando foto...' : 'Selecionar foto da peça'}
+                  </button>
+                )}
+              </div>
 
-            <Button type="submit" disabled={isCreatingProcura || isUploadingPhoto} className="w-full gradient-bg hover:opacity-90 text-primary-foreground font-semibold py-2.5 sm:py-3 text-sm sm:text-base" aria-live="polite">
-              {isCreatingProcura ? <><span className="mr-2 inline-flex gap-1" aria-hidden="true"><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current" /><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:120ms]" /><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:240ms]" /></span>{reopeningProcura ? 'Reabrindo procura' : editingProcura ? 'Salvando procura' : 'Criando procura'}</> : <><PackagePlus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />{reopeningProcura ? 'Criar nova procura com estes dados' : editingProcura ? 'Salvar alterações' : 'Criar procura'}</>}
-            </Button>
-          </form>
+              <div className="space-y-2 sm:space-y-3">
+                <Label htmlFor="duration" className="block text-xs sm:text-sm font-medium flex items-center gap-1 text-muted-foreground">
+                  <CalendarDays className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+                  Duração da Procura: {formData.duration} dia(s)
+                </Label>
+                <Slider
+                  id="duration"
+                  min={1} max={15} step={1}
+                  defaultValue={[15]}
+                  value={[formData.duration]}
+                  onValueChange={(value) => handleFieldChange('duration', value[0])}
+                  className="[&>span:first-child]:h-1 [&>span:first-child]:bg-primary"
+                />
+              </div>
+
+              <div className="flex items-center space-x-2 pt-2">
+                <Checkbox id="wantsPhotos" checked={formData.wantsPhotos} onCheckedChange={(checked) => handleFieldChange('wantsPhotos', Boolean(checked))} className="border-muted-foreground data-[state=checked]:bg-primary data-[state=checked]:border-primary"/>
+                <Label htmlFor="wantsPhotos" className="text-xs sm:text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-1 text-muted-foreground">
+                  <Camera className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />Desejo receber fotos da peça
+                </Label>
+              </div>
+
+              <Button type="button" onClick={handleStep2Continue} disabled={isUploadingPhoto} className="w-full gradient-bg hover:opacity-90 text-primary-foreground font-semibold py-2.5 sm:py-3 text-sm sm:text-base">Continuar</Button>
+            </div>
+          )}
+
+          {procuraStep === 3 && (
+            <div className="space-y-3 sm:space-y-4">
+              <div className="space-y-2 rounded-lg border border-border bg-input/30 p-4 text-sm">
+                <div className="flex items-center justify-between gap-3"><span className="text-muted-foreground">Veículo</span><span className="text-right font-semibold text-foreground">{[formData.vehicleBrand, formData.vehicleModel, formData.vehicleYear].filter(Boolean).join(' ')}</span></div>
+                <div className="flex items-center justify-between gap-3"><span className="text-muted-foreground">Peça</span><span className="text-right font-semibold text-foreground">{formData.partName}</span></div>
+                <div className="flex items-center justify-between gap-3"><span className="text-muted-foreground">Condição</span><span className="text-right font-medium text-foreground">{CONDITION_LABELS[formData.preferredCondition] || '—'}</span></div>
+                <div className="flex items-center justify-between gap-3"><span className="text-muted-foreground">Duração</span><span className="text-right font-medium text-foreground">{formData.duration} dia{formData.duration === 1 ? '' : 's'}</span></div>
+                <div className="flex items-center justify-between gap-3"><span className="text-muted-foreground">Foto de referência</span><span className="text-right font-medium text-foreground">{formData.referencePhotoUrl ? 'Anexada' : 'Sem foto'}</span></div>
+                <div className="flex items-center justify-between gap-3"><span className="text-muted-foreground">Quer receber fotos</span><span className="text-right font-medium text-foreground">{formData.wantsPhotos ? 'Sim' : 'Não'}</span></div>
+                {formData.partDescription && <p className="border-t border-border pt-2 text-muted-foreground">“{formData.partDescription}”</p>}
+              </div>
+              <Button type="button" onClick={() => void submitProcura()} disabled={isCreatingProcura || isUploadingPhoto} className="w-full gradient-bg hover:opacity-90 text-primary-foreground font-semibold py-2.5 sm:py-3 text-sm sm:text-base" aria-live="polite">
+                {isCreatingProcura ? <><span className="mr-2 inline-flex gap-1" aria-hidden="true"><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current" /><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:120ms]" /><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:240ms]" /></span>{finalLoadingLabel}</> : <><PackagePlus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />{finalActionLabel}</>}
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </motion.div>
