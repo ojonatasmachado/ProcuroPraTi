@@ -10,7 +10,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import useScrollToTop from '@/hooks/useScrollToTop';
 import DashboardSectionTabs from '@/components/DashboardSectionTabs';
-import ConfettiBurst from '@/components/ConfettiBurst';
 import RemainingTimeBadge from '@/components/RemainingTimeBadge';
 
 const getPartNameSizeClass = (name) => {
@@ -103,7 +102,7 @@ const UserDashboard = ({ userProcuras, onProcuraCreate, onProcuraUpdate, onPhoto
         <Card className="border-border bg-card"><CardContent className="py-10 text-center"><BrandMark className="mx-auto mb-3 h-12 w-12 rounded-xl" /><p className="font-semibold text-foreground">{showFinished ? 'Nenhuma procura finalizada.' : 'Você ainda não tem procuras ativas.'}</p><p className="mt-1 text-sm text-muted-foreground">{showFinished ? 'Quando você finalizar uma procura, todo o histórico aparecerá aqui.' : 'Crie uma procura para receber respostas de empresas da sua região.'}</p></CardContent></Card>
       ) : visibleProcuras.map(procura => {
         const responses = (procura.responses || []).filter(response => response.status === 'available').length;
-        return <Card key={procura.id} className={`overflow-hidden border-border border-l-[3px] bg-card shadow-sm ${showFinished ? 'border-l-muted-foreground' : 'border-l-primary'}`}><CardContent className="p-3.5"><button type="button" onClick={() => handleViewResponses(procura)} className="flex w-full items-start gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><div className="min-w-0 flex-1"><p className={`line-clamp-2 leading-tight tracking-tight text-foreground font-extrabold ${getPartNameSizeClass(procura.partName)}`}>{procura.partName}</p><div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1.5"><p className="min-w-0 truncate text-xs leading-4 text-muted-foreground">{procura.vehicleBrand} {procura.vehicleModel} {procura.vehicleYear ? `(${procura.vehicleYear})` : ''}</p>{!showFinished && <RemainingTimeBadge procura={procura} compact />}</div></div><span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-extrabold ${responses > 0 ? 'bg-accent-agile text-accent-agile-foreground shadow-sm' : 'bg-secondary text-muted-foreground'}`}>{responses > 0 ? `${responses} resposta${responses === 1 ? '' : 's'}` : 'Sem respostas'}</span></button><div className="mt-2 grid grid-cols-2 gap-2 border-t border-border/60 pt-2"><Button type="button" variant={showFinished || responses === 0 ? 'outline' : 'positive'} onClick={() => handleViewResponses(procura)} className="min-h-11 text-xs font-bold"><Eye className="mr-1.5 h-4 w-4" />{showFinished ? 'Ver histórico' : responses === 0 ? 'Ver detalhes' : 'Ver respostas'}</Button>{showFinished ? <Button type="button" onClick={() => reopenWithChanges(procura)} className="min-h-11 text-xs"><RotateCcw className="mr-1.5 h-4 w-4" />Reabrir e ajustar</Button> : <Button type="button" variant="outline" disabled={Boolean(finishingProcuraId)} onClick={() => markAsFinished(procura.id)} className="min-h-11 border-warning/60 text-xs text-warning hover:bg-warning/10"><CheckCircle className="mr-1.5 h-4 w-4" />{finishingProcuraId === procura.id ? <span className="inline-flex gap-1" aria-label="Finalizando"><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current" /><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:120ms]" /><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:240ms]" /></span> : 'Finalizar'}</Button>}</div></CardContent></Card>;
+        return <Card key={procura.id} className={`overflow-hidden border-border border-l-[3px] bg-card shadow-sm ${showFinished ? 'border-l-muted-foreground' : 'border-l-primary'}`}><CardContent className="p-3.5"><button type="button" onClick={() => handleViewResponses(procura)} className="flex w-full items-start gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><div className="min-w-0 flex-1"><p className={`line-clamp-2 leading-tight tracking-tight text-foreground font-extrabold ${getPartNameSizeClass(procura.partName)}`}>{procura.partName}</p><div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1.5"><p className="min-w-0 truncate text-xs leading-4 text-muted-foreground">{procura.vehicleBrand} {procura.vehicleModel} {procura.vehicleYear ? `(${procura.vehicleYear})` : ''}</p>{!showFinished && <RemainingTimeBadge procura={procura} compact />}</div></div><span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-extrabold ${responses > 0 ? 'bg-accent-agile text-accent-agile-foreground shadow-sm' : 'bg-secondary text-muted-foreground'}`}>{responses > 0 ? `${responses} resposta${responses === 1 ? '' : 's'}` : 'Sem respostas'}</span></button><div className="mt-2 grid grid-cols-2 gap-2 border-t border-border/60 pt-2"><Button type="button" variant={showFinished || responses === 0 ? 'outline' : 'positive'} onClick={() => handleViewResponses(procura)} className="min-h-11 text-xs font-bold"><Eye className="mr-1.5 h-4 w-4" />{showFinished ? 'Ver histórico' : responses === 0 ? 'Ver detalhes' : 'Ver respostas'}</Button>{showFinished ? <Button type="button" onClick={() => reopenWithChanges(procura)} className="min-h-11 text-xs"><RotateCcw className="mr-1.5 h-4 w-4" />Reabrir e ajustar</Button> : <Button type="button" variant="outline" disabled={Boolean(finishingProcuraId)} onClick={() => markAsFinished(procura.id)} className="min-h-11 border-warning/60 text-xs text-warning hover:bg-warning/10"><CheckCircle className="mr-1.5 h-4 w-4" />{finishingProcuraId === procura.id ? <span className="inline-flex gap-1" aria-label="Finalizando"><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current" /><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:120ms]" /><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:240ms]" /></span> : 'Finalizar'}</Button>}</div></CardContent></Card>;
       })}
       {!showFinished && totalUnreadInActive > 0 && <p className="flex items-center justify-center gap-1 text-xs font-medium text-accent-agile"><Bell className="h-3.5 w-3.5" />Você tem {totalUnreadInActive} resposta(s) nova(s).</p>}
     </div>;
@@ -124,19 +123,18 @@ const UserDashboard = ({ userProcuras, onProcuraCreate, onProcuraUpdate, onPhoto
 
   const renderCreationSuccessView = () => (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="mx-auto max-w-md">
-      <ConfettiBurst />
       <Card className="glass-effect border-accent-agile/40">
-        <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
+        <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
           <motion.span
             initial={{ scale: 0.4 }}
-            animate={{ scale: [0.4, 1.15, 1] }}
-            transition={{ duration: 0.5 }}
-            className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-accent-agile bg-accent-agile/10 text-accent-agile"
+            animate={{ scale: [0.4, 1.08, 1] }}
+            transition={{ duration: 0.4 }}
+            className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-accent-agile text-accent-agile"
           >
-            <CheckCircle2 className="h-11 w-11" />
+            <CheckCircle2 className="h-8 w-8" />
           </motion.span>
           <div>
-            <h2 className="text-xl font-bold text-foreground">Procura publicada!</h2>
+            <h2 className="text-lg font-bold text-foreground">Procura publicada!</h2>
             <p className="mt-1 text-sm text-muted-foreground">Empresas da sua região já podem responder. {lastCreatedProcura?.partName}</p>
           </div>
           <Button onClick={() => setCurrentView('home')} className="mt-2 w-full gradient-bg text-primary-foreground hover:opacity-90">Ver minhas procuras</Button>

@@ -529,15 +529,9 @@ function App() {
     try {
       const created = await dataService.createProcura(procuraWithCountdown);
       setProcuras(prev => [created, ...(Array.isArray(prev) ? prev : [])]);
-      const pushResult = await dataService.sendPushEvent('new_search', created.id).catch(() => null);
-      const notifiedCompanies = Number(pushResult?.sent || 0);
-      toast({
-        title: "Nova procura criada",
-        description: notifiedCompanies > 0
-          ? `Sua procura já está disponível e ${notifiedCompanies} empresa(s) recebeu(ram) a notificação.`
-          : "Sua procura já está disponível para as empresas compatíveis.",
-        duration: 5000,
-      });
+      // Sem toast de sucesso aqui: a criação sempre termina na tela de
+      // confirmação com confete (UserDashboard), que já avisa o comprador.
+      await dataService.sendPushEvent('new_search', created.id).catch(() => null);
     } catch (error) {
       toast({ title: "Não foi possível criar a procura", description: error.message, variant: "destructive" });
       return false;
@@ -553,10 +547,14 @@ function App() {
   };
 
   const handleResponseSubmit = async (procuraId, response) => {
+    // skipToast: a resposta enviada pelo wizard (CompanyDashboard) já termina
+    // numa tela de confirmação própria; só o caminho rápido "Não tenho" ainda
+    // depende deste toast para dar feedback.
+    const { skipToast, ...responseData } = response;
     const isNewResponseForCompany = !(procuras.find(p => p.id === procuraId)?.responses || [])
       .some(existingResponse => existingResponse.companyId === currentUser?.id);
     const storedResponse = {
-      ...response,
+      ...responseData,
       id: response.id || crypto.randomUUID(),
       companyId: currentUser?.id,
       companyName: currentUser?.name,
@@ -584,7 +582,7 @@ function App() {
         return procura;
       })
     );
-    toast({ title: "Resposta Enviada!", description: Number(pushResult?.sent || 0) > 0 ? "O comprador recebeu uma notificação." : "A resposta já está disponível para o comprador." });
+    if (!skipToast) toast({ title: "Resposta Enviada!", description: Number(pushResult?.sent || 0) > 0 ? "O comprador recebeu uma notificação." : "A resposta já está disponível para o comprador." });
     updateUnreadNotifications();
       if (isNewResponseForCompany) setCompanyResponseCount(prev => (prev || 0) + 1);
       const refreshedSubscription = await dataService.getCompanySubscriptionContext().catch(() => null);

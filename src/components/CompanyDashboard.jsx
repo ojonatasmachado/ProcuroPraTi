@@ -168,6 +168,8 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
       location: currentUser.address.split(',').slice(-2).join(',').trim(),
       isReadByUser: false,
       isReadByCompany: true,
+      // A tela de confirmação do wizard já avisa; evita duplicar com o toast.
+      skipToast: true,
     };
 
     try {
@@ -318,7 +320,7 @@ const CompanyDashboard = ({ allProcuras = [], companyResponses = [], onResponseS
               <RemainingTimeBadge procura={procura} compact />
             )}
           </div>
-          <div className="mt-0.5 flex flex-wrap items-center gap-x-1 gap-y-0.5 truncate text-xs text-muted-foreground">
+          <div className="mt-2 flex flex-wrap items-center gap-x-1 gap-y-0.5 truncate text-xs text-muted-foreground">
             {getVehicleIcon(procura.vehicleType)}
             <span className="truncate">{procura.vehicleBrand} {procura.vehicleModel} {procura.vehicleYear ? `(${procura.vehicleYear})` : ''}</span>
             {distance !== null && <span className="shrink-0">· {distance < 1 ? `${Math.round(distance * 1000)} m` : `${distance.toFixed(0)} km`}</span>}
