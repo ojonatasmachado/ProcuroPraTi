@@ -525,6 +525,7 @@ const UserRegistration = ({ onRegister, onSaveRegistrationProgress, onLogin, onC
                     onChange={(cnpj) => { setFieldErrors(prev => ({ ...prev, cnpj: '' })); setFormError(''); setFormData(prev => ({ ...prev, cnpj })); }}
                     onCompanyFound={handleCompanyFound}
                     required
+                    autoFocus
                     inputClassName="bg-popover border-border text-sm h-11"
                   />
                   <FieldError>{fieldErrors.cnpj}</FieldError>
@@ -553,7 +554,7 @@ const UserRegistration = ({ onRegister, onSaveRegistrationProgress, onLogin, onC
               {step !== 'email' && (userType === 'company' || !isRegistration || registrationStage === 'personal') && <div>
                 <Label htmlFor="password" className="text-muted-foreground text-xs font-medium mb-1 block">Senha</Label>
                 <div className="relative min-w-0 overflow-hidden rounded-[10px]">
-                  <Input key={showPassword ? 'password-visible' : 'password-hidden'} ref={passwordRef} id="password" name="password" type={showPassword ? 'text' : 'password'} style={{ WebkitTextSecurity: showPassword ? 'none' : 'disc' }} autoComplete={isLogin ? 'current-password' : 'new-password'} placeholder={isLogin ? "Digite sua senha" : "Crie uma senha"} required value={formData.password} onChange={handleInputChange} aria-describedby={isRegistration ? 'passwordRequirements' : undefined} aria-invalid={Boolean(fieldErrors.password) || (isRegistration && formData.password.length > 0 && !isPasswordValid)} className={`bg-popover border-border pr-12 text-sm h-11 ${fieldErrors.password ? 'border-danger' : ''}`} autoFocus />
+                  <Input key={showPassword ? 'password-visible' : 'password-hidden'} ref={passwordRef} id="password" name="password" type={showPassword ? 'text' : 'password'} style={{ WebkitTextSecurity: showPassword ? 'none' : 'disc' }} autoComplete={isLogin ? 'current-password' : 'new-password'} placeholder={isLogin ? "Digite sua senha" : "Crie uma senha"} required value={formData.password} onChange={handleInputChange} aria-describedby={isRegistration ? 'passwordRequirements' : undefined} aria-invalid={Boolean(fieldErrors.password) || (isRegistration && formData.password.length > 0 && !isPasswordValid)} className={`bg-popover border-border pr-12 text-sm h-11 ${fieldErrors.password ? 'border-danger' : ''}`} autoFocus={!(isRegistration && userType === 'company')} />
                   <button type="button" onClick={() => setShowPassword(value => !value)} className="touch-manipulation absolute right-1 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'} aria-pressed={showPassword}>
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>

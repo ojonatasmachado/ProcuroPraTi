@@ -10,6 +10,8 @@ export const formatCep = (value) => {
   return digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
 };
 
+const MAX_ATTEMPTS = 3;
+
 const CepAddressLookup = ({ value, onChange, onAddressFound, required = false, inputClassName = '' }) => {
   // idle | searching | retrying | found | not-found | error
   const [status, setStatus] = useState('idle');
@@ -54,14 +56,14 @@ const CepAddressLookup = ({ value, onChange, onAddressFound, required = false, i
 
     setStatus('searching');
     try {
-      let address = await fetchAddress(cep);
-      if (!address) {
-        setStatus('retrying');
+      let address = null;
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS && !address; attempt++) {
+        if (attempt > 1) setStatus('retrying');
         address = await fetchAddress(cep);
       }
       if (!address) {
         setStatus('not-found');
-        toast({ title: 'CEP não encontrado', description: 'Tentamos consultar duas vezes e não localizamos esse CEP. Preencha o endereço manualmente abaixo.', variant: 'destructive' });
+        toast({ title: 'CEP não encontrado', description: 'Não localizamos esse CEP. Preencha o endereço manualmente abaixo.', variant: 'destructive' });
         return;
       }
 

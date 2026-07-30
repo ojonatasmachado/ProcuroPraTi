@@ -25,7 +25,9 @@ const findMissingFields = (company) => {
   return missing;
 };
 
-const CnpjLookup = ({ value, onChange, onCompanyFound, required = false, inputClassName = '' }) => {
+const MAX_ATTEMPTS = 3;
+
+const CnpjLookup = ({ value, onChange, onCompanyFound, required = false, inputClassName = '', autoFocus = false }) => {
   // idle | searching | retrying | error
   const [status, setStatus] = useState('idle');
   const [lookupError, setLookupError] = useState('');
@@ -70,15 +72,15 @@ const CnpjLookup = ({ value, onChange, onCompanyFound, required = false, inputCl
 
     setStatus('searching');
     setLookupError('');
-    let company = await fetchCompany(cnpj);
-    if (!company) {
-      setStatus('retrying');
+    let company = null;
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS && !company; attempt++) {
+      if (attempt > 1) setStatus('retrying');
       company = await fetchCompany(cnpj);
     }
     if (!company) {
       setStatus('error');
-      setLookupError('Não localizamos essa empresa depois de tentar duas vezes. Preencha os dados manualmente.');
-      toast({ title: 'CNPJ não encontrado', description: 'Tentamos consultar duas vezes. Preencha os dados da empresa manualmente.', variant: 'destructive' });
+      setLookupError('Não localizamos essa empresa. Preencha os dados manualmente.');
+      toast({ title: 'CNPJ não encontrado', description: 'Preencha os dados da empresa manualmente.', variant: 'destructive' });
       return;
     }
 
@@ -130,6 +132,7 @@ const CnpjLookup = ({ value, onChange, onCompanyFound, required = false, inputCl
           value={value}
           onChange={(event) => { setStatus('idle'); setLookupError(''); onChange(formatCnpj(event.target.value)); }}
           required={required}
+          autoFocus={autoFocus}
           className={`${inputClassName} pr-10`}
         />
         {isLoading && (

@@ -63,7 +63,7 @@ const stack = [
 ];
 
 const externalServices = [
-  { name: 'BrasilAPI', usage: 'CEP (v1/v2) e CNPJ (v1)', where: 'Preenchimento automático de endereço no cadastro e dados da empresa a partir do CNPJ.', cost: 'Pública, sem chave. Grátis, sem SLA formal.' },
+  { name: 'BrasilAPI', usage: 'CEP (v1/v2) e CNPJ (v1)', where: 'Preenchimento automático de endereço no cadastro e dados da empresa a partir do CNPJ. CepAddressLookup/CnpjLookup tentam até 3 vezes (1 tentativa inicial + 2 novas) em caso de falha, mostrando "Buscando..." durante a consulta, antes de pedir preenchimento manual; a busca de CNPJ também lista quais campos (razão social, telefone, CEP, endereço, cidade, estado) não vieram da API. No cadastro de empresa, o campo CNPJ recebe o foco automaticamente por ser a primeira informação da tela.', cost: 'Pública, sem chave. Grátis, sem SLA formal.' },
   { name: 'ViaCEP', usage: 'CEP', where: 'Segundo provedor de CEP, corrida em paralelo com BrasilAPI, usa o que responder primeiro.', cost: 'Pública, sem chave. Grátis.' },
   { name: 'open.cnpja.com', usage: 'CNPJ', where: 'Fallback se a consulta de CNPJ na BrasilAPI falhar.', cost: 'Pública, sem chave. Grátis.' },
   { name: 'IBGE (servicodados)', usage: 'Estados/municípios e malhas geográficas (GeoJSON)', where: 'Base de 5.571 municípios usada no mapa regional e nos filtros de localização.', cost: 'Pública, sem chave. Grátis. Só é chamada nos scripts sync:cities/sync:municipality-meshes, não em tempo real pelo usuário.' },
@@ -122,7 +122,7 @@ const dataDictionary = [
     ['name', 'text', 'razão social ou nome fantasia da empresa'],
     ['email', 'text', 'email de login da empresa'],
     ['phone', 'text', 'telefone de contato'],
-    ['whatsapp', 'text', 'número de WhatsApp para contato com o comprador'],
+    ['whatsapp', 'text', 'número de WhatsApp para contato com o comprador, obrigatório no cadastro'],
     ['cnpj', 'text', 'CNPJ da empresa'],
     ['address', 'text', 'endereço textual da empresa'],
     ['address_number', 'text', 'número do endereço'],
@@ -661,6 +661,8 @@ const productComponents = [
   ['BrandLogo / BrandMark', 'Ver seção "Marca e ícone" acima.'],
   ['ThemeToggle', 'Alterna entre modo claro e escuro, persistindo a preferência.'],
   ['PhoneMockup / BrowserMockup', 'Molduras genéricas (sem marca de fabricante) para encaixar prints reais do produto em card/hero, usadas na seção "Como Funciona" da landing page. Ficam em src/components/landing/DeviceMockup.jsx; as imagens em si vêm de public/images/mockups/ e são sempre capturadas com dado fictício/demo, nunca de usuário real.'],
+  ['RemainingTimeBadge', 'Selo com anel de progresso mostrando o tempo restante de uma procura, colorido por urgência (calmo/em breve/urgente/encerrando conforme dias restantes), usado nos cards dos dashboards do comprador e da empresa no lugar de um texto cinza simples.'],
+  ['WhatsAppIcon', 'Glifo do WhatsApp em SVG (não é ícone de telefone genérico), usado no botão de contato de uma resposta, que abre wa.me com mensagem pré-preenchida citando a procura específica.'],
 ];
 
 const sections = [
@@ -948,7 +950,7 @@ export default function DocumentationPanel() {
             </CardHeader>
             <CardContent className="space-y-3">
               <EntryCard title="Comprador (users)"><p className="text-sm text-foreground/90">Conta padrão do Supabase Auth (e-mail e senha). Uma conta é uma pessoa.</p></EntryCard>
-              <EntryCard title="Empresa (companies)"><p className="text-sm text-foreground/90">Também conta do Supabase Auth. O cadastro guarda CNPJ, endereço e plano vinculados a essa mesma conta.</p></EntryCard>
+              <EntryCard title="Empresa (companies)"><p className="text-sm text-foreground/90">Também conta do Supabase Auth. O cadastro guarda CNPJ, endereço, WhatsApp (obrigatório, é o que alimenta o botão de contato numa resposta) e plano vinculados a essa mesma conta.</p></EntryCard>
               <EntryCard title="Colaborador (company_operators)"><p className="text-sm text-foreground/90">Não tem conta própria no Supabase Auth. Entra com CNPJ, usuário e PIN numa Edge Function que verifica as credenciais e emite um magic link para a conta da empresa. O acesso dele dentro do app é limitado por regras de RLS/role, por exemplo não pode editar perfil nem excluir a conta.</p></EntryCard>
               <EntryCard title="Admin" badge={<span className="rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-semibold text-warning">sem autenticação real</span>}>
                 <p className="text-sm text-foreground/90">Não existe um perfil de admin autenticado hoje. A tela /painel-interno-preview só carrega em modo de desenvolvimento local (import.meta.env.DEV); as funções serverless que ela e o painel de catálogo/planos chamam (api/admin-*.js) existem em produção, mas sem nenhum login ou verificação de permissão na frente. Ver seção Limitações.</p>
